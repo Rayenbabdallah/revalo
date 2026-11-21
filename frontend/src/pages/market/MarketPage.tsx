@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { ExternalLink, MapPin, MessageCircle, PackageOpen, UserPlus, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Link } from 'wouter'
+import { Link, useLocation, useSearch } from 'wouter'
 
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
 import { RecyclingTab } from './RecyclingTab'
@@ -293,8 +293,19 @@ function BuyersTab() {
   )
 }
 
+type Tab = 'listings' | 'buyers' | 'recycling'
+
+function tabFrom(search: string): Tab {
+  const t = new URLSearchParams(search).get('tab')
+  return t === 'buyers' || t === 'recycling' ? t : 'listings'
+}
+
 export function MarketPage() {
-  const [tab, setTab] = useState<'listings' | 'buyers' | 'recycling'>('listings')
+  const search = useSearch()
+  const [, navigate] = useLocation()
+  // The tab lives in the URL, so alert links can open any tab directly.
+  const tab = tabFrom(search)
+  const setTab = (t: Tab) => navigate(t === 'listings' ? '/market' : `/market?tab=${t}`, { replace: true })
   const data = useQuery({ queryKey: ['listings'], queryFn: getListings })
   const summary = data.data?.summary
   const listings = data.data?.listings ?? []
