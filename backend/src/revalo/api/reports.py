@@ -10,6 +10,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from revalo.db.session import get_session
+from revalo.services.alerts import current_alerts
 from revalo.services.jobs import default_workshop
 from revalo.services.pieces import stock_pieces
 from revalo.services.prices import price_book
@@ -39,3 +40,9 @@ def export_stock(session: DbSession) -> Response:
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="revalo-stock-{stamp}.csv"'},
     )
+
+
+@router.get("/v1/alerts")
+def alerts(session: DbSession) -> dict[str, Any]:
+    shop = default_workshop(session)
+    return {"alerts": current_alerts(session, price_book(session, shop.id))}
