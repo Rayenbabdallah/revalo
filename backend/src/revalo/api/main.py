@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import asyncio
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from revalo import __version__
+from revalo.api.forms import analysis_options
+from revalo.api.jobs import router as jobs_router
 from revalo.api.samples import router as samples_router
+from revalo.db.migrate import upgrade
 from revalo.engine.materials import materials, processes
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions, analyze
@@ -19,10 +24,21 @@ from revalo.engine.render import render_svg
 
 ANALYSIS_TIMEOUT_S = float(os.getenv("REVALO_ANALYSIS_TIMEOUT_S", "30"))
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # Keep the schema current on start. Production can set REVALO_AUTO_MIGRATE=0
+    # and run migrations as a separate deploy step instead.
+    if os.getenv("REVALO_AUTO_MIGRATE", "1") != "0":
+        await run_in_threadpool(upgrade)
+    yield
+
+
 app = FastAPI(
     title="Revalo API",
     version=__version__,
     description="Turns CNC job files into leftover records: remnants, scrap, weights.",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -31,10 +47,11 @@ app.add_middleware(
         for o in os.getenv("REVALO_CORS_ORIGINS", "http://localhost:5173").split(",")
         if o.strip()
     ],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
 app.include_router(samples_router)
+app.include_router(jobs_router)
 
 
 @app.get("/health")
@@ -64,38 +81,14 @@ def list_materials() -> dict[str, Any]:
 @app.post("/v1/analyze")
 async def analyze_file(
     file: Annotated[UploadFile, File(description="DXF nest, G-code program or CSV cut list")],
-    material: Annotated[str | None, Form()] = None,
-    thickness_mm: Annotated[float | None, Form(gt=0, le=200)] = None,
-    kerf_mm: Annotated[float | None, Form(ge=0, le=20)] = None,
-    process: Annotated[str | None, Form()] = None,
-    sheet_width_mm: Annotated[float | None, Form(gt=0, le=20000)] = None,
-    sheet_height_mm: Annotated[float | None, Form(gt=0, le=20000)] = None,
-    min_side_mm: Annotated[float | None, Form(gt=0, le=5000)] = None,
-    trim_mm: Annotated[float, Form(ge=0, le=100)] = 0.0,
-    allow_rotation: Annotated[bool, Form()] = True,
+    options: Annotated[AnalysisOptions, Depends(analysis_options)],
     include_geometry: Annotated[bool, Query()] = True,
     include_svg: Annotated[bool, Query()] = False,
 ) -> dict[str, Any]:
-    if material and material not in materials():
-        raise HTTPException(422, f"Unknown material code: {material}")
-    if process and process not in processes():
-        raise HTTPException(422, f"Unknown process: {process}")
-
+    """Analyze a file without saving anything: the try-before-you-sign-up path."""
     data = await file.read(MAX_FILE_BYTES + 1)
     if len(data) > MAX_FILE_BYTES:
         raise HTTPException(413, "File is larger than 25 MB.")
-
-    options = AnalysisOptions(
-        material_code=material or None,
-        thickness_mm=thickness_mm,
-        kerf_mm=kerf_mm,
-        process=process or None,
-        sheet_width_mm=sheet_width_mm,
-        sheet_height_mm=sheet_height_mm,
-        min_side_mm=min_side_mm,
-        trim_mm=trim_mm,
-        allow_rotation=allow_rotation,
-    )
     try:
         result = await asyncio.wait_for(
             run_in_threadpool(analyze, data, file.filename or "upload", options),
