@@ -61,6 +61,9 @@ class BuyerRequestCreate(BaseModel):
     min_length_mm: float | None = Field(None, gt=0, le=20_000)
     min_width_mm: float | None = Field(None, gt=0, le=20_000)
     max_price_tnd_per_kg: float | None = Field(None, gt=0, le=10_000)
+    offered_tnd_per_kg: float | None = Field(None, gt=0, le=10_000)
+    min_lot_kg: float | None = Field(None, gt=0, le=1_000_000)
+    pickup_note: str | None = Field(None, max_length=300)
     note: str | None = Field(None, max_length=500)
 
 

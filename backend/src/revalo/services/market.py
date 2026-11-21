@@ -68,6 +68,9 @@ class RequestInput:
     min_length_mm: float | None = None
     min_width_mm: float | None = None
     max_price_tnd_per_kg: float | None = None
+    offered_tnd_per_kg: float | None = None
+    min_lot_kg: float | None = None
+    pickup_note: str | None = None
     note: str | None = None
 
 
@@ -98,6 +101,9 @@ def create_request(session: Session, data: RequestInput) -> BuyerRequest:
         min_length_mm=data.min_length_mm,
         min_width_mm=data.min_width_mm,
         max_price_tnd_per_kg=data.max_price_tnd_per_kg,
+        offered_tnd_per_kg=data.offered_tnd_per_kg,
+        min_lot_kg=data.min_lot_kg,
+        pickup_note=(data.pickup_note or "").strip() or None,
         note=(data.note or "").strip() or None,
     )
     session.add(request)
@@ -119,6 +125,9 @@ def request_to_dict(request: BuyerRequest) -> dict[str, Any]:
         "min_length_mm": request.min_length_mm,
         "min_width_mm": request.min_width_mm,
         "max_price_tnd_per_kg": request.max_price_tnd_per_kg,
+        "offered_tnd_per_kg": request.offered_tnd_per_kg,
+        "min_lot_kg": request.min_lot_kg,
+        "pickup_note": request.pickup_note,
         "note": request.note,
         "active": request.active,
         "created_at": request.created_at.isoformat(),

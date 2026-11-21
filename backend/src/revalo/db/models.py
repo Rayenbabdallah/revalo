@@ -239,6 +239,12 @@ class BuyerRequest(Base):
     min_length_mm: Mapped[float | None] = mapped_column(Float)
     min_width_mm: Mapped[float | None] = mapped_column(Float)
     max_price_tnd_per_kg: Mapped[float | None] = mapped_column(Float)
+    offered_tnd_per_kg: Mapped[float | None] = mapped_column(Float)
+    """Recyclers: what they pay per kg for sorted material."""
+    min_lot_kg: Mapped[float | None] = mapped_column(Float)
+    """Recyclers: the smallest lot worth a trip."""
+    pickup_note: Mapped[str | None] = mapped_column(Text)
+    """Recyclers: pickup terms, such as days and truck size."""
     note: Mapped[str | None] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -267,3 +273,44 @@ class Listing(Base):
 
     piece: Mapped[Piece] = relationship(back_populates="listing")
     buyer: Mapped[BuyerRequest | None] = relationship()
+
+
+class PickupStatus(StrEnum):
+    REQUESTED = "requested"
+    SCHEDULED = "scheduled"
+    COLLECTED = "collected"
+    CANCELLED = "cancelled"
+
+
+class Pickup(Base):
+    """A recycler collecting a batch of scrap lots and old remnants."""
+
+    __tablename__ = "pickups"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    recycler_id: Mapped[str] = mapped_column(ForeignKey("buyer_requests.id"))
+    status: Mapped[str] = mapped_column(String(20), default=PickupStatus.REQUESTED)
+    scheduled_for: Mapped[date | None] = mapped_column(Date)
+    estimated_kg: Mapped[float] = mapped_column(Float)
+    weighed_kg: Mapped[float | None] = mapped_column(Float)
+    paid_tnd: Mapped[float | None] = mapped_column(Float)
+    created_by: Mapped[str] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    recycler: Mapped[BuyerRequest] = relationship()
+    items: Mapped[list[PickupItem]] = relationship(
+        back_populates="pickup", cascade="all, delete-orphan"
+    )
+
+
+class PickupItem(Base):
+    __tablename__ = "pickup_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    pickup_id: Mapped[str] = mapped_column(ForeignKey("pickups.id"), index=True)
+    piece_id: Mapped[str] = mapped_column(ForeignKey("pieces.id"))
+
+    pickup: Mapped[Pickup] = relationship(back_populates="items")
+    piece: Mapped[Piece] = relationship()

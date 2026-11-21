@@ -18,6 +18,7 @@ from revalo.api.forms import analysis_options
 from revalo.api.jobs import router as jobs_router
 from revalo.api.machines import router as machines_router
 from revalo.api.market import router as market_router
+from revalo.api.pickups import router as pickups_router
 from revalo.api.pieces import router as pieces_router
 from revalo.api.prices import router as prices_router
 from revalo.api.samples import router as samples_router
@@ -62,6 +63,7 @@ app.include_router(prices_router)
 app.include_router(market_router)
 app.include_router(machines_router)
 app.include_router(fit_router)
+app.include_router(pickups_router)
 
 
 @app.get("/health")
