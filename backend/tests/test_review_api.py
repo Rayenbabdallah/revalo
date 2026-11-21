@@ -67,6 +67,7 @@ def test_approval_moves_drafts_to_stock_and_skips_rejected(client, job):
     assert all(p["status"] == "in_stock" for p in others)
     review = date.fromisoformat(others[0]["review_date"])
     assert review == date.today() + timedelta(days=30)
+    assert others[0]["due_for_review"] is False
 
     # Approved records are locked, and a job is approved only once.
     assert (

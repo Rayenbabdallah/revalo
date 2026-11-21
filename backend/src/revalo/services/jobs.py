@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import date
 from typing import Any
 
 from sqlalchemy import select
@@ -123,6 +124,11 @@ def piece_to_dict(piece: Piece) -> dict[str, Any]:
         "condition_note": piece.condition_note,
         "location": piece.location,
         "review_date": piece.review_date.isoformat() if piece.review_date else None,
+        "due_for_review": (
+            piece.status == "in_stock"
+            and piece.review_date is not None
+            and piece.review_date <= date.today()
+        ),
         "label_url": f"{get_settings().public_url}/p/{piece.code}",
         "updated_at": piece.updated_at.isoformat(),
     }
