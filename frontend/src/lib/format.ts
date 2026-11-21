@@ -77,6 +77,8 @@ const STATUS_LABEL: Record<string, string> = {
   sold: 'Sold',
   recycled: 'Recycled',
   approved: 'Approved',
+  open: 'On sale',
+  withdrawn: 'Withdrawn',
 }
 export const statusLabel = (status: string) => STATUS_LABEL[status] ?? status
 

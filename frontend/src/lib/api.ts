@@ -222,6 +222,7 @@ export interface Piece {
   label_url: string
   updated_at: string
   decision: Decision
+  listing: { id: string; status: ListingStatus; price_tnd: number } | null
 }
 
 export interface PieceEvent {
@@ -355,3 +356,128 @@ export const putPrice = (code: string, body: PriceUpdate) =>
 
 export const resetPrice = (code: string) =>
   request<PriceRow>(`/v1/prices/${encodeURIComponent(code)}`, { method: 'DELETE' })
+
+/* ---------- Marketplace ---------- */
+
+export type ListingStatus = 'open' | 'reserved' | 'sold' | 'withdrawn'
+export type BuyerKind = 'reuse' | 'recycler'
+
+export interface BuyerRequest {
+  id: string
+  kind: BuyerKind
+  name: string
+  organization: string | null
+  phone: string
+  governorate: string
+  materials: string[]
+  thickness_min_mm: number | null
+  thickness_max_mm: number | null
+  min_length_mm: number | null
+  min_width_mm: number | null
+  max_price_tnd_per_kg: number | null
+  note: string | null
+  active: boolean
+  created_at: string
+  match_count?: number
+}
+
+export interface BuyerMatch {
+  request: BuyerRequest
+  score: number
+  distance_km: number | null
+  reasons: string[]
+  whatsapp_url: string
+}
+
+export interface PublicListing {
+  id: string
+  status: ListingStatus
+  price_tnd: number
+  price_tnd_per_kg: number | null
+  piece: {
+    code: string
+    kind: 'remnant' | 'scrap'
+    material_code: string | null
+    material_name: { en: string; fr: string } | null
+    family: MaterialFamily | null
+    thickness_mm: number | null
+    width_mm: number | null
+    height_mm: number | null
+    area_m2: number
+    weight_kg: number | null
+    condition_note: string | null
+  }
+  governorate: string | null
+  created_at: string
+  contact_url?: string | null
+}
+
+export interface WorkshopListing extends PublicListing {
+  piece_id: string
+  buyer: BuyerRequest | null
+  sold_price_tnd: number | null
+  fee_tnd: number | null
+  updated_at: string
+  closed_at: string | null
+  match_count?: number
+  top_matches?: BuyerMatch[]
+}
+
+export interface MarketSummary {
+  open: number
+  reserved: number
+  sold: number
+  sales_tnd: number
+  fees_tnd: number
+  open_value_tnd: number
+  active_requests: number
+}
+
+export type ListingAction = 'reprice' | 'reserve' | 'reopen' | 'sell' | 'withdraw'
+
+export const createListing = (pieceId: string, priceTnd?: number, actor = 'manager') =>
+  request<WorkshopListing>(`/v1/pieces/${encodeURIComponent(pieceId)}/listing`, {
+    method: 'POST',
+    ...json({ price_tnd: priceTnd, actor }),
+  })
+
+export const actOnListing = (
+  id: string,
+  body: { action: ListingAction; price_tnd?: number; buyer_request_id?: string; actor?: string },
+) => request<WorkshopListing>(`/v1/listings/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
+
+export const getListings = () =>
+  request<{ listings: WorkshopListing[]; summary: MarketSummary }>('/v1/listings')
+
+export const getListingMatches = (id: string) =>
+  request<{ listing: WorkshopListing; matches: BuyerMatch[] }>(`/v1/listings/${encodeURIComponent(id)}/matches`)
+
+export const getMarket = () => request<{ listings: PublicListing[] }>('/v1/market')
+
+export interface BuyerRequestInput {
+  kind: BuyerKind
+  name: string
+  organization?: string
+  phone: string
+  governorate: string
+  materials: string[]
+  thickness_min_mm?: number
+  thickness_max_mm?: number
+  min_length_mm?: number
+  min_width_mm?: number
+  max_price_tnd_per_kg?: number
+  note?: string
+}
+
+export const postBuyerRequest = (body: BuyerRequestInput) =>
+  request<BuyerRequest & { matching_listings: PublicListing[] }>('/v1/buyer-requests', {
+    method: 'POST',
+    ...json(body),
+  })
+
+export const getBuyerRequests = () => request<{ requests: BuyerRequest[] }>('/v1/buyer-requests')
+
+export const toggleBuyerRequest = (id: string, active: boolean) =>
+  request<BuyerRequest>(`/v1/buyer-requests/${encodeURIComponent(id)}`, { method: 'PATCH', ...json({ active }) })
+
+export const getGovernorates = () => request<{ governorates: string[] }>('/v1/geo/governorates')
