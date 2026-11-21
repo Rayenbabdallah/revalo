@@ -79,6 +79,10 @@ const STATUS_LABEL: Record<string, string> = {
   approved: 'Approved',
   open: 'On sale',
   withdrawn: 'Withdrawn',
+  requested: 'Requested',
+  scheduled: 'Scheduled',
+  collected: 'Collected',
+  cancelled: 'Cancelled',
 }
 export const statusLabel = (status: string) => STATUS_LABEL[status] ?? status
 

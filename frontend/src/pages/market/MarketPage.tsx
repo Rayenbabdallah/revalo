@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Link } from 'wouter'
 
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
+import { RecyclingTab } from './RecyclingTab'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { useActor } from '../../lib/actor'
 import {
@@ -293,7 +294,7 @@ function BuyersTab() {
 }
 
 export function MarketPage() {
-  const [tab, setTab] = useState<'listings' | 'buyers'>('listings')
+  const [tab, setTab] = useState<'listings' | 'buyers' | 'recycling'>('listings')
   const data = useQuery({ queryKey: ['listings'], queryFn: getListings })
   const summary = data.data?.summary
   const listings = data.data?.listings ?? []
@@ -348,6 +349,7 @@ export function MarketPage() {
         {([
           ['listings', `Listings${active.length ? ` · ${active.length}` : ''}`],
           ['buyers', 'Buyers'],
+          ['recycling', 'Recycling'],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -364,7 +366,9 @@ export function MarketPage() {
       </div>
 
       <div className="mt-5">
-        {tab === 'buyers' ? (
+        {tab === 'recycling' ? (
+          <RecyclingTab />
+        ) : tab === 'buyers' ? (
           <BuyersTab />
         ) : active.length === 0 && closed.length === 0 ? (
           <div className="panel flex flex-col items-center gap-2 px-6 py-14 text-center">

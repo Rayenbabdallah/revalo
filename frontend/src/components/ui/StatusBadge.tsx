@@ -13,6 +13,10 @@ const TONE: Record<string, string> = {
   recycled: 'border-rust-500/50 bg-rust-500/10 text-rust-400',
   open: 'border-brand-500/40 bg-brand-500/10 text-brand-300',
   withdrawn: 'border-ink-600 bg-ink-800 text-ink-400',
+  requested: 'border-brand-500/40 bg-brand-500/10 text-brand-300',
+  scheduled: 'border-brand-500/60 bg-brand-500/15 text-brand-300',
+  collected: 'border-reclaim-400/40 bg-reclaim-400/10 text-reclaim-300',
+  cancelled: 'border-ink-600 bg-ink-800 text-ink-400',
 }
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {

@@ -382,6 +382,9 @@ export interface BuyerRequest {
   min_length_mm: number | null
   min_width_mm: number | null
   max_price_tnd_per_kg: number | null
+  offered_tnd_per_kg: number | null
+  min_lot_kg: number | null
+  pickup_note: string | null
   note: string | null
   active: boolean
   created_at: string
@@ -473,6 +476,9 @@ export interface BuyerRequestInput {
   min_length_mm?: number
   min_width_mm?: number
   max_price_tnd_per_kg?: number
+  offered_tnd_per_kg?: number
+  min_lot_kg?: number
+  pickup_note?: string
   note?: string
 }
 
@@ -557,3 +563,57 @@ export const reuseRemnants = (pieceIds: string[], jobName: string, actor = 'mana
     method: 'POST',
     ...json({ piece_ids: pieceIds, job_name: jobName, actor }),
   })
+
+/* ---------- Recycler pickups ---------- */
+
+export interface RecyclerOption {
+  recycler: BuyerRequest
+  distance_km: number | null
+  lot_ok: boolean
+  estimated_tnd: number | null
+}
+
+export interface RecycleGroup {
+  material_code: string | null
+  material_name: { en: string; fr: string } | null
+  total_kg: number
+  pieces: {
+    id: string
+    code: string
+    kind: 'remnant' | 'scrap'
+    label: string
+    width_mm: number | null
+    height_mm: number | null
+    thickness_mm: number | null
+    weight_kg: number | null
+  }[]
+  recyclers: RecyclerOption[]
+}
+
+export type PickupStatus = 'requested' | 'scheduled' | 'collected' | 'cancelled'
+
+export interface Pickup {
+  id: string
+  status: PickupStatus
+  recycler: BuyerRequest
+  scheduled_for: string | null
+  estimated_kg: number
+  weighed_kg: number | null
+  paid_tnd: number | null
+  created_by: string
+  created_at: string
+  closed_at: string | null
+  pieces: { id: string; code: string; kind: string; material_code: string | null; thickness_mm: number | null; weight_kg: number | null }[]
+  whatsapp_url: string
+}
+
+export const getRecycleQueue = () => request<{ groups: RecycleGroup[] }>('/v1/pickups/queue')
+export const getPickups = () => request<{ pickups: Pickup[] }>('/v1/pickups')
+
+export const createPickup = (recyclerId: string, pieceIds: string[], actor = 'manager') =>
+  request<Pickup>('/v1/pickups', { method: 'POST', ...json({ recycler_id: recyclerId, piece_ids: pieceIds, actor }) })
+
+export const actOnPickup = (
+  id: string,
+  body: { action: 'schedule' | 'collect' | 'cancel'; scheduled_for?: string; weighed_kg?: number; paid_tnd?: number; actor?: string },
+) => request<Pickup>(`/v1/pickups/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })

@@ -60,7 +60,10 @@ export function BuyerRequestForm({
       thickness_max_mm: num(text('tmax')),
       min_length_mm: kind === 'reuse' ? num(text('length')) : undefined,
       min_width_mm: kind === 'reuse' ? num(text('width')) : undefined,
-      max_price_tnd_per_kg: num(text('price')),
+      max_price_tnd_per_kg: kind === 'reuse' ? num(text('price')) : undefined,
+      offered_tnd_per_kg: kind === 'recycler' ? num(text('offer')) : undefined,
+      min_lot_kg: kind === 'recycler' ? num(text('minlot')) : undefined,
+      pickup_note: kind === 'recycler' ? text('pickup') || undefined : undefined,
       note: text('note') || undefined,
     }
     post.mutate(body)
@@ -151,10 +154,27 @@ export function BuyerRequestForm({
             </Label>
           </>
         )}
-        <Label text="Max. price" hint="TND/kg">
-          <input name="price" inputMode="decimal" className={field} />
-        </Label>
+        {kind === 'reuse' ? (
+          <Label text="Max. price" hint="TND/kg">
+            <input name="price" inputMode="decimal" className={field} />
+          </Label>
+        ) : (
+          <Label text="You pay" hint="TND/kg">
+            <input name="offer" inputMode="decimal" className={field} placeholder="0.27" />
+          </Label>
+        )}
       </div>
+
+      {kind === 'recycler' && (
+        <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+          <Label text="Smallest lot" hint="kg">
+            <input name="minlot" inputMode="numeric" className={field} placeholder="200" />
+          </Label>
+          <Label text="Pickup terms" hint="optional">
+            <input name="pickup" className={field} placeholder="Tuesdays and Fridays, light truck" />
+          </Label>
+        </div>
+      )}
 
       <Label text="Anything else" hint="optional">
         <input name="note" className={field} placeholder="Collected on Saturdays, light truck…" />
