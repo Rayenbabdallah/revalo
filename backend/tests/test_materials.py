@@ -80,3 +80,21 @@ def test_default_kerf():
 )
 def test_infer_process(text, material, process):
     assert infer_process(text, material) == process
+
+
+def test_every_shipped_price_and_co2_factor_has_a_source():
+    for mat in materials().values():
+        for block in (mat.price, mat.co2):
+            if block is not None:
+                assert block.get("source"), mat.code
+        if mat.price is not None:
+            assert mat.price["new_tnd_per_kg"] > mat.price["scrap_tnd_per_kg"] >= 0
+            assert 0 < mat.price["resale_factor"] <= 1
+
+
+def test_sourced_defaults_match_the_financial_model():
+    steel = get_material("steel_mild")
+    assert steel.price["new_tnd_per_kg"] == 3.0 and steel.price["scrap_tnd_per_kg"] == 0.27
+    mdf = get_material("mdf")
+    # 100 TND per 37.5 kg panel
+    assert mdf.price["new_tnd_per_kg"] == pytest.approx(100 / 37.5, rel=0.01)

@@ -20,6 +20,9 @@ class Material:
     density_kg_m3: float
     aliases: tuple[str, ...]
     price: dict[str, Any] | None
+    """Default prices in TND: new_tnd_per_kg, scrap_tnd_per_kg, resale_factor, source."""
+    co2: dict[str, Any] | None
+    """CO2 factors in kg per kg: primary_kg_per_kg, recycling_saves_kg_per_kg, source."""
 
     def weight_kg(self, area_mm2: float, thickness_mm: float) -> float:
         """Mass of a flat piece: area x thickness x density."""
@@ -51,6 +54,7 @@ def materials() -> dict[str, Material]:
             density_kg_m3=float(m["density_kg_m3"]),
             aliases=tuple(_normalize(a) for a in m["aliases"]),
             price=m.get("price"),
+            co2=m.get("co2"),
         )
     return out
 

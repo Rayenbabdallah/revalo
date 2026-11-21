@@ -11,7 +11,13 @@
       "price": {
         "new_tnd_per_kg": 3.0,
         "scrap_tnd_per_kg": 0.27,
-        "source": "Scrap: IRMC Maghreb letter no. 34 (2023), El Fouladh 270 TND/t sorted steel. New: regulated rebar price ~2,900-3,000 TND/t (Dec 2021) used as a proxy for sheet."
+        "resale_factor": 0.4,
+        "source": "Scrap: IRMC Maghreb letter no. 34 (2023), El Fouladh 270 TND/t sorted steel. New: regulated rebar price ~2,900-3,000 TND/t (Dec 2021) used as a proxy for sheet. Resale at 40% of new price: Revalo assumption, to be measured in the pilot."
+      },
+      "co2": {
+        "primary_kg_per_kg": 1.92,
+        "recycling_saves_kg_per_kg": 1.5,
+        "source": "worldsteel: about 1.92 t CO2 per tonne of steel cast (global average); each tonne of scrap used in steelmaking avoids about 1.5 t CO2."
       }
     },
     {
@@ -69,9 +75,15 @@
       "density_kg_m3": 700,
       "aliases": ["mdf"],
       "price": {
-        "new_tnd_per_m3": 1866,
+        "new_tnd_per_kg": 2.67,
         "scrap_tnd_per_kg": 0.0,
-        "source": "Workshop price assumption of 100 TND per 2440x1220x18 mm panel (import average 496 USD/m3 in 2022). Wood offcuts have almost no scrap value."
+        "resale_factor": 0.3,
+        "source": "100 TND per 2440x1220x18 mm panel (37.5 kg), from the Revalo financial model (import average 496 USD/m3 in 2022). Wood offcuts have almost no scrap value. Resale at 30% of new price: Revalo assumption."
+      },
+      "co2": {
+        "primary_kg_per_kg": 0.39,
+        "recycling_saves_kg_per_kg": null,
+        "source": "ICE database v3 (Circular Ecology), MDF, fossil carbon, cradle to gate. No recycling channel for MDF offcuts in Tunisia, so no saving is claimed for recycling."
       }
     },
     {
