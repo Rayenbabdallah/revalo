@@ -158,3 +158,9 @@ def test_public_market_shows_open_listings_and_workshop_contact(client, stock, m
     public = client.get("/v1/market").json()["listings"]
     assert public[0]["contact_url"].startswith("https://wa.me/21671000000?text=Bonjour")
     assert client.get("/v1/geo/governorates").json()["governorates"][0] == "Tunis"
+
+
+def test_listings_carry_the_workshop_governorate(client, stock):
+    remnant, _ = stock
+    listing = client.post(f"/v1/pieces/{remnant['id']}/listing", json={}).json()
+    assert listing["governorate"] == "Ben Arous"

@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from revalo.db.models import Job, Piece, PieceEvent, PieceKind, Workshop
+from revalo.engine.geo import canonical
 from revalo.engine.pipeline import AnalysisOptions, analyze
 from revalo.services.decisions import decide_piece
 from revalo.services.prices import EffectivePrice
@@ -19,15 +20,19 @@ from revalo.storage import FileStorage
 
 def default_workshop(session: Session) -> Workshop:
     """The pilot runs one workshop per deployment; accounts come later."""
+    # The pilot starts in Ben Arous (Market Playbook, section 4).
+    governorate = canonical(os.getenv("REVALO_WORKSHOP_GOVERNORATE", "Ben Arous"))
     shop = session.scalars(select(Workshop).order_by(Workshop.created_at)).first()
     if shop is None:
         shop = Workshop(
-            name=os.getenv("REVALO_WORKSHOP_NAME", "Pilot workshop"),
-            # The pilot starts in Ben Arous (Market Playbook, section 4).
-            governorate=os.getenv("REVALO_WORKSHOP_GOVERNORATE", "Ben Arous"),
+            name=os.getenv("REVALO_WORKSHOP_NAME", "Pilot workshop"), governorate=governorate
         )
         session.add(shop)
         session.flush()
+    elif shop.governorate is None and governorate:
+        # Distances to buyers need a location; fill it in for workshops created without one.
+        shop.governorate = governorate
+        session.commit()
     return shop
 
 
