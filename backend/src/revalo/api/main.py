@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from revalo import __version__
 from revalo.api.forms import analysis_options
 from revalo.api.jobs import router as jobs_router
+from revalo.api.pieces import router as pieces_router
 from revalo.api.samples import router as samples_router
 from revalo.db.migrate import upgrade
 from revalo.engine.materials import materials, processes
@@ -52,6 +53,7 @@ app.add_middleware(
 )
 app.include_router(samples_router)
 app.include_router(jobs_router)
+app.include_router(pieces_router)
 
 
 @app.get("/health")
