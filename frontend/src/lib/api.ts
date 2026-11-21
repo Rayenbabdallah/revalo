@@ -243,6 +243,7 @@ export interface JobSummary {
   material_code: string | null
   thickness_mm: number | null
   process: string | null
+  machine_id: string | null
   status: 'draft' | 'approved'
   sheet_count: number
   part_count: number
@@ -260,10 +261,16 @@ export interface JobDetail extends JobSummary {
   pieces: Piece[]
 }
 
-export function createJob(file: File, options: AnalysisOptions = {}, actor = 'operator'): Promise<JobDetail> {
+export function createJob(
+  file: File,
+  options: AnalysisOptions = {},
+  actor = 'operator',
+  machineId?: string,
+): Promise<JobDetail> {
   const form = new FormData()
   form.append('file', file)
   form.append('actor', actor)
+  if (machineId) form.append('machine_id', machineId)
   for (const [key, value] of Object.entries(options)) {
     if (value !== undefined && value !== '' && !Number.isNaN(value)) form.append(key, String(value))
   }
@@ -481,3 +488,30 @@ export const toggleBuyerRequest = (id: string, active: boolean) =>
   request<BuyerRequest>(`/v1/buyer-requests/${encodeURIComponent(id)}`, { method: 'PATCH', ...json({ active }) })
 
 export const getGovernorates = () => request<{ governorates: string[] }>('/v1/geo/governorates')
+
+/* ---------- Machines ---------- */
+
+export interface Machine {
+  id: string
+  name: string
+  process: string
+  material_code: string | null
+  material_name: { en: string; fr: string } | null
+  thickness_mm: number | null
+  kerf_mm: number | null
+  sheet_width_mm: number | null
+  sheet_height_mm: number | null
+  min_side_mm: number | null
+  active: boolean
+}
+
+export type MachineInput = Omit<Machine, 'id' | 'material_name' | 'active'>
+
+export const getMachines = (includeInactive = false) =>
+  request<{ machines: Machine[] }>(`/v1/machines${includeInactive ? '?include_inactive=true' : ''}`)
+
+export const saveMachine = (body: MachineInput & { active?: boolean }, id?: string) =>
+  request<Machine>(id ? `/v1/machines/${encodeURIComponent(id)}` : '/v1/machines', {
+    method: id ? 'PUT' : 'POST',
+    ...json(id ? { active: true, ...body } : body),
+  })
