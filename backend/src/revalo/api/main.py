@@ -16,6 +16,7 @@ from revalo import __version__
 from revalo.api.forms import analysis_options
 from revalo.api.jobs import router as jobs_router
 from revalo.api.pieces import router as pieces_router
+from revalo.api.prices import router as prices_router
 from revalo.api.samples import router as samples_router
 from revalo.db.migrate import upgrade
 from revalo.engine.materials import materials, processes
@@ -48,12 +49,13 @@ app.add_middleware(
         for o in os.getenv("REVALO_CORS_ORIGINS", "http://localhost:5173").split(",")
         if o.strip()
     ],
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 app.include_router(samples_router)
 app.include_router(jobs_router)
 app.include_router(pieces_router)
+app.include_router(prices_router)
 
 
 @app.get("/health")

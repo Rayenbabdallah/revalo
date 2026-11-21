@@ -8,7 +8,18 @@ from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -146,3 +157,23 @@ class PieceEvent(Base):
     data: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
     piece: Mapped[Piece] = relationship(back_populates="events")
+
+
+class PriceEntry(Base):
+    """A workshop's own price for a material, overriding the library default."""
+
+    __tablename__ = "price_entries"
+    __table_args__ = (UniqueConstraint("workshop_id", "material_code"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    material_code: Mapped[str] = mapped_column(String(40))
+    new_tnd_per_kg: Mapped[float] = mapped_column(Float)
+    scrap_tnd_per_kg: Mapped[float] = mapped_column(Float)
+    resale_factor: Mapped[float] = mapped_column(Float)
+    source: Mapped[str | None] = mapped_column(Text)
+    """Where the numbers come from: a supplier quote, a scrap dealer, the owner."""
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
+    updated_by: Mapped[str] = mapped_column(String(120))
