@@ -132,3 +132,30 @@
     transition-duration: 1ms !important;
   }
 }
+
+/* Printing labels: only the label sheet goes to the printer. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  body::after,
+  aside,
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  main,
+  .print-area {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  main > div {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .label-sheet {
+    gap: 0 !important;
+  }
+}

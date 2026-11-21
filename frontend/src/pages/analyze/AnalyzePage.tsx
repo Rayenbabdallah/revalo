@@ -1,10 +1,12 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { Box, FileText, RotateCcw, Scan, SlidersHorizontal, X } from 'lucide-react'
+import { Box, FileText, RotateCcw, Save, Scan, SlidersHorizontal, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useState } from 'react'
+import { useLocation } from 'wouter'
 
-import { analyzeFile, fetchSampleFile, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
+import { useActor } from '../../lib/actor'
+import { analyzeFile, createJob, fetchSampleFile, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
 import { formatLabel, processLabel, sourceLabel } from '../../lib/format'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
 import { visualThickness } from '../../components/viewer/thickness'
@@ -50,6 +52,17 @@ function Results({
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const [mode, setMode] = useState<ViewMode>('3d')
   const [showSettings, setShowSettings] = useState(false)
+  const [actor] = useActor()
+  const [, navigate] = useLocation()
+  const queryClient = useQueryClient()
+  const save = useMutation({
+    mutationFn: () => createJob(file, options, actor),
+    onSuccess: (job) => {
+      queryClient.setQueryData(['job', job.id], job)
+      queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      navigate(`/jobs/${job.id}`)
+    },
+  })
   const sheet = analysis.sheets[Math.min(sheetIndex, analysis.sheets.length - 1)]
   const { exaggeration } = visualThickness(sheet, analysis.thickness_mm)
 
@@ -84,8 +97,17 @@ function Results({
           >
             <RotateCcw className="size-4" /> New job
           </button>
+          <button
+            type="button"
+            onClick={() => save.mutate()}
+            disabled={save.isPending}
+            className="inline-flex items-center gap-2 rounded-xl bg-ember-500 px-4 py-2.5 text-sm font-semibold text-graphite-950 shadow-[0_10px_30px_-10px_rgb(255_106_43_/_0.9)] transition hover:bg-ember-400 disabled:opacity-60"
+          >
+            <Save className="size-4" /> {save.isPending ? 'Saving…' : 'Save & review'}
+          </button>
         </div>
       </div>
+      {save.isError && <p className="mt-3 text-[13px] text-alarm-400">Could not save the job: {save.error.message}</p>}
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Chip
