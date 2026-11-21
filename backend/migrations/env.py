@@ -5,7 +5,7 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 
 from revalo.db.models import Base
 from revalo.db.session import make_engine
@@ -34,18 +34,41 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def _sqlite_migration_engine(url: str):
+    """A SQLite engine whose transactions cover DDL too.
+
+    Python's sqlite3 driver only opens transactions before data changes, so table
+    rebuilds would commit piece by piece. Taking over BEGIN makes a failed
+    migration roll back completely (the recipe from the SQLAlchemy SQLite docs).
+    """
+    engine = create_engine(url)
+
+    @event.listens_for(engine, "connect")
+    def _no_driver_transactions(dbapi_connection, _record) -> None:
+        dbapi_connection.isolation_level = None
+
+    @event.listens_for(engine, "begin")
+    def _explicit_begin(conn) -> None:
+        conn.exec_driver_sql("BEGIN")
+
+    return engine
+
+
 def run_migrations_online() -> None:
     url = _url()
     # SQLite rebuilds a table to alter it (batch mode). With foreign keys enforced,
     # dropping the old table fails as soon as other rows point at it, so migrations
     # run on a plain connection; the app's own engine still enforces them.
-    engine = create_engine(url) if url.startswith("sqlite") else make_engine(url)
+    engine = _sqlite_migration_engine(url) if url.startswith("sqlite") else make_engine(url)
     with engine.connect() as connection:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             # SQLite cannot alter columns in place; batch mode rebuilds tables instead.
             render_as_batch=connection.dialect.name == "sqlite",
+            # Alembic treats SQLite DDL as non-transactional by default, so a failed
+            # migration leaves half-applied tables behind. SQLite can roll DDL back.
+            transactional_ddl=True,
         )
         with context.begin_transaction():
             context.run_migrations()

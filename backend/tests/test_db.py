@@ -94,3 +94,22 @@ def test_migrations_upgrade_a_database_that_already_has_data(tmp_path):
     with make_engine(url).connect() as conn:
         assert conn.exec_driver_sql("SELECT count(*) FROM pieces").scalar() == 1
         assert conn.exec_driver_sql("SELECT machine_id FROM jobs").scalar() is None
+
+
+def test_a_failed_migration_leaves_nothing_half_applied(tmp_path):
+    url = db_url(tmp_path)
+    command.upgrade(alembic_config(url), "0003")
+    engine = make_engine(url)
+    with engine.begin() as conn:
+        # Batch mode rebuilds `jobs` through this temporary table: taking the name
+        # makes migration 0004 fail after it has already created `machines`.
+        conn.exec_driver_sql("CREATE TABLE _alembic_tmp_jobs (x INTEGER)")
+    engine.dispose()
+    try:
+        upgrade(url)
+    except Exception:
+        pass
+    else:
+        raise AssertionError("the migration should have failed")
+    tables = set(inspect(make_engine(url)).get_table_names())
+    assert "machines" not in tables
