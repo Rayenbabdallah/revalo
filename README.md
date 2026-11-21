@@ -37,6 +37,13 @@ when the user does not give them.
    should be sold, and after a second period recycled, so racks do not fill up.
 6. **Stock.** See what is on the racks by material, its recoverable value, the
    next step for each piece, and what is due for review.
+7. **Sell.** List a piece at its suggested price. Buyers (artisans, small
+   shops, recyclers) post what they need on the public page at `/buy`; each
+   listing is matched with them by material, thickness, size, price and
+   distance between governorates, with the reasons shown. One tap opens
+   WhatsApp with a ready message; reserve, mark sold, or withdraw, and the 5%
+   commission is recorded on each sale. Recyclers are offered scrap lots, and
+   reusable remnants only as a fallback.
 
 Prices live in a per-workshop price book. Defaults ship only where a source
 exists (mild steel and MDF, from the financial model); every other material
@@ -54,7 +61,7 @@ backend/
   src/revalo/cli.py      command line tool
   scripts/               sample generator
   tests/                 automated tests
-frontend/                web app (React, TypeScript, Three.js)
+frontend/                web app (React, TypeScript, Three.js), brand assets in public/brand
 samples/                 sample jobs and their expected results
 ```
 
@@ -100,3 +107,5 @@ uv run revalo analyze ../samples/synthetic/laser_S235_3mm_3000x1500.dxf --svg pr
 | `REVALO_WORKSHOP_NAME` | `Pilot workshop` | Name of the workshop this deployment serves |
 | `REVALO_CORS_ORIGINS` | `http://localhost:5173` | Allowed web origins |
 | `REVALO_AUTO_MIGRATE` | `1` | Apply migrations when the API starts |
+| `REVALO_WORKSHOP_GOVERNORATE` | `Ben Arous` | Workshop location, used for distances to buyers |
+| `REVALO_WORKSHOP_PHONE` | none | WhatsApp number buyers reach from the public page |
