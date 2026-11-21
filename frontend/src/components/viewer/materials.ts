@@ -79,7 +79,7 @@ export function createMaterials(family: MaterialFamily | null): MaterialSet {
         roughnessMap: fibre,
         bumpMap: fibre,
         bumpScale: 0.6,
-        emissive: '#c8f169',
+        emissive: '#66ca53',
         emissiveIntensity: 0,
       }),
     }
@@ -101,7 +101,7 @@ export function createMaterials(family: MaterialFamily | null): MaterialSet {
         metalness: 0,
         transparent: true,
         opacity: 0.85,
-        emissive: '#c8f169',
+        emissive: '#66ca53',
         emissiveIntensity: 0.1,
       }),
     }
@@ -120,7 +120,7 @@ export function createMaterials(family: MaterialFamily | null): MaterialSet {
       metalness: 0.88,
       roughness: 0.38,
       roughnessMap: brushed,
-      emissive: '#c8f169',
+      emissive: '#66ca53',
       emissiveIntensity: 0,
     }),
   }

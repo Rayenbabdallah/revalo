@@ -22,7 +22,7 @@ export function DecisionStrip({ decision }: { decision: Decision }) {
   const stage = STAGE_LABEL[decision.stage]
 
   return (
-    <div className="mt-3 rounded-lg border border-graphite-800 bg-graphite-950/50">
+    <div className="mt-3 rounded-lg border border-ink-800 bg-ink-950/50">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -32,14 +32,14 @@ export function DecisionStrip({ decision }: { decision: Decision }) {
         <span className="inline-flex items-center gap-1.5 rounded-md bg-reclaim-400/12 px-2 py-1 text-[12px] font-semibold text-reclaim-300">
           <Icon className="size-3.5" /> {actionLabel(decision.recommended)}
         </span>
-        <span className="readout text-[13px] text-graphite-100">
+        <span className="readout text-[13px] text-ink-100">
           {best.value_tnd !== null ? fmtTnd(best.value_tnd) : 'not priced'}
         </span>
         {best.co2_kg !== null && (
-          <span className="readout text-[12px] text-graphite-500">· {fmtKg(best.co2_kg, 0)} kg CO₂</span>
+          <span className="readout text-[12px] text-ink-500">· {fmtKg(best.co2_kg, 0)} kg CO₂</span>
         )}
-        {stage && <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ember-300">{stage}</span>}
-        <ChevronDown className={clsx('ml-auto size-4 text-graphite-500 transition', open && 'rotate-180')} />
+        {stage && <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-brand-300">{stage}</span>}
+        <ChevronDown className={clsx('ml-auto size-4 text-ink-500 transition', open && 'rotate-180')} />
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -50,9 +50,9 @@ export function DecisionStrip({ decision }: { decision: Decision }) {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-graphite-800 px-3 pb-3 pt-2">
+            <div className="border-t border-ink-800 px-3 pb-3 pt-2">
               <OptionGrid decision={decision} compact />
-              <ul className="mt-2.5 space-y-1 text-[12.5px] leading-relaxed text-graphite-300">
+              <ul className="mt-2.5 space-y-1 text-[12.5px] leading-relaxed text-ink-300">
                 {decision.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
@@ -81,7 +81,7 @@ export function OptionGrid({ decision, compact = false }: { decision: Decision; 
               compact ? 'px-2.5 py-2' : 'px-3.5 py-3',
               chosen
                 ? 'border-reclaim-400/60 bg-reclaim-400/[0.07]'
-                : 'border-graphite-800 bg-graphite-900/50',
+                : 'border-ink-800 bg-ink-900/50',
               !o.available && 'opacity-45',
             )}
           >
@@ -89,18 +89,18 @@ export function OptionGrid({ decision, compact = false }: { decision: Decision; 
               className={clsx(
                 'flex items-center gap-1.5 font-medium',
                 compact ? 'text-[12px]' : 'text-[13px]',
-                chosen ? 'text-reclaim-300' : 'text-graphite-300',
+                chosen ? 'text-reclaim-300' : 'text-ink-300',
               )}
             >
               <Icon className="size-3.5" /> {actionLabel(o.action)}
             </p>
-            <p className={clsx('readout mt-1 text-graphite-50', compact ? 'text-[14px]' : 'text-[18px]')}>
+            <p className={clsx('readout mt-1 text-ink-50', compact ? 'text-[14px]' : 'text-[18px]')}>
               {o.available ? (o.value_tnd !== null ? fmtTnd(o.value_tnd) : '—') : 'n/a'}
             </p>
-            <p className="readout text-[11px] text-graphite-500">
+            <p className="readout text-[11px] text-ink-500">
               {o.available && o.co2_kg !== null ? `${fmtKg(o.co2_kg, 0)} kg CO₂` : o.available ? 'CO₂ not known' : ''}
             </p>
-            {!compact && <p className="mt-1.5 text-[11.5px] leading-snug text-graphite-400">{o.note}</p>}
+            {!compact && <p className="mt-1.5 text-[11.5px] leading-snug text-ink-400">{o.note}</p>}
           </div>
         )
       })}

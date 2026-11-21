@@ -1,61 +1,54 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Revalo brand charter: Montserrat SemiBold for display, IBM Plex Sans for text,
+     IBM Plex Sans Arabic for Arabic. IBM Plex Mono for measurements, same family. */
+  --font-display: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  /* Graphite: the workshop floor. Warm at the light end, cold at the dark end. */
-  --color-graphite-50: #f4f2ee;
-  --color-graphite-100: #e6e4df;
-  --color-graphite-200: #c5c9d1;
-  --color-graphite-300: #9aa0ac;
-  --color-graphite-400: #6f7684;
-  --color-graphite-500: #4b515e;
-  --color-graphite-600: #343944;
-  --color-graphite-700: #252931;
-  --color-graphite-800: #1a1d23;
-  --color-graphite-850: #14171c;
-  --color-graphite-900: #0f1115;
-  --color-graphite-950: #090a0c;
+  /* Ink: from the page (950, brand cream #f7f4ee) to the darkest text (50, brand black #121212).
+     The ramp runs from paper to ink, so higher numbers are lighter. */
+  --color-ink-50: #121212;
+  --color-ink-100: #23211e;
+  --color-ink-200: #3a3733;
+  --color-ink-300: #54504a;
+  --color-ink-400: #6b665e;
+  --color-ink-500: #948d82;
+  --color-ink-600: #bdb5a7;
+  --color-ink-700: #dbd4c6;
+  --color-ink-800: #ebe6dc;
+  --color-ink-850: #f1ede5;
+  --color-ink-900: #fffdf9;
+  --color-ink-950: #f7f4ee;
 
-  /* Ember: the laser spark. Actions and focus. */
-  --color-ember-300: #ffb48f;
-  --color-ember-400: #ff8a55;
-  --color-ember-500: #ff6a2b;
-  --color-ember-600: #e5531a;
+  /* Brand blue #194acb: actions, focus, and the brand surfaces. */
+  --color-brand-300: #1a40a8;
+  --color-brand-400: #2a58d8;
+  --color-brand-500: #194acb;
+  --color-brand-600: #123a9f;
+  --color-brand-700: #0e2f82;
+  --color-brand-800: #0b2566;
 
-  /* Reclaim: recovered value. Remnants, money, CO2 saved. */
-  --color-reclaim-200: #ecfbc4;
-  --color-reclaim-300: #dcf79a;
-  --color-reclaim-400: #c8f169;
-  --color-reclaim-500: #a9d93f;
-  --color-reclaim-600: #86b52a;
+  /* Reclaim: brand green #66ca53, recovered value. 300 is the text shade for light pages. */
+  --color-reclaim-200: #e4f6df;
+  --color-reclaim-300: #2f7d22;
+  --color-reclaim-400: #66ca53;
+  --color-reclaim-500: #55b743;
+  --color-reclaim-600: #3f9a2e;
 
   /* Rust: scrap that only sells by weight. */
-  --color-rust-400: #d4925a;
+  --color-rust-400: #8a5a2b;
   --color-rust-500: #b06d33;
 
-  --color-alarm-400: #ff7a7a;
+  --color-alarm-400: #c43535;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-rise: rise 700ms var(--ease-out-expo) both;
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(14px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html,
@@ -65,19 +58,14 @@
   }
 
   body {
-    @apply bg-graphite-950 font-sans text-graphite-100 antialiased;
-    font-feature-settings: 'ss01', 'cv11';
-    /* Millimetre grid, a faint ember glow, and fine grain. */
+    @apply bg-ink-950 font-sans text-ink-100 antialiased;
+    /* Grid paper, as on the brand charter. */
     background-image:
-      radial-gradient(1200px 600px at 12% -10%, rgb(255 106 43 / 0.07), transparent 60%),
-      radial-gradient(900px 500px at 100% 0%, rgb(200 241 105 / 0.035), transparent 55%),
-      linear-gradient(rgb(255 255 255 / 0.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.022) 1px, transparent 1px),
-      linear-gradient(rgb(255 255 255 / 0.012) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.012) 1px, transparent 1px);
+      linear-gradient(rgb(18 18 18 / 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(18 18 18 / 0.055) 1px, transparent 1px),
+      linear-gradient(rgb(18 18 18 / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(18 18 18 / 0.025) 1px, transparent 1px);
     background-size:
-      auto,
-      auto,
       80px 80px,
       80px 80px,
       16px 16px,
@@ -85,33 +73,36 @@
     background-attachment: fixed;
   }
 
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 60;
-    opacity: 0.05;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
   ::selection {
-    @apply bg-ember-500/40 text-graphite-50;
+    @apply bg-brand-500/20 text-ink-50;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-ember-500;
+    @apply outline-2 outline-offset-2 outline-brand-500;
   }
 }
 
 @layer components {
-  /* A machined panel: hairline border, inner top highlight, deep shadow. */
+  /* A card on the grid paper: soft cream, hairline border, generous radius. */
   .panel {
-    @apply rounded-2xl border border-graphite-700/80 bg-graphite-900/80 backdrop-blur-xl;
+    @apply rounded-[22px] border border-ink-700/80 bg-ink-900;
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.04),
-      0 24px 60px -24px rgb(0 0 0 / 0.7);
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      0 18px 40px -26px rgb(25 74 203 / 0.28);
+  }
+
+  /* A solid brand block: blue, cream type, green figures. */
+  .panel-brand {
+    @apply rounded-[22px] bg-brand-500 text-ink-950;
+    box-shadow: 0 22px 50px -24px rgb(25 74 203 / 0.6);
+  }
+
+  /* The 3D stage: deep brand blue, so green remnants read like the brand mark. */
+  .stage {
+    @apply rounded-[22px];
+    background:
+      radial-gradient(120% 90% at 30% 10%, #2a5ae0 0%, #194acb 38%, #0e2f82 100%);
+    box-shadow: 0 22px 50px -24px rgb(25 74 203 / 0.6);
   }
 
   /* Digital readout, like a CNC position display. */
@@ -120,7 +111,7 @@
   }
 
   .eyebrow {
-    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-graphite-400;
+    @apply font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400;
   }
 }
 

@@ -21,11 +21,11 @@ const ease = [0.16, 1, 0.3, 1] as const
 
 function Chip({ label, value, source }: { label: string; value: string; source?: string }) {
   return (
-    <div className="rounded-lg border border-graphite-800 bg-graphite-900/70 px-3 py-2">
-      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-graphite-500">{label}</p>
-      <p className="mt-0.5 text-[14px] font-medium text-graphite-100">
+    <div className="rounded-lg border border-ink-800 bg-ink-900/70 px-3 py-2">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">{label}</p>
+      <p className="mt-0.5 text-[14px] font-medium text-ink-100">
         {value}
-        {source && <span className="ml-1.5 text-[11px] font-normal text-graphite-500">{source}</span>}
+        {source && <span className="ml-1.5 text-[11px] font-normal text-ink-500">{source}</span>}
       </p>
     </div>
   )
@@ -73,7 +73,7 @@ function Results({
         <div className="min-w-0">
           <p className="eyebrow flex items-center gap-2">
             <FileText className="size-3.5" /> {formatLabel(analysis.source.format)}
-            {analysis.source.layout_estimated && <span className="text-ember-400">· layout estimated</span>}
+            {analysis.source.layout_estimated && <span className="text-brand-400">· layout estimated</span>}
           </p>
           <h1 className="mt-2 truncate font-display text-3xl font-semibold tracking-tight md:text-4xl">{file.name}</h1>
         </div>
@@ -84,8 +84,8 @@ function Results({
             className={clsx(
               'inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
               showSettings
-                ? 'border-ember-500/60 bg-ember-500/10 text-ember-300'
-                : 'border-graphite-700 text-graphite-200 hover:border-graphite-500',
+                ? 'border-brand-500/60 bg-brand-500/10 text-brand-300'
+                : 'border-ink-700 text-ink-200 hover:border-ink-500',
             )}
           >
             <SlidersHorizontal className="size-4" /> Adjust
@@ -93,7 +93,7 @@ function Results({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-2 rounded-xl border border-graphite-700 px-4 py-2.5 text-sm font-medium text-graphite-200 transition hover:border-graphite-500"
+            className="inline-flex items-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-medium text-ink-200 transition hover:border-ink-500"
           >
             <RotateCcw className="size-4" /> New job
           </button>
@@ -101,7 +101,7 @@ function Results({
             type="button"
             onClick={() => save.mutate()}
             disabled={save.isPending}
-            className="inline-flex items-center gap-2 rounded-xl bg-ember-500 px-4 py-2.5 text-sm font-semibold text-graphite-950 shadow-[0_10px_30px_-10px_rgb(255_106_43_/_0.9)] transition hover:bg-ember-400 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
           >
             <Save className="size-4" /> {save.isPending ? 'Saving…' : 'Save & review'}
           </button>
@@ -143,7 +143,7 @@ function Results({
                   type="button"
                   disabled={busy}
                   onClick={onRerun}
-                  className="w-full rounded-xl bg-ember-500 py-3 text-sm font-semibold text-graphite-950 transition hover:bg-ember-400 disabled:opacity-60"
+                  className="w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-ink-950 transition hover:bg-brand-400 disabled:opacity-60"
                 >
                   {busy ? 'Analyzing…' : 'Run again with these settings'}
                 </button>
@@ -154,9 +154,9 @@ function Results({
       </AnimatePresence>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-12">
-        <section className="panel relative h-[440px] overflow-hidden md:h-[620px] lg:col-span-8">
+        <section className="stage relative h-[440px] overflow-hidden md:h-[620px] lg:col-span-8">
           <Suspense
-            fallback={<div className="grid h-full place-items-center font-mono text-sm text-graphite-500">Loading 3D view…</div>}
+            fallback={<div className="grid h-full place-items-center font-mono text-sm text-ink-500">Loading 3D view…</div>}
           >
             <SheetViewer
               key={`${analysis.source.name}-${sheet.index}`}
@@ -171,7 +171,7 @@ function Results({
 
           {/* Overlay controls */}
           <div className="pointer-events-none absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-            <div className="pointer-events-auto flex rounded-xl border border-graphite-700 bg-graphite-950/80 p-1 backdrop-blur-md">
+            <div className="pointer-events-auto flex rounded-xl border border-ink-700 bg-ink-950/80 p-1 backdrop-blur-md">
               {([
                 ['3d', '3D', Box],
                 ['top', 'Top', Scan],
@@ -182,7 +182,7 @@ function Results({
                   onClick={() => setMode(value)}
                   className={clsx(
                     'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition',
-                    mode === value ? 'bg-graphite-700 text-graphite-50' : 'text-graphite-400 hover:text-graphite-100',
+                    mode === value ? 'bg-ink-700 text-ink-50' : 'text-ink-400 hover:text-ink-100',
                   )}
                 >
                   <Icon className="size-3.5" /> {label}
@@ -190,7 +190,7 @@ function Results({
               ))}
             </div>
             {analysis.sheets.length > 1 && (
-              <div className="pointer-events-auto flex flex-wrap justify-end gap-1 rounded-xl border border-graphite-700 bg-graphite-950/80 p-1 backdrop-blur-md">
+              <div className="pointer-events-auto flex flex-wrap justify-end gap-1 rounded-xl border border-ink-700 bg-ink-950/80 p-1 backdrop-blur-md">
                 {analysis.sheets.map((s) => (
                   <button
                     key={s.index}
@@ -198,7 +198,7 @@ function Results({
                     onClick={() => setSheetIndex(s.index)}
                     className={clsx(
                       'rounded-lg px-3 py-1.5 font-mono text-[12px] transition',
-                      s.index === sheet.index ? 'bg-graphite-700 text-graphite-50' : 'text-graphite-400 hover:text-graphite-100',
+                      s.index === sheet.index ? 'bg-ink-700 text-ink-50' : 'text-ink-400 hover:text-ink-100',
                     )}
                   >
                     Sheet {s.index + 1}
@@ -209,19 +209,19 @@ function Results({
           </div>
 
           <div className="pointer-events-none absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-3">
-            <div className="flex flex-wrap gap-3 rounded-xl border border-graphite-800 bg-graphite-950/70 px-3.5 py-2 font-mono text-[11px] text-graphite-300 backdrop-blur-md">
+            <div className="flex flex-wrap gap-3 rounded-xl border border-ink-800 bg-ink-950/70 px-3.5 py-2 font-mono text-[11px] text-ink-300 backdrop-blur-md">
               <span className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-sm bg-reclaim-400" /> Remnant
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-graphite-500" /> Part
+                <span className="size-2.5 rounded-sm bg-ink-500" /> Part
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-graphite-300" /> Scrap skeleton
+                <span className="size-2.5 rounded-sm bg-ink-300" /> Scrap skeleton
               </span>
             </div>
             {exaggeration > 1.5 && (
-              <span className="rounded-lg bg-graphite-950/70 px-2.5 py-1.5 font-mono text-[10.5px] text-graphite-500 backdrop-blur-md">
+              <span className="rounded-lg bg-ink-950/70 px-2.5 py-1.5 font-mono text-[10.5px] text-ink-500 backdrop-blur-md">
                 thickness shown ×{Math.round(exaggeration)}
               </span>
             )}
@@ -271,17 +271,17 @@ export function AnalyzePage() {
         <>
           <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }}>
             <p className="eyebrow">Leftover engine</p>
-            <h1 className="mt-4 max-w-3xl font-display text-[40px] font-semibold leading-[1.02] tracking-[-0.03em] text-graphite-50 md:text-[64px]">
+            <h1 className="mt-4 max-w-3xl font-display text-[40px] font-semibold leading-[1.02] tracking-[-0.03em] text-ink-50 md:text-[64px]">
               Every sheet leaves{' '}
-              <span className="relative whitespace-nowrap text-reclaim-400">
+              <span className="relative whitespace-nowrap text-reclaim-600">
                 money
-                <svg aria-hidden viewBox="0 0 200 12" className="absolute -bottom-2 left-0 w-full" preserveAspectRatio="none">
+                <svg aria-hidden viewBox="0 0 200 12" className="absolute -bottom-2 left-0 w-full text-reclaim-400" preserveAspectRatio="none">
                   <path d="M2 9 Q 60 2 120 6 T 198 4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>{' '}
               behind.
             </h1>
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-graphite-300">
+            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-300">
               Upload a nest, a G-code program or a cut list. Revalo shows you every reusable remnant
               with its size and weight, and what is only fit for the scrap bin.
             </p>
@@ -305,14 +305,14 @@ export function AnalyzePage() {
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mt-5 flex items-start justify-between gap-4 rounded-xl border border-alarm-400/40 bg-alarm-400/10 px-5 py-4 text-[14px] text-graphite-100"
+                className="mt-5 flex items-start justify-between gap-4 rounded-xl border border-alarm-400/40 bg-alarm-400/10 px-5 py-4 text-[14px] text-ink-100"
               >
                 <span>
                   <strong className="font-semibold text-alarm-400">Could not analyze {file?.name ?? 'the file'}.</strong>{' '}
                   {error.message}
                 </span>
                 <button type="button" onClick={() => { run.reset(); sample.reset() }} aria-label="Dismiss">
-                  <X className="size-4 text-graphite-400" />
+                  <X className="size-4 text-ink-400" />
                 </button>
               </motion.div>
             )}

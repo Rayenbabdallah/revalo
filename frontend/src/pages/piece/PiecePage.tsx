@@ -18,11 +18,11 @@ const ACTION_LABEL: Record<string, string> = {
 
 function Fact({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-graphite-800 bg-graphite-900/60 px-4 py-3">
-      <span className="mt-0.5 text-graphite-500">{icon}</span>
+    <div className="flex items-start gap-3 rounded-xl border border-ink-800 bg-ink-900/60 px-4 py-3">
+      <span className="mt-0.5 text-ink-500">{icon}</span>
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-graphite-500">{label}</p>
-        <p className="mt-0.5 text-[15px] text-graphite-100">{children}</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">{label}</p>
+        <p className="mt-0.5 text-[15px] text-ink-100">{children}</p>
       </div>
     </div>
   )
@@ -37,35 +37,35 @@ export function PiecePage({ code }: { code: string }) {
     <div className="mx-auto min-h-full max-w-xl px-4 py-6">
       <header className="flex items-center justify-between">
         <Wordmark />
-        <span className="font-mono text-[11px] text-graphite-500">leftover record</span>
+        <span className="font-mono text-[11px] text-ink-500">leftover record</span>
       </header>
 
       {piece.isPending ? (
-        <p className="mt-16 text-center font-mono text-sm text-graphite-500">Looking up {code}…</p>
+        <p className="mt-16 text-center font-mono text-sm text-ink-500">Looking up {code}…</p>
       ) : piece.isError || !p ? (
         <div className="panel mt-10 p-8 text-center">
           <p className="font-display text-xl font-semibold">No piece with code {code}</p>
-          <p className="mt-2 text-[14px] text-graphite-400">Check the label, or the piece may have been removed.</p>
+          <p className="mt-2 text-[14px] text-ink-400">Check the label, or the piece may have been removed.</p>
         </div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <section className="panel relative mt-6 overflow-hidden p-6">
-            <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-reclaim-400/10 blur-3xl" />
+          <section className="panel-brand relative mt-6 overflow-hidden p-6">
+            <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-reclaim-400/25 blur-3xl" />
             <div className="flex items-center justify-between">
-              <p className="readout text-[13px] text-graphite-400">{p.code}</p>
-              <StatusBadge status={p.status} />
+              <p className="readout text-[13px] text-ink-950/80">{p.code}</p>
+              <StatusBadge status={p.status} className="!bg-ink-900" />
             </div>
             <p className="mt-4 font-display text-[34px] font-semibold leading-tight tracking-tight">
               {p.kind === 'remnant' ? (
                 <span className="readout">
-                  {fmtMm(p.width_mm ?? 0)} <span className="text-graphite-500">×</span> {fmtMm(p.height_mm ?? 0)}
-                  <span className="ml-1.5 text-lg text-graphite-400">mm</span>
+                  {fmtMm(p.width_mm ?? 0)} <span className="text-ink-950/60">×</span> {fmtMm(p.height_mm ?? 0)}
+                  <span className="ml-1.5 text-lg text-ink-950/70">mm</span>
                 </span>
               ) : (
                 'Scrap lot'
               )}
             </p>
-            <p className="mt-1 text-[15px] text-graphite-300">
+            <p className="mt-1 text-[15px] text-ink-950/85">
               {materialLabel(p.material_code)}
               {p.thickness_mm ? ` · ${p.thickness_mm} mm` : ''}
             </p>
@@ -86,7 +86,7 @@ export function PiecePage({ code }: { code: string }) {
             </Fact>
           </div>
           {p.condition_note && (
-            <p className="mt-3 rounded-xl border border-ember-500/25 bg-ember-500/5 px-4 py-3 text-[14px] text-graphite-200">
+            <p className="mt-3 rounded-xl border border-brand-500/25 bg-brand-500/5 px-4 py-3 text-[14px] text-ink-200">
               {p.condition_note}
             </p>
           )}
@@ -97,7 +97,7 @@ export function PiecePage({ code }: { code: string }) {
               <div className="mt-3">
                 <OptionGrid decision={p.decision} />
               </div>
-              <ul className="mt-3 space-y-1.5 text-[14px] leading-relaxed text-graphite-300">
+              <ul className="mt-3 space-y-1.5 text-[14px] leading-relaxed text-ink-300">
                 {p.decision.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
@@ -107,12 +107,12 @@ export function PiecePage({ code }: { code: string }) {
 
           <section className="mt-6">
             <p className="eyebrow">History</p>
-            <ol className="mt-3 border-l border-graphite-700 pl-5">
+            <ol className="mt-3 border-l border-ink-700 pl-5">
               {p.events.map((e, i) => (
                 <li key={i} className="relative pb-4 last:pb-0">
-                  <span className="absolute -left-[25px] top-1.5 size-2 rounded-full bg-graphite-500 ring-4 ring-graphite-950" />
-                  <p className="text-[14px] text-graphite-100">{ACTION_LABEL[e.action] ?? e.action}</p>
-                  <p className="font-mono text-[11px] text-graphite-500">
+                  <span className="absolute -left-[25px] top-1.5 size-2 rounded-full bg-ink-500 ring-4 ring-ink-950" />
+                  <p className="text-[14px] text-ink-100">{ACTION_LABEL[e.action] ?? e.action}</p>
+                  <p className="font-mono text-[11px] text-ink-500">
                     {fmtDateTime(e.at)} · {e.actor}
                   </p>
                 </li>
@@ -122,9 +122,9 @@ export function PiecePage({ code }: { code: string }) {
 
           <Link
             href={`/jobs/${p.job.id}`}
-            className="mt-8 flex items-center gap-2 rounded-xl border border-graphite-800 px-4 py-3 text-[13px] text-graphite-300 transition hover:border-graphite-600"
+            className="mt-8 flex items-center gap-2 rounded-xl border border-ink-800 px-4 py-3 text-[13px] text-ink-300 transition hover:border-ink-600"
           >
-            <FileText className="size-4 text-graphite-500" /> From job <span className="truncate text-graphite-100">{p.job.file_name}</span>
+            <FileText className="size-4 text-ink-500" /> From job <span className="truncate text-ink-100">{p.job.file_name}</span>
           </Link>
         </motion.div>
       )}

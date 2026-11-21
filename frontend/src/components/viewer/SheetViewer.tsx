@@ -107,7 +107,7 @@ function RemnantBlock({
         onPointerOut={() => onHighlight(null)}
       >
         <boxGeometry args={[w, frame.depth, h]} />
-        <Edges color={rejected ? '#ff7a7a' : highlighted ? '#ecfbc4' : '#c8f169'} threshold={15} />
+        <Edges color={rejected ? '#ff8a8a' : highlighted ? '#e4f6df' : '#66ca53'} threshold={15} />
       </mesh>
       <object3D ref={anchorRef} position={[cx, frame.depth, cz]} />
     </group>
@@ -237,8 +237,8 @@ function Label({ remnant, active, refFn }: { remnant: Remnant; active: boolean; 
       className={clsx(
         'pointer-events-none absolute left-0 top-0 whitespace-nowrap rounded-md border px-2 py-1 font-mono text-[11px] leading-none tabular-nums shadow-lg backdrop-blur-md transition-[background-color,color,border-color] duration-200',
         active
-          ? 'z-20 border-reclaim-400 bg-reclaim-400 text-graphite-950'
-          : 'z-10 border-reclaim-400/40 bg-graphite-950/80 text-reclaim-300',
+          ? 'z-20 border-reclaim-400 bg-reclaim-400 text-ink-50'
+          : 'z-10 border-reclaim-400 bg-ink-900/95 text-ink-50',
       )}
       style={{ opacity: 0 }}
     >
@@ -299,7 +299,7 @@ export default function SheetViewer(props: SheetViewerProps) {
           <Lightformer form="rect" intensity={1.7} position={[-4, 6, -6]} rotation-x={Math.PI / 2.6} scale={[14, 4, 1]} />
           <Lightformer form="rect" intensity={1.2} position={[-6, 2, 3]} rotation-y={Math.PI / 2} scale={[8, 2, 1]} />
           <Lightformer form="rect" intensity={0.9} position={[6, 2, 3]} rotation-y={-Math.PI / 2} scale={[8, 2, 1]} />
-          <Lightformer form="rect" intensity={0.35} color="#ff8a55" position={[0, 1.5, -7]} scale={[10, 1, 1]} />
+          <Lightformer form="rect" intensity={0.35} color="#ffffff" position={[0, 1.5, -7]} scale={[10, 1, 1]} />
         </Environment>
 
         <Sheet {...props} register={register} />

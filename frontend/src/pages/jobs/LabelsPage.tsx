@@ -52,20 +52,20 @@ export function LabelsPage({ id }: { id: string }) {
     <div className="mx-auto max-w-[1100px] px-4 py-8 md:px-10">
       <style>{`@media print { ${PRINT_CSS[format]} }`}</style>
       <div className="no-print">
-        <Link href={`/jobs/${id}`} className="inline-flex items-center gap-1.5 text-[13px] text-graphite-400 hover:text-graphite-100">
+        <Link href={`/jobs/${id}`} className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 hover:text-ink-100">
           <ArrowLeft className="size-4" /> Back to job
         </Link>
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">QR labels</p>
             <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{job.data?.file_name ?? 'Labels'}</h1>
-            <p className="mt-1.5 text-[14px] text-graphite-400">
+            <p className="mt-1.5 text-[14px] text-ink-400">
               {pieces.length} label{pieces.length === 1 ? '' : 's'}. Each QR opens the piece's record, so anyone at the
               rack can see its size, weight and history.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex rounded-xl border border-graphite-700 p-1">
+            <div className="flex rounded-xl border border-ink-700 p-1">
               {([
                 ['thermal', 'Thermal 50×30'],
                 ['a4', 'A4 sheet'],
@@ -76,7 +76,7 @@ export function LabelsPage({ id }: { id: string }) {
                   onClick={() => setFormat(value)}
                   className={clsx(
                     'rounded-lg px-3 py-1.5 text-[13px] font-medium transition',
-                    format === value ? 'bg-graphite-700 text-graphite-50' : 'text-graphite-400 hover:text-graphite-100',
+                    format === value ? 'bg-ink-700 text-ink-50' : 'text-ink-400 hover:text-ink-100',
                   )}
                 >
                   {label}
@@ -87,14 +87,14 @@ export function LabelsPage({ id }: { id: string }) {
               type="button"
               onClick={() => window.print()}
               disabled={!pieces.length}
-              className="inline-flex items-center gap-2 rounded-xl bg-ember-500 px-4 py-2.5 text-sm font-semibold text-graphite-950 transition hover:bg-ember-400 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-brand-400 disabled:opacity-50"
             >
               <Printer className="size-4" /> Print
             </button>
           </div>
         </div>
         {job.data && job.data.status !== 'approved' && (
-          <p className="mt-6 rounded-xl border border-ember-500/30 bg-ember-500/5 px-4 py-3 text-[14px] text-ember-300">
+          <p className="mt-6 rounded-xl border border-brand-500/30 bg-brand-500/5 px-4 py-3 text-[14px] text-brand-300">
             Labels are printed after the batch is approved.
           </p>
         )}

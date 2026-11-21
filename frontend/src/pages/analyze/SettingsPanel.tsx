@@ -14,14 +14,14 @@ interface SettingsPanelProps {
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-graphite-700 bg-graphite-950/60 px-3 py-2.5 font-mono text-sm text-graphite-100 placeholder:text-graphite-500 transition focus:border-ember-500 focus:outline-none'
+  'w-full rounded-lg border border-ink-700 bg-ink-950/60 px-3 py-2.5 font-mono text-sm text-ink-100 placeholder:text-ink-500 transition focus:border-brand-500 focus:outline-none'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-baseline justify-between text-[13px] font-medium text-graphite-200">
+      <span className="mb-1.5 flex items-baseline justify-between text-[13px] font-medium text-ink-200">
         {label}
-        {hint && <span className="font-mono text-[10px] font-normal text-graphite-500">{hint}</span>}
+        {hint && <span className="font-mono text-[10px] font-normal text-ink-500">{hint}</span>}
       </span>
       {children}
     </label>
@@ -38,10 +38,10 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
   return (
     <section className={clsx('panel p-6', className)}>
       <header className="flex items-center gap-2.5">
-        <SlidersHorizontal className="size-4 text-ember-400" />
+        <SlidersHorizontal className="size-4 text-brand-400" />
         <h2 className="font-display text-lg font-semibold">Machine settings</h2>
       </header>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-graphite-400">
+      <p className="mt-1.5 text-[13px] leading-relaxed text-ink-400">
         Leave on auto: Revalo reads material, thickness and sheet size from the file. Set them here
         when the file does not say.
       </p>

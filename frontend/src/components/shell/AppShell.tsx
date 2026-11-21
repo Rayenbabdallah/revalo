@@ -32,7 +32,7 @@ function ServerStatus({ compact = false }: { compact?: boolean }) {
         <span
           className={clsx(
             'relative inline-flex size-2 rounded-full',
-            online ? 'bg-reclaim-400' : health.isPending ? 'bg-graphite-400' : 'bg-alarm-400',
+            online ? 'bg-reclaim-400' : health.isPending ? 'bg-ink-400' : 'bg-alarm-400',
           )}
         />
       </span>
@@ -45,7 +45,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
   return (
     <div className="flex min-h-full">
       {/* Side rail on wide screens */}
-      <aside className="sticky top-0 hidden h-screen w-[76px] shrink-0 flex-col items-center border-r border-graphite-800/80 bg-graphite-950/60 py-5 backdrop-blur-xl md:flex">
+      <aside className="sticky top-0 hidden h-screen w-[76px] shrink-0 flex-col items-center border-r border-ink-800/80 bg-ink-900/85 py-5 backdrop-blur-xl md:flex">
         <LogoMark className="size-8" />
         <nav className="mt-10 flex flex-1 flex-col items-center gap-2">
           {nav.map((item) => {
@@ -60,12 +60,12 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
                 className={clsx(
                   'group relative flex w-14 flex-col items-center gap-1 rounded-xl py-2.5 transition-colors',
                   isActive
-                    ? 'bg-graphite-800 text-graphite-50'
-                    : 'text-graphite-400 hover:bg-graphite-900 hover:text-graphite-100',
+                    ? 'bg-ink-800 text-ink-50'
+                    : 'text-ink-400 hover:bg-ink-900 hover:text-ink-100',
                 )}
               >
                 {isActive && (
-                  <span className="absolute -left-[11px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-ember-500 shadow-[0_0_12px_rgb(255_106_43_/_0.8)]" />
+                  <span className="absolute -left-[11px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-brand-500 shadow-[0_0_12px_rgb(25_74_203_/_0.8)]" />
                 )}
                 <Icon className="size-[19px]" strokeWidth={1.75} />
                 <span className="text-[10px] font-medium">{item.label}</span>
@@ -78,7 +78,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar on small screens */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-graphite-800/80 bg-graphite-950/70 px-4 py-3 backdrop-blur-xl md:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-800/80 bg-ink-950/70 px-4 py-3 backdrop-blur-xl md:hidden">
           <Wordmark />
           <ServerStatus />
         </header>
@@ -86,7 +86,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
         <main className="flex-1 pb-24 md:pb-0">{children}</main>
 
         {/* Bottom tabs on small screens */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-graphite-800 bg-graphite-950/90 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-ink-800 bg-ink-950/90 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-xl md:hidden">
           {nav.map((item) => {
             const Icon = item.icon
             const isActive = item.id === active
@@ -98,7 +98,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
                 aria-current={isActive ? 'page' : undefined}
                 className={clsx(
                   'flex min-w-16 flex-col items-center gap-1 rounded-lg px-3 py-1.5',
-                  isActive ? 'text-ember-400' : 'text-graphite-400',
+                  isActive ? 'text-brand-400' : 'text-ink-400',
                 )}
               >
                 <Icon className="size-5" strokeWidth={1.75} />

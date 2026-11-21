@@ -19,7 +19,7 @@ interface PieceCardProps {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-graphite-700 bg-graphite-950/70 px-2.5 py-2 font-mono text-[13px] text-graphite-100 placeholder:text-graphite-600 transition focus:border-ember-500 focus:outline-none disabled:opacity-60'
+  'w-full rounded-lg border border-ink-700 bg-ink-950/70 px-2.5 py-2 font-mono text-[13px] text-ink-100 placeholder:text-ink-600 transition focus:border-brand-500 focus:outline-none disabled:opacity-60'
 
 /** Number input that saves on blur or Enter, and only when the value changed. */
 function NumberField({
@@ -47,7 +47,7 @@ function NumberField({
   }
   return (
     <label className="block">
-      <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-graphite-500">{label}</span>
+      <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{label}</span>
       <input
         className={inputClass}
         inputMode="decimal"
@@ -86,7 +86,7 @@ export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locke
       onMouseLeave={() => onHighlight(null)}
       className={clsx(
         'rounded-xl border p-4 transition-colors',
-        highlighted ? 'border-reclaim-400/60 bg-reclaim-400/[0.06]' : 'border-graphite-800 bg-graphite-900/60',
+        highlighted ? 'border-reclaim-400/60 bg-reclaim-400/[0.06]' : 'border-ink-800 bg-ink-900/60',
         rejected && 'opacity-60',
       )}
     >
@@ -94,33 +94,33 @@ export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locke
         <span
           className={clsx(
             'readout min-w-10 rounded-md px-2 py-1 text-center text-[11px]',
-            isRemnant ? 'bg-graphite-800 text-reclaim-300' : 'bg-rust-500/15 text-rust-400',
+            isRemnant ? 'bg-ink-800 text-reclaim-300' : 'bg-rust-500/15 text-rust-400',
           )}
         >
           {short}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="readout truncate text-[15px] text-graphite-50">
+          <p className="readout truncate text-[15px] text-ink-50">
             {isRemnant ? (
               <>
-                {fmtMm(piece.width_mm ?? 0)} <span className="text-graphite-500">×</span> {fmtMm(piece.height_mm ?? 0)}
-                <span className="ml-1 text-[11px] text-graphite-500">mm</span>
+                {fmtMm(piece.width_mm ?? 0)} <span className="text-ink-500">×</span> {fmtMm(piece.height_mm ?? 0)}
+                <span className="ml-1 text-[11px] text-ink-500">mm</span>
               </>
             ) : (
               <>
-                Scrap skeleton <span className="text-[12px] text-graphite-500">· sheet {piece.sheet_index + 1}</span>
+                Scrap skeleton <span className="text-[12px] text-ink-500">· sheet {piece.sheet_index + 1}</span>
               </>
             )}
           </p>
-          <p className="font-mono text-[11px] text-graphite-500">
+          <p className="font-mono text-[11px] text-ink-500">
             {piece.code} · {fmtM2(piece.area_m2, 3)} m²
             {piece.weight_est_kg !== null && ` · est. ${fmtKg(piece.weight_est_kg)} kg`}
           </p>
         </div>
         {save.isPending ? (
-          <Loader2 className="size-4 animate-spin text-graphite-400" />
+          <Loader2 className="size-4 animate-spin text-ink-400" />
         ) : save.isSuccess ? (
-          <Check className="size-4 text-reclaim-400" />
+          <Check className="size-4 text-reclaim-600" />
         ) : null}
         <StatusBadge status={piece.status} />
       </header>
@@ -153,7 +153,7 @@ export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locke
 
       <div className="mt-3 flex items-end gap-2">
         <label className="block flex-1">
-          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-graphite-500">Condition</span>
+          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">Condition</span>
           <input
             className={inputClass + ' font-sans'}
             placeholder="Scratched corner, bent edge…"
@@ -173,8 +173,8 @@ export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locke
             className={clsx(
               'inline-flex h-[38px] items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium transition',
               rejected
-                ? 'border-graphite-600 text-graphite-200 hover:border-graphite-400'
-                : 'border-graphite-700 text-graphite-400 hover:border-alarm-400/60 hover:text-alarm-400',
+                ? 'border-ink-600 text-ink-200 hover:border-ink-400'
+                : 'border-ink-700 text-ink-400 hover:border-alarm-400/60 hover:text-alarm-400',
             )}
           >
             {rejected ? <RotateCcw className="size-3.5" /> : <Ban className="size-3.5" />}
