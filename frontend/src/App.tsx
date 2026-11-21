@@ -1,4 +1,4 @@
-import { Layers, ScanLine, Warehouse } from 'lucide-react'
+import { Coins, Layers, ScanLine, Warehouse } from 'lucide-react'
 import { Redirect, Route, Switch, useLocation } from 'wouter'
 
 import { AppShell, type NavItem } from './components/shell/AppShell'
@@ -7,12 +7,14 @@ import { JobReviewPage } from './pages/jobs/JobReviewPage'
 import { JobsPage } from './pages/jobs/JobsPage'
 import { LabelsPage } from './pages/jobs/LabelsPage'
 import { PiecePage } from './pages/piece/PiecePage'
+import { PricesPage } from './pages/prices/PricesPage'
 import { StockPage } from './pages/stock/StockPage'
 
 const NAV: NavItem[] = [
   { id: '/analyze', label: 'Analyze', icon: ScanLine },
   { id: '/jobs', label: 'Jobs', icon: Layers },
   { id: '/stock', label: 'Stock', icon: Warehouse },
+  { id: '/prices', label: 'Prices', icon: Coins },
 ]
 
 export default function App() {
@@ -29,6 +31,7 @@ export default function App() {
             <Route path="/analyze" component={AnalyzePage} />
             <Route path="/jobs" component={JobsPage} />
             <Route path="/stock" component={StockPage} />
+            <Route path="/prices" component={PricesPage} />
             <Route path="/jobs/:id/labels">{(params) => <LabelsPage id={params.id} />}</Route>
             <Route path="/jobs/:id">{(params) => <JobReviewPage id={params.id} />}</Route>
             <Route>
