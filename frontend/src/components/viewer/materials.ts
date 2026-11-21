@@ -116,9 +116,9 @@ export function createMaterials(family: MaterialFamily | null): MaterialSet {
     }),
     part: new THREE.MeshStandardMaterial({ color: '#4e545e', metalness: 0.75, roughness: 0.55 }),
     remnant: new THREE.MeshStandardMaterial({
-      color: '#d3d8df',
-      metalness: 0.9,
-      roughness: 0.28,
+      color: '#c9ced6',
+      metalness: 0.88,
+      roughness: 0.38,
       roughnessMap: brushed,
       emissive: '#c8f169',
       emissiveIntensity: 0,

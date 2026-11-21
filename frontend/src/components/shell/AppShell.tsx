@@ -14,7 +14,7 @@ export interface NavItem {
 
 interface AppShellProps {
   nav: NavItem[]
-  active: string
+  active: string | null
   onNavigate: (id: string) => void
   children: ReactNode
 }

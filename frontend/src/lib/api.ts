@@ -166,3 +166,125 @@ export function analyzeFile(file: File, options: AnalysisOptions = {}): Promise<
   }
   return request<Analysis>('/v1/analyze', { method: 'POST', body: form })
 }
+
+/* ---------- Jobs and pieces ---------- */
+
+export type PieceStatus = 'draft' | 'rejected' | 'in_stock' | 'reserved' | 'reused' | 'sold' | 'recycled'
+
+export interface Piece {
+  id: string
+  code: string
+  job_id: string
+  kind: 'remnant' | 'scrap'
+  status: PieceStatus
+  label: string
+  sheet_index: number
+  material_code: string | null
+  thickness_mm: number | null
+  x_mm: number | null
+  y_mm: number | null
+  width_mm: number | null
+  height_mm: number | null
+  area_m2: number
+  weight_est_kg: number | null
+  weight_actual_kg: number | null
+  weight_kg: number | null
+  condition_note: string | null
+  location: string | null
+  review_date: string | null
+  label_url: string
+  updated_at: string
+}
+
+export interface PieceEvent {
+  at: string
+  actor: string
+  action: string
+  data: Record<string, unknown>
+}
+
+export interface PieceWithHistory extends Piece {
+  events: PieceEvent[]
+}
+
+export interface JobSummary {
+  id: string
+  file_name: string
+  file_format: 'dxf' | 'gcode' | 'cutlist'
+  material_code: string | null
+  thickness_mm: number | null
+  process: string | null
+  status: 'draft' | 'approved'
+  sheet_count: number
+  part_count: number
+  remnant_count: number
+  remnant_weight_kg: number | null
+  scrap_weight_kg: number | null
+  created_at: string
+  approved_at: string | null
+  approved_by: string | null
+}
+
+export interface JobDetail extends JobSummary {
+  analysis: Analysis
+  pieces: Piece[]
+}
+
+export function createJob(file: File, options: AnalysisOptions = {}, actor = 'operator'): Promise<JobDetail> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('actor', actor)
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined && value !== '' && !Number.isNaN(value)) form.append(key, String(value))
+  }
+  return request<JobDetail>('/v1/jobs', { method: 'POST', body: form })
+}
+
+export const listJobs = () => request<{ jobs: JobSummary[] }>('/v1/jobs')
+export const getJob = (id: string) => request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}`)
+
+export interface PiecePatch {
+  actor?: string
+  weight_actual_kg?: number
+  clear_weight?: boolean
+  width_mm?: number
+  height_mm?: number
+  condition_note?: string
+  location?: string
+  rejected?: boolean
+}
+
+const json = (body: unknown): RequestInit => ({
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
+export const patchPiece = (id: string, patch: PiecePatch) =>
+  request<PieceWithHistory>(`/v1/pieces/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(patch) })
+
+export const approveJob = (id: string, actor = 'manager') =>
+  request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}/approve`, { method: 'POST', ...json({ actor }) })
+
+export const getPieceByCode = (code: string) =>
+  request<PieceWithHistory & { job: { id: string; file_name: string; status: string } }>(
+    `/v1/codes/${encodeURIComponent(code)}`,
+  )
+
+export interface StockSummaryRow {
+  material_code: string | null
+  remnant_count: number
+  remnant_area_m2: number
+  remnant_weight_kg: number
+  scrap_lots: number
+  scrap_weight_kg: number
+  unweighed: number
+  due_for_review: number
+}
+
+export const getStock = (kind?: 'remnant' | 'scrap') =>
+  request<{ pieces: Piece[] }>(`/v1/stock${kind ? `?kind=${kind}` : ''}`)
+
+export const getStockSummary = () =>
+  request<{ materials: StockSummaryRow[]; totals: Omit<StockSummaryRow, 'material_code' | 'unweighed'> }>(
+    '/v1/stock/summary',
+  )

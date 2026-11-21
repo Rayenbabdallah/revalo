@@ -34,3 +34,48 @@ export const processLabel = (code: string | null) => (code ? (PROCESS_LABEL[code
 
 const FORMAT_LABEL = { dxf: 'DXF nest', gcode: 'G-code', cutlist: 'Cut list' } as const
 export const formatLabel = (f: keyof typeof FORMAT_LABEL) => FORMAT_LABEL[f]
+
+export function fmtDate(iso: string) {
+  return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
+}
+
+export function fmtDateTime(iso: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso))
+}
+
+const MATERIAL_LABEL: Record<string, string> = {
+  steel_mild: 'Mild steel',
+  steel_galvanized: 'Galvanized steel',
+  stainless_304: 'Stainless 304',
+  stainless_316: 'Stainless 316',
+  aluminium: 'Aluminium',
+  copper: 'Copper',
+  brass: 'Brass',
+  mdf: 'MDF',
+  hdf: 'HDF',
+  plywood: 'Plywood',
+  particleboard: 'Particleboard',
+  melamine_board: 'Melamine board',
+  osb: 'OSB',
+  solid_pine: 'Solid pine',
+  solid_beech: 'Solid beech',
+  pmma: 'Acrylic',
+}
+export const materialLabel = (code: string | null) => (code ? (MATERIAL_LABEL[code] ?? code) : 'Unknown material')
+
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'To review',
+  rejected: 'Rejected',
+  in_stock: 'In stock',
+  reserved: 'Reserved',
+  reused: 'Reused',
+  sold: 'Sold',
+  recycled: 'Recycled',
+  approved: 'Approved',
+}
+export const statusLabel = (status: string) => STATUS_LABEL[status] ?? status

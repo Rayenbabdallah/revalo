@@ -22,6 +22,8 @@ interface SheetViewerProps {
   highlighted: string | null
   onHighlight: (id: string | null) => void
   mode: ViewMode
+  /** Remnant ids the manager rejected: they stay down in the sheet, edged in red. */
+  rejected?: ReadonlySet<string>
 }
 
 interface Frame {
@@ -54,6 +56,7 @@ function RemnantBlock({
   highlighted,
   onHighlight,
   register,
+  rejected,
 }: {
   remnant: Remnant
   frame: Frame
@@ -62,6 +65,7 @@ function RemnantBlock({
   highlighted: boolean
   onHighlight: (id: string | null) => void
   register: Register
+  rejected: boolean
 }) {
   const group = useRef<THREE.Group>(null)
   const mesh = useRef<THREE.Mesh>(null)
@@ -76,7 +80,7 @@ function RemnantBlock({
     if (!group.current) return
     born.current ??= state.clock.elapsedTime
     const age = state.clock.elapsedTime - born.current - 0.35 - index * 0.12
-    const target = age < 0 ? 0 : highlighted ? lift * 2 : lift
+    const target = age < 0 || rejected ? 0 : highlighted ? lift * 2 : lift
     group.current.position.y = THREE.MathUtils.damp(group.current.position.y, target, 6, delta)
     const m = mesh.current?.material as THREE.MeshStandardMaterial | undefined
     if (m) m.emissiveIntensity = THREE.MathUtils.damp(m.emissiveIntensity, highlighted ? 0.22 : 0, 8, delta)
@@ -103,7 +107,7 @@ function RemnantBlock({
         onPointerOut={() => onHighlight(null)}
       >
         <boxGeometry args={[w, frame.depth, h]} />
-        <Edges color={highlighted ? '#ecfbc4' : '#c8f169'} threshold={15} />
+        <Edges color={rejected ? '#ff7a7a' : highlighted ? '#ecfbc4' : '#c8f169'} threshold={15} />
       </mesh>
       <object3D ref={anchorRef} position={[cx, frame.depth, cz]} />
     </group>
@@ -167,6 +171,7 @@ function Sheet({
   highlighted,
   onHighlight,
   register,
+  rejected,
 }: Omit<SheetViewerProps, 'mode'> & { register: Register }) {
   const frame = useMemo<Frame>(() => {
     const scale = SCENE_SIZE / Math.max(sheet.width, sheet.height)
@@ -218,6 +223,7 @@ function Sheet({
           highlighted={highlighted === r.id}
           onHighlight={onHighlight}
           register={register}
+          rejected={rejected?.has(r.id) ?? false}
         />
       ))}
     </group>
@@ -290,7 +296,7 @@ export default function SheetViewer(props: SheetViewerProps) {
         {/* A small procedural studio: reflections without downloading an HDR file. */}
         <Environment resolution={256} frames={1}>
           {/* Key panel sits off-axis so a top-down camera does not see its mirror image. */}
-          <Lightformer form="rect" intensity={2.2} position={[-4, 6, -6]} rotation-x={Math.PI / 2.6} scale={[14, 4, 1]} />
+          <Lightformer form="rect" intensity={1.7} position={[-4, 6, -6]} rotation-x={Math.PI / 2.6} scale={[14, 4, 1]} />
           <Lightformer form="rect" intensity={1.2} position={[-6, 2, 3]} rotation-y={Math.PI / 2} scale={[8, 2, 1]} />
           <Lightformer form="rect" intensity={0.9} position={[6, 2, 3]} rotation-y={-Math.PI / 2} scale={[8, 2, 1]} />
           <Lightformer form="rect" intensity={0.35} color="#ff8a55" position={[0, 1.5, -7]} scale={[10, 1, 1]} />
