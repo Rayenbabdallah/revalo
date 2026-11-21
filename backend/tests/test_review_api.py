@@ -74,6 +74,9 @@ def test_approval_moves_drafts_to_stock_and_skips_rejected(client, job):
         == 409
     )
     assert client.post(f"/v1/jobs/{job['id']}/approve", json={}).status_code == 409
+    # A piece rejected before approval stays rejected.
+    restore = client.patch(f"/v1/pieces/{first['id']}", json={"rejected": False})
+    assert restore.status_code == 409
     # Location and notes can still change once in stock.
     moved = client.patch(f"/v1/pieces/{others[0]['id']}", json={"location": "Rack B3"})
     assert moved.status_code == 200 and moved.json()["location"] == "Rack B3"

@@ -53,8 +53,10 @@ def update_piece(session: Session, piece: Piece, changes: PieceChanges, actor: s
         )
         or changes.clear_weight
     )
-    if reviewing and piece.status not in EDITABLE_STATUSES:
-        raise ReviewError("Only draft records can be corrected; this piece is already approved.")
+    if reviewing and (
+        piece.status not in EDITABLE_STATUSES or piece.job.status == JobStatus.APPROVED
+    ):
+        raise ReviewError("Only draft records can be corrected; this job is already approved.")
 
     if changes.width_mm is not None or changes.height_mm is not None:
         if piece.kind != PieceKind.REMNANT:
