@@ -117,6 +117,44 @@ def assumed_sheet(
     )
 
 
+def _drop_alternative_sheets(
+    sheets: list[Polygon], loops: list[Polygon]
+) -> tuple[list[Polygon], str | None]:
+    """Overlapping sheet outlines are alternative stock sizes, not separate sheets.
+
+    For each group of overlapping outlines keep the smallest one that still holds
+    every loop the group holds.
+    """
+    groups: list[list[Polygon]] = []
+    for sheet in sorted(sheets, key=lambda s: s.area):
+        for group in groups:
+            if any(sheet.intersection(g).area > 0.5 * min(sheet.area, g.area) for g in group):
+                group.append(sheet)
+                break
+        else:
+            groups.append([sheet])
+    kept: list[Polygon] = []
+    dropped = 0
+    for group in groups:
+        if len(group) == 1:
+            kept.append(group[0])
+            continue
+        inside_any = [p for p in loops if any(_inside(g, p) for g in group)]
+        choice = next(
+            (g for g in group if all(_inside(g, p) for p in inside_any)),
+            max(group, key=lambda g: g.area),
+        )
+        kept.append(choice)
+        dropped += len(group) - 1
+    note = (
+        f"{dropped + len(groups)} overlapping sheet outlines found; used the smallest that "
+        "holds all parts."
+        if dropped
+        else None
+    )
+    return kept, note
+
+
 def split_into_sheets(
     loops: list[Polygon],
     sheet_candidates: list[Polygon],
@@ -149,11 +187,21 @@ def split_into_sheets(
                 return False
             if (given and matches_size(p, given)) or is_standard_sheet(p):
                 return True
-            return sum(c.area for c in children) >= 0.15 * p.area and len(children) >= 2
+            # A plate with holes also looks like "a rectangle holding loops". Nested
+            # parts usually have holes of their own; holes in a plate do not.
+            if len(children) < 2 or sum(c.area for c in children) < 0.15 * p.area:
+                return False
+            grandchildren = any(_inside(c, o) for c in children for o in children if o is not c)
+            return grandchildren or sum(c.area for c in children) >= 0.5 * p.area
 
         if top and all(sheet_like(p) for p in top):
             sheets = top
             remaining = [p for p in remaining if all(p is not s for s in sheets)]
+
+    if len(sheets) > 1:
+        sheets, note = _drop_alternative_sheets(sheets, remaining)
+        if note:
+            warnings.append(note)
 
     layouts: list[SheetLayout] = []
     if sheets:
@@ -163,10 +211,15 @@ def split_into_sheets(
             inside = [p for p in unassigned if _inside(sheet, p)]
             unassigned = [p for p in unassigned if all(p is not q for q in inside)]
             layouts.append(SheetLayout(outline=sheet, parts=build_parts(inside)))
-        if unassigned:
+        crossing = [p for p in unassigned if any(p.intersects(s) for s in sheets)]
+        outside = len(unassigned) - len(crossing)
+        if crossing:
             warnings.append(
-                f"{len(unassigned)} contour(s) lie outside every sheet and were ignored."
+                f"{len(crossing)} contour(s) cross the sheet edge and were ignored; "
+                "check that the parts are placed on the sheet."
             )
+        if outside:
+            warnings.append(f"{outside} contour(s) lie outside every sheet and were ignored.")
     else:
         outline, note = assumed_sheet(remaining, options, source_name)
         warnings.append(note)

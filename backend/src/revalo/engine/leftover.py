@@ -158,7 +158,8 @@ def compute_leftover(
         material = list(sheet.parts)
         blocked = parts.buffer(kerf, join_style="mitre") if kerf else parts
     material = [m for m in material if not m.is_empty]
-    parts_area = sum(m.area for m in material)
+    # Union, not sum: design files sometimes stack variants of the same part.
+    parts_area = unary_union(material).area if material else 0.0
     cut_length = sum(p.length for p in sheet.parts)  # outer edges and holes
     kerf_area = min(cut_length * kerf, max(outline.area - parts_area, 0.0))
 

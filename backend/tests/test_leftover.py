@@ -109,3 +109,10 @@ def test_random_laser_nest_invariants_and_speed():
     assert result.remnants[0].x >= 2000
     check_invariants(layout, result, 0.3)
     assert elapsed < 5.0
+
+
+def test_overlapping_parts_are_not_counted_twice():
+    layout = sheet([box(0, 0, 1000, 1000), box(0, 0, 1000, 1000).buffer(0)])
+    result = compute_leftover(layout, KerfSide.OUTSIDE, LeftoverOptions(kerf_mm=0.2))
+    assert result.parts_area == pytest.approx(1000 * 1000)
+    assert result.utilization <= 1.0

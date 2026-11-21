@@ -22,16 +22,38 @@ from revalo.engine.units import insunits_to_mm
 
 CUT_ENTITY_TYPES = {"LINE", "ARC", "CIRCLE", "ELLIPSE", "LWPOLYLINE", "POLYLINE", "SPLINE"}
 
-# Layers that carry annotations or surface marking, never through-cuts.
+# Layers that carry annotations, marking, fold lines or construction geometry,
+# never through-cuts.
 IGNORED_LAYER = re.compile(
-    r"(TEXT|TEXTE|DIM|COTE|MARK|ENGRAV|GRAV|ETCH|ANNOT|TITLE|CARTOUCHE|DEFPOINTS|HATCH)",
+    r"(TEXT|DIM|COTE|MARK|ENGRAV|GRAV|ETCH|ANNOT|TITLE|CARTOUCHE|DEFPOINTS|HATCH"
+    r"|CONSTRUCT|CONSTR|HELPER|GUIDE|REFERENCE|HIDDEN|CENTERLINE|BEND|FOLD"
+    r"|\bAUX\b|\bAXE\b|\bAXIS\b|\bPLI\b|\bBED\b|\bMACHINE\b|\bLIT\b)",
     re.IGNORECASE,
 )
-# Layers that hold the raw stock outline.
-SHEET_LAYER = re.compile(
-    r"(SHEET|PLATE|STOCK|BOARD|BLANK|PANEL|PANNEAU|TOLE|T[OÔ]LE|BLECH|PLAQUE|BRUT)",
-    re.IGNORECASE,
-)
+# Layers that hold the raw stock outline: the first word names the stock
+# ("SHEET", "sheet 49x97", "TOLE_3MM"); short generic names must match exactly.
+SHEET_LAYER_FIRST_WORD = {
+    "sheet",
+    "sheets",
+    "stock",
+    "blank",
+    "brut",
+    "tole",
+    "blech",
+    "panneau",
+    "plaque",
+    "raw",
+    "format",
+    "feuille",
+}
+SHEET_LAYER_EXACT = {"plate", "panel", "board", "material", "matiere"}
+
+
+def is_sheet_layer(name: str) -> bool:
+    norm = name.strip().lower().replace("ô", "o")
+    words = re.split(r"[^a-z0-9]+", norm)
+    return norm in SHEET_LAYER_EXACT or (bool(words) and words[0] in SHEET_LAYER_FIRST_WORD)
+
 
 FLATTEN_TOLERANCE_MM = 0.05
 MAX_TEXT_SNIPPETS = 200
@@ -72,7 +94,7 @@ def import_dxf(data: bytes, source_name: str, options: ImportOptions | None = No
         except (TypeError, ValueError, ezdxf.DXFError):
             continue
         subpaths = path.sub_paths() if path.has_sub_paths else [path]
-        target = sheet_paths if SHEET_LAYER.search(layer) else part_paths
+        target = sheet_paths if is_sheet_layer(layer) else part_paths
         for sub in subpaths:
             pts = [(v.x * scale, v.y * scale) for v in sub.flattening(distance=flatten)]
             if len(pts) >= 2:

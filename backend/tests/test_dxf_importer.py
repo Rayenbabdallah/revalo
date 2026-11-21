@@ -142,3 +142,63 @@ def test_rotated_sheet_is_normalized():
 def test_garbage_raises_import_error():
     with pytest.raises(JobImportError):
         import_dxf(b"this is not a dxf", "bad.dxf")
+
+
+def test_construction_and_machine_bed_layers_are_ignored():
+    doc = new_doc()
+    msp = doc.modelspace()
+    rect(msp, 0, 0, 2440, 1220, layer="bed 4x8")
+    rect(msp, 0, 0, 3000, 1500, layer="SHEET")
+    for i in range(5):
+        rect(msp, 100 + i * 10, 100 + i * 10, 800 - i * 20, 600 - i * 20, layer="construction")
+    rect(msp, 50, 50, 300, 200, layer="CUT")
+    rect(msp, 60, 60, 280, 0.5, layer="BEND")
+    job = import_dxf(to_bytes(doc), "job.dxf")
+    assert len(job.sheets) == 1
+    assert len(job.sheets[0].parts) == 1
+
+
+def test_overlapping_sheet_outlines_are_alternatives():
+    doc = new_doc()
+    msp = doc.modelspace()
+    rect(msp, 0, 0, 2464, 1245, layer="sheet 49x97")
+    rect(msp, 0, 0, 2464, 1549, layer="sheet 61x97")
+    rect(msp, 0, 0, 2464, 1854, layer="sheet 73x97")
+    rect(msp, 10, 10, 500, 500)
+    job = import_dxf(to_bytes(doc), "alt.dxf")
+    assert len(job.sheets) == 1
+    assert (job.sheets[0].width, job.sheets[0].height) == pytest.approx((2464, 1245))
+    assert any("overlapping sheet outlines" in w for w in job.warnings)
+
+
+def test_layer_names_only_partly_matching_sheet_are_parts():
+    doc = new_doc()
+    msp = doc.modelspace()
+    rect(msp, 0, 0, 3000, 1500, layer="SHEET")
+    rect(msp, 10, 10, 400, 300, layer="plated")
+    rect(msp, 500, 10, 400, 300, layer="door panel")
+    job = import_dxf(to_bytes(doc), "names.dxf")
+    assert len(job.sheets) == 1
+    assert len(job.sheets[0].parts) == 2
+
+
+def test_parts_crossing_the_sheet_edge_are_reported():
+    doc = new_doc()
+    msp = doc.modelspace()
+    rect(msp, 0, 0, 2000, 1000, layer="SHEET")
+    rect(msp, 10, 10, 100, 100)
+    rect(msp, -20, 500, 100, 100)
+    job = import_dxf(to_bytes(doc), "edge.dxf")
+    assert any("cross the sheet edge" in w for w in job.warnings)
+
+
+def test_nest_in_non_standard_sheet_with_holed_parts_is_detected():
+    doc = new_doc()
+    msp = doc.modelspace()
+    rect(msp, 0, 0, 1700, 900)
+    for i in range(3):
+        rect(msp, 20 + i * 520, 20, 500, 400)
+        msp.add_circle((270 + i * 520, 220), 40)
+    job = import_dxf(to_bytes(doc), "custom.dxf")
+    assert job.sheets[0].sheet_detected
+    assert len(job.sheets[0].parts) == 3
