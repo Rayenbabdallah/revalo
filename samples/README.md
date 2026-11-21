@@ -23,5 +23,17 @@ without copying anyone's files.
 Real files published under open licences. Each file is listed below with its
 source and licence; keep that information with the file.
 
-| File | Source | Licence |
-|---|---|---|
+These are unmodified copies, pinned to the commit linked below. They are not
+workshop nests, but they are real files from real tools, and they test how the
+engine copes with drawings that were never prepared for it.
+
+| File | Source | Licence | What it exercises |
+|---|---|---|---|
+| `ergotravel_acrylic_case_plates.dxf` | [jpconstantineau/ErgoTravel](https://github.com/jpconstantineau/ErgoTravel/blob/165cd8b44acf48ee5aed9a4ed9f632cb315a5453/AcrylicCase/Grogdor/everything%20(2).dxf) (`AcrylicCase/Grogdor/everything (2).dxf`) | MIT, see [`LICENSES/jpconstantineau_ErgoTravel.LICENSE`](public/LICENSES/jpconstantineau_ErgoTravel.LICENSE) | Laser-shop layout of a keyboard case: machine beds and three alternative stock sheets drawn on top of each other, construction layers, design variants, parts crossing the sheet edge |
+| `dacha_enclosure_door.dxf` | [dennisss/dacha](https://github.com/dennisss/dacha/blob/d458df4a6702f75eb5c1addc305938ca008b3736/doc/prusa_enclosure/door.dxf) (`doc/prusa_enclosure/door.dxf`) | Apache-2.0, see [`LICENSES/dennisss_dacha.LICENSE`](public/LICENSES/dennisss_dacha.LICENSE) | Single panel with holes and arcs, no units header, no sheet |
+| `trizero_deck_panel.dxf` | [zruncho3d/tri-zero](https://github.com/zruncho3d/tri-zero/blob/8beb1587052380161709de1cc532605361514e3c/Mods/csch0/DeckPanel/DXF/Deck_Panel_x1.dxf) (`Mods/csch0/DeckPanel/DXF/Deck_Panel_x1.dxf`) | GPL-3.0, see [`LICENSES/zruncho3d_tri-zero.LICENSE`](public/LICENSES/zruncho3d_tri-zero.LICENSE) | Single panel built from lines and arcs |
+| `stmbl_mounting_plate.dxf` | [rene-dev/stmbl](https://github.com/rene-dev/stmbl/blob/095f1d6d2ab85120d60fbfb43871e44e5e758132/hw/platte.dxf) (`hw/platte.dxf`) | GPL-3.0, see [`LICENSES/rene-dev_stmbl.LICENSE`](public/LICENSES/rene-dev_stmbl.LICENSE) | Rectangular plate with holes and slots, which must not be mistaken for a sheet |
+| `linuxcnc_plasmatest.ngc` | [LinuxCNC/linuxcnc](https://github.com/LinuxCNC/linuxcnc/blob/a7f42c69bc307bfb8a83bd5ebd406d3ab5d196e4/nc_files/plasmatest.ngc) (`nc_files/plasmatest.ngc`) | GPL-2.0, see [`LICENSES/LinuxCNC_linuxcnc.LICENSE`](public/LICENSES/LinuxCNC_linuxcnc.LICENSE) | Plasma program from a CAM post-processor, with line numbers |
+| `linuxcnc_plasmac_metric_wrench.ngc` | [LinuxCNC/linuxcnc](https://github.com/LinuxCNC/linuxcnc/blob/3757165c27cb0a3735d77066afec04b56b2c222a/nc_files/plasmac/metric_wrench.ngc) (`nc_files/plasmac/metric_wrench.ngc`) | GPL-2.0, see [`LICENSES/LinuxCNC_linuxcnc.LICENSE`](public/LICENSES/LinuxCNC_linuxcnc.LICENSE) | Plasma part with a hole, HAL parameters, contour that closes on itself mid-segment |
+| `linuxcnc_plasmac_metric_circles.ngc` | [LinuxCNC/linuxcnc](https://github.com/LinuxCNC/linuxcnc/blob/3757165c27cb0a3735d77066afec04b56b2c222a/nc_files/plasmac/metric_circles.ngc) (`nc_files/plasmac/metric_circles.ngc`) | GPL-2.0, see [`LICENSES/LinuxCNC_linuxcnc.LICENSE`](public/LICENSES/LinuxCNC_linuxcnc.LICENSE) | Parameters, expressions and a repeat loop; full circles given by centre offset only |
+| `linuxcnc_plasmac_metric_squares.ngc` | [LinuxCNC/linuxcnc](https://github.com/LinuxCNC/linuxcnc/blob/3757165c27cb0a3735d77066afec04b56b2c222a/nc_files/plasmac/metric_squares.ngc) (`nc_files/plasmac/metric_squares.ngc`) | GPL-2.0, see [`LICENSES/LinuxCNC_linuxcnc.LICENSE`](public/LICENSES/LinuxCNC_linuxcnc.LICENSE) | Parameters, expressions and a repeat loop |

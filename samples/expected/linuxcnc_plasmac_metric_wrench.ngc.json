@@ -1,0 +1,18 @@
+{
+  "format": "gcode",
+  "material": null,
+  "thickness_mm": null,
+  "process": "plasma",
+  "kerf_mm": 1.5,
+  "sheets": [
+    {
+      "size": [
+        148.78,
+        50.0
+      ],
+      "sheet_detected": false,
+      "part_count": 1,
+      "remnants": []
+    }
+  ]
+}

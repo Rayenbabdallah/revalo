@@ -1,0 +1,27 @@
+{
+  "format": "dxf",
+  "material": "pmma",
+  "thickness_mm": null,
+  "process": null,
+  "kerf_mm": 0.2,
+  "sheets": [
+    {
+      "size": [
+        2463.8,
+        1244.6
+      ],
+      "sheet_detected": true,
+      "part_count": 42,
+      "remnants": [
+        [
+          2312,
+          1244
+        ],
+        [
+          150,
+          1143
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "format": "dxf",
+  "material": null,
+  "thickness_mm": null,
+  "process": null,
+  "kerf_mm": 1.0,
+  "sheets": [
+    {
+      "size": [
+        237.55,
+        399.6
+      ],
+      "sheet_detected": false,
+      "part_count": 1,
+      "remnants": []
+    }
+  ]
+}
