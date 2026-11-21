@@ -4,6 +4,7 @@ from revalo.engine.materials import (
     default_kerf,
     get_material,
     infer_material,
+    infer_process,
     infer_sheet_size,
     infer_thickness,
     materials,
@@ -65,3 +66,17 @@ def test_default_kerf():
     assert default_kerf("plasma", None) == 1.5
     assert default_kerf(None, "mdf") == 3.2
     assert default_kerf(None, None) == 1.0
+
+
+@pytest.mark.parametrize(
+    ("text", "material", "process"),
+    [
+        ("plasma_S355_10mm.nc", None, "plasma"),
+        ("Laser fibre inox 2mm", "stainless_304", "fiber_laser"),
+        ("laser_mdf_3mm.dxf", "mdf", "co2_laser"),
+        ("DEFONCEUSE MDF 18", "mdf", "router"),
+        ("job_118.dxf", None, None),
+    ],
+)
+def test_infer_process(text, material, process):
+    assert infer_process(text, material) == process

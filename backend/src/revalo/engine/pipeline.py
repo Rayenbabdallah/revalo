@@ -17,6 +17,7 @@ from revalo.engine.materials import (
     Material,
     default_kerf,
     infer_material,
+    infer_process,
     infer_thickness,
     materials,
 )
@@ -77,6 +78,8 @@ class AnalysisResult:
     thickness_mm: float | None
     kerf_mm: float
     min_side_mm: float
+    process: str | None
+    process_source: str
     material_source: str
     thickness_source: str
     sheets: list[SheetResult] = field(default_factory=list)
@@ -172,6 +175,8 @@ class AnalysisResult:
             },
             "thickness_mm": self.thickness_mm,
             "thickness_source": self.thickness_source,
+            "process": self.process,
+            "process_source": self.process_source,
             "kerf_mm": self.kerf_mm,
             "min_side_mm": self.min_side_mm,
             "totals": totals,
@@ -221,6 +226,20 @@ def _resolve_thickness(job: Job, options: AnalysisOptions) -> tuple[float | None
     return None, "unknown"
 
 
+def _resolve_process(
+    job: Job, options: AnalysisOptions, material_code: str | None
+) -> tuple[str | None, str]:
+    if options.process:
+        return options.process, "given"
+    for text, source in ((job.source_name, "file_name"), (job.metadata_text, "file_content")):
+        code = infer_process(text, material_code) if text else None
+        if code:
+            return code, source
+    if job.source_format is SourceFormat.CUTLIST:
+        return "panel_saw", "file_type"
+    return None, "unknown"
+
+
 def analyze(data: bytes, filename: str, options: AnalysisOptions | None = None) -> AnalysisResult:
     options = options or AnalysisOptions()
     if len(data) > MAX_FILE_BYTES:
@@ -239,7 +258,7 @@ def analyze(data: bytes, filename: str, options: AnalysisOptions | None = None) 
     material, material_source = _resolve_material(job, options)
     thickness, thickness_source = _resolve_thickness(job, options)
     code = material.code if material else None
-    process = options.process or ("panel_saw" if fmt is SourceFormat.CUTLIST else None)
+    process, process_source = _resolve_process(job, options, code)
     if options.kerf_mm is not None:
         kerf = options.kerf_mm
     elif fmt is SourceFormat.GCODE and (material is None or material.family != "metal"):
@@ -264,6 +283,8 @@ def analyze(data: bytes, filename: str, options: AnalysisOptions | None = None) 
         thickness_mm=thickness,
         kerf_mm=kerf,
         min_side_mm=min_side,
+        process=process,
+        process_source=process_source,
         material_source=material_source,
         thickness_source=thickness_source,
     )

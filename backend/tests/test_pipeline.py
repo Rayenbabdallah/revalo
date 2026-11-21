@@ -84,3 +84,11 @@ def test_rejects_empty_and_unknown_material():
         analyze(b"   ", "x.dxf")
     with pytest.raises(JobImportError):
         analyze(laser_nest_bytes(), "x.dxf", AnalysisOptions(material_code="unobtainium"))
+
+
+def test_process_inferred_from_file_name_sets_kerf():
+    program = b"G21 G90\nG0 X10 Y10\nM07\nG1 X300 Y10\nG1 X300 Y200\nG1 X10 Y200\nG1 X10 Y10\nM08\n"
+    result = analyze(program, "plasma_S355_10mm_2000x1000.nc")
+    assert result.process == "plasma"
+    assert result.process_source == "file_name"
+    assert result.kerf_mm == 1.5

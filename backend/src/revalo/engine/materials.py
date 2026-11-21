@@ -128,6 +128,38 @@ def infer_sheet_size(text: str) -> tuple[float, float] | None:
     return (max(a, b), min(a, b))
 
 
+_PROCESS_HINTS: tuple[tuple[str, str], ...] = (
+    ("plasma", "plasma"),
+    ("oxycoupage", "plasma"),
+    ("waterjet", "waterjet"),
+    ("jet d'eau", "waterjet"),
+    ("jet deau", "waterjet"),
+    ("fiber", "fiber_laser"),
+    ("fibre", "fiber_laser"),
+    ("co2", "co2_laser"),
+    ("laser", "fiber_laser"),
+    ("router", "router"),
+    ("defonceuse", "router"),
+    ("fraiseuse", "router"),
+    ("toupie", "router"),
+    ("panel saw", "panel_saw"),
+    ("scie", "panel_saw"),
+    ("sectionneuse", "panel_saw"),
+)
+
+
+def infer_process(text: str, material_code: str | None = None) -> str | None:
+    """Guess the cutting process from free text such as a file name or program comments."""
+    norm = _normalize(text).replace("_", " ").replace("-", " ")
+    for hint, code in _PROCESS_HINTS:
+        if hint in norm:
+            family = materials()[material_code].family if material_code in materials() else None
+            if code == "fiber_laser" and family in ("wood", "plastic"):
+                return "co2_laser"
+            return code
+    return None
+
+
 def default_kerf(process: str | None, material_code: str | None) -> float:
     """Kerf for a known process, otherwise a conservative guess from the material family."""
     if process and process in processes():
