@@ -5,6 +5,7 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import create_engine
 
 from revalo.db.models import Base
 from revalo.db.session import make_engine
@@ -34,7 +35,11 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    engine = make_engine(_url())
+    url = _url()
+    # SQLite rebuilds a table to alter it (batch mode). With foreign keys enforced,
+    # dropping the old table fails as soon as other rows point at it, so migrations
+    # run on a plain connection; the app's own engine still enforces them.
+    engine = create_engine(url) if url.startswith("sqlite") else make_engine(url)
     with engine.connect() as connection:
         context.configure(
             connection=connection,

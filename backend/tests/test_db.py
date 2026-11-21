@@ -67,3 +67,30 @@ def test_round_trip(tmp_path):
         assert piece.weight_kg == 11.8
         piece.weight_actual_kg = 11.2
         assert piece.weight_kg == 11.2
+
+
+def test_migrations_upgrade_a_database_that_already_has_data(tmp_path):
+    """Table rebuilds on SQLite must not trip over existing foreign keys."""
+    url = db_url(tmp_path)
+    command.upgrade(alembic_config(url), "0003")
+    engine = make_engine(url)
+    with engine.begin() as conn:
+        conn.exec_driver_sql(
+            "INSERT INTO workshops (id, name, created_at) VALUES ('w1', 'Atelier', '2026-11-01')"
+        )
+        conn.exec_driver_sql(
+            "INSERT INTO jobs (id, workshop_id, file_name, file_format, file_sha256, file_key,"
+            " kerf_mm, sheet_count, part_count, status, analysis, created_at)"
+            " VALUES ('j1', 'w1', 'a.dxf', 'dxf', 'x', 'k', 0.2, 1, 1, 'draft', '{}', '2026-11-01')"
+        )
+        conn.exec_driver_sql(
+            "INSERT INTO pieces (id, code, job_id, workshop_id, position, kind, status,"
+            " sheet_index, label, area_m2, created_at, updated_at)"
+            " VALUES ('p1', 'RV-AAAAAA', 'j1', 'w1', 0, 'remnant', 'draft', 0, 'S1-R1', 0.5,"
+            " '2026-11-01', '2026-11-01')"
+        )
+    engine.dispose()
+    upgrade(url)
+    with make_engine(url).connect() as conn:
+        assert conn.exec_driver_sql("SELECT count(*) FROM pieces").scalar() == 1
+        assert conn.exec_driver_sql("SELECT machine_id FROM jobs").scalar() is None
