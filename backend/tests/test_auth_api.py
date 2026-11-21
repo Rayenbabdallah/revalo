@@ -119,7 +119,7 @@ def test_operator_records_but_cannot_approve_sell_or_price(client):
     assert client.put("/v1/prices/steel_mild", json=price).status_code == 403
     assert client.get("/v1/reports/monthly").status_code == 403
     assert client.get("/v1/users").status_code == 403
-    assert client.get("/v1/alerts").status_code == 200
+    assert client.get("/v1/alerts").json() == {"alerts": []}
 
 
 def test_manager_approves_in_their_own_name_but_cannot_manage_people(client):

@@ -9,7 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from revalo.api.deps import manager_only, signed_in
+from revalo.api.deps import SignedIn, manager_only
+from revalo.db.models import Role
 from revalo.db.session import get_session
 from revalo.services.alerts import current_alerts
 from revalo.services.jobs import default_workshop
@@ -43,7 +44,10 @@ def export_stock(session: DbSession) -> Response:
     )
 
 
-@router.get("/v1/alerts", dependencies=[signed_in])
-def alerts(session: DbSession) -> dict[str, Any]:
+@router.get("/v1/alerts")
+def alerts(user: SignedIn, session: DbSession) -> dict[str, Any]:
+    # Every alert today is a manager's task; operators would only see what they cannot do.
+    if Role(user.role).rank < Role.MANAGER.rank:
+        return {"alerts": []}
     shop = default_workshop(session)
     return {"alerts": current_alerts(session, price_book(session, shop.id))}
