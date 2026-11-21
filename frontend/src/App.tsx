@@ -1,4 +1,4 @@
-import { Coins, Layers, ScanLine, Store, Warehouse } from 'lucide-react'
+import { Layers, ScanLine, Settings, Store, Upload, Warehouse } from 'lucide-react'
 import { Redirect, Route, Switch, useLocation } from 'wouter'
 
 import { AppShell, type NavItem } from './components/shell/AppShell'
@@ -9,15 +9,17 @@ import { JobsPage } from './pages/jobs/JobsPage'
 import { LabelsPage } from './pages/jobs/LabelsPage'
 import { MarketPage } from './pages/market/MarketPage'
 import { PiecePage } from './pages/piece/PiecePage'
-import { PricesPage } from './pages/prices/PricesPage'
+import { SettingsPage } from './pages/settings/SettingsPage'
 import { StockPage } from './pages/stock/StockPage'
+import { UploadPage } from './pages/upload/UploadPage'
 
 const NAV: NavItem[] = [
+  { id: '/upload', label: 'Upload', icon: Upload },
   { id: '/analyze', label: 'Analyze', icon: ScanLine },
   { id: '/jobs', label: 'Jobs', icon: Layers },
   { id: '/stock', label: 'Stock', icon: Warehouse },
   { id: '/market', label: 'Market', icon: Store },
-  { id: '/prices', label: 'Prices', icon: Coins },
+  { id: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function App() {
@@ -36,7 +38,11 @@ export default function App() {
             <Route path="/jobs" component={JobsPage} />
             <Route path="/stock" component={StockPage} />
             <Route path="/market" component={MarketPage} />
-            <Route path="/prices" component={PricesPage} />
+            <Route path="/upload" component={UploadPage} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route path="/prices">
+              <Redirect to="/settings?tab=prices" />
+            </Route>
             <Route path="/jobs/:id/labels">{(params) => <LabelsPage id={params.id} />}</Route>
             <Route path="/jobs/:id">{(params) => <JobReviewPage id={params.id} />}</Route>
             <Route>

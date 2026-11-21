@@ -97,12 +97,12 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
                 onClick={() => onNavigate(item.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={clsx(
-                  'flex min-w-16 flex-col items-center gap-1 rounded-lg px-3 py-1.5',
+                  'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-lg px-1 py-1.5',
                   isActive ? 'text-brand-400' : 'text-ink-400',
                 )}
               >
                 <Icon className="size-5" strokeWidth={1.75} />
-                <span className="text-[11px] font-medium">{item.label}</span>
+                <span className="truncate text-[10.5px] font-medium">{item.label}</span>
               </button>
             )
           })}

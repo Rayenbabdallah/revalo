@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { getMaterials, type AnalysisOptions } from '../../lib/api'
+import { getMachines, getMaterials, type AnalysisOptions } from '../../lib/api'
 import { processLabel } from '../../lib/format'
 
 interface SettingsPanelProps {
@@ -33,6 +33,20 @@ const num = (v: string) => (v === '' ? undefined : Number(v))
 export function SettingsPanel({ value, onChange, footer, className }: SettingsPanelProps) {
   const catalog = useQuery({ queryKey: ['materials'], queryFn: getMaterials, staleTime: Infinity })
   const set = (patch: Partial<AnalysisOptions>) => onChange({ ...value, ...patch })
+  const machines = useQuery({ queryKey: ['machines'], queryFn: () => getMachines() })
+  const applyMachine = (id: string) => {
+    const m = machines.data?.machines.find((x) => x.id === id)
+    if (!m) return
+    onChange({
+      material: m.material_code ?? undefined,
+      process: m.process,
+      thickness_mm: m.thickness_mm ?? undefined,
+      kerf_mm: m.kerf_mm ?? undefined,
+      sheet_width_mm: m.sheet_width_mm ?? undefined,
+      sheet_height_mm: m.sheet_height_mm ?? undefined,
+      min_side_mm: m.min_side_mm ?? undefined,
+    })
+  }
   const families = ['metal', 'wood', 'plastic'] as const
 
   return (
@@ -47,6 +61,20 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-4">
+        {!!machines.data?.machines.length && (
+          <div className="col-span-2">
+            <Field label="Machine preset">
+              <select className={fieldClass} defaultValue="" onChange={(e) => applyMachine(e.target.value)}>
+                <option value="">None</option>
+                {machines.data.machines.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        )}
         <div className="col-span-2">
           <Field label="Material">
             <select

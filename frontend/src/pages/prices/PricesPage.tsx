@@ -93,7 +93,7 @@ function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
   )
 }
 
-export function PricesPage() {
+export function PricesPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient()
   const prices = useQuery({ queryKey: ['prices'], queryFn: getPrices })
   const catalog = useQuery({ queryKey: ['materials'], queryFn: getMaterials, staleTime: Infinity })
@@ -111,9 +111,15 @@ export function PricesPage() {
   const missing = rows.filter((r) => r.new_tnd_per_kg === null).length
 
   return (
-    <div className="mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-12">
-      <p className="eyebrow">Price book</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">The numbers behind every decision</h1>
+    <div className={embedded ? '' : 'mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-12'}>
+      {!embedded && (
+        <>
+          <p className="eyebrow">Price book</p>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
+            The numbers behind every decision
+          </h1>
+        </>
+      )}
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-400">
         Revalo compares reusing, selling and recycling each piece with these prices. Defaults come from published
         sources; replace them with your own supplier and scrap-dealer quotes.
