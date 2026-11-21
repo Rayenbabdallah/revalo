@@ -16,23 +16,12 @@ import re
 
 from revalo.engine.contours import assemble_loops
 from revalo.engine.importers.common import ImportOptions, split_into_sheets
+from revalo.engine.importers.gcode_macro import expand
 from revalo.engine.model import Job, JobImportError, KerfSide, SourceFormat
 
 ARC_TOLERANCE_MM = 0.05
 DEPTH_TOLERANCE_MM = 0.5
 MAX_LINES = 3_000_000
-
-_WORD = re.compile(r"([A-Z])\s*([-+]?(?:\d+\.?\d*|\.\d+))")
-_PAREN_COMMENT = re.compile(r"\(([^)]*)\)")
-
-
-def _strip(line: str) -> tuple[str, str]:
-    comments = _PAREN_COMMENT.findall(line)
-    code = _PAREN_COMMENT.sub(" ", line)
-    if ";" in code:
-        code, semi = code.split(";", 1)
-        comments.append(semi)
-    return code.upper(), " ".join(c.strip() for c in comments if c.strip())
 
 
 def _arc_points(
@@ -84,9 +73,9 @@ def _center_from_radius(start, end, r, clockwise):
 def import_gcode(data: bytes, source_name: str, options: ImportOptions | None = None) -> Job:
     options = options or ImportOptions()
     text = data.decode("utf-8", errors="replace")
-    lines = text.splitlines()
-    if len(lines) > MAX_LINES:
+    if text.count("\n") > MAX_LINES:
         raise JobImportError("G-code file is too large.")
+    blocks = expand(text)
 
     upper = text.upper()
     # FastCAM/CypCut-style programs switch the beam or torch with M07/M08.
@@ -96,17 +85,14 @@ def import_gcode(data: bytes, source_name: str, options: ImportOptions | None = 
     # First pass: deepest Z of feed moves. Negative Z means Z0 is the stock top (router).
     min_feed_z: float | None = None
     mode = 0
-    for raw in lines:
-        code, _ = _strip(raw)
-        words = _WORD.findall(code)
+    for words, _ in blocks:
         for letter, value in words:
-            if letter == "G" and float(value) in (0, 1, 2, 3):
-                mode = int(float(value))
+            if letter == "G" and value in (0, 1, 2, 3):
+                mode = int(value)
         if mode in (1, 2, 3):
             for letter, value in words:
                 if letter == "Z":
-                    z = float(value)
-                    min_feed_z = z if min_feed_z is None else min(min_feed_z, z)
+                    min_feed_z = value if min_feed_z is None else min(min_feed_z, value)
     use_depth = min_feed_z is not None and min_feed_z < 0
 
     scale = 1.0
@@ -127,16 +113,13 @@ def import_gcode(data: bytes, source_name: str, options: ImportOptions | None = 
             paths.append(current)
         current = []
 
-    for raw in lines:
-        code, comment = _strip(raw)
+    for words, comment in blocks:
         if comment and len(comments) < 200:
             comments.append(comment)
-        words = _WORD.findall(code)
         if not words:
             continue
         params: dict[str, float] = {}
-        for letter, value in words:
-            num = float(value)
+        for letter, num in words:
             if letter == "G":
                 if num == 20:
                     scale = 25.4
@@ -168,7 +151,9 @@ def import_gcode(data: bytes, source_name: str, options: ImportOptions | None = 
             else:
                 params[letter] = num
 
-        if not any(k in params for k in ("X", "Y", "Z")) or mode not in (0, 1, 2, 3):
+        moves = any(k in params for k in ("X", "Y", "Z"))
+        full_circle = mode in (2, 3) and ("I" in params or "J" in params)
+        if not (moves or full_circle) or mode not in (0, 1, 2, 3):
             continue
         saw_motion = True
 
