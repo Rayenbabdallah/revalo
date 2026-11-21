@@ -1,0 +1,31 @@
+{
+  "format": "dxf",
+  "material": "stainless_304",
+  "thickness_mm": 1.5,
+  "process": null,
+  "kerf_mm": 0.3,
+  "sheets": [
+    {
+      "size": [
+        2500.0,
+        1250.0
+      ],
+      "sheet_detected": true,
+      "part_count": 18,
+      "remnants": [
+        [
+          1084,
+          1250
+        ],
+        [
+          1415,
+          221
+        ],
+        [
+          192,
+          277
+        ]
+      ]
+    }
+  ]
+}

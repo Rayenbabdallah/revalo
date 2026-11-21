@@ -1,0 +1,27 @@
+{
+  "format": "gcode",
+  "material": "mdf",
+  "thickness_mm": 18.0,
+  "process": "router",
+  "kerf_mm": 6.0,
+  "sheets": [
+    {
+      "size": [
+        2440.0,
+        1220.0
+      ],
+      "sheet_detected": false,
+      "part_count": 7,
+      "remnants": [
+        [
+          1519,
+          479
+        ],
+        [
+          369,
+          734
+        ]
+      ]
+    }
+  ]
+}

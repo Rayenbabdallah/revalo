@@ -1,0 +1,23 @@
+{
+  "format": "gcode",
+  "material": "steel_mild",
+  "thickness_mm": 10.0,
+  "process": "plasma",
+  "kerf_mm": 1.5,
+  "sheets": [
+    {
+      "size": [
+        2000.0,
+        1000.0
+      ],
+      "sheet_detected": false,
+      "part_count": 12,
+      "remnants": [
+        [
+          719,
+          1000
+        ]
+      ]
+    }
+  ]
+}

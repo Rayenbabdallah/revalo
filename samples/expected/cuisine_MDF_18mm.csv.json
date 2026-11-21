@@ -1,0 +1,53 @@
+{
+  "format": "cutlist",
+  "material": "mdf",
+  "thickness_mm": 18.0,
+  "process": "panel_saw",
+  "kerf_mm": 3.2,
+  "sheets": [
+    {
+      "size": [
+        2800.0,
+        2070.0
+      ],
+      "sheet_detected": true,
+      "part_count": 15,
+      "remnants": [
+        [
+          560,
+          535
+        ],
+        [
+          227,
+          560
+        ],
+        [
+          190,
+          460
+        ]
+      ]
+    },
+    {
+      "size": [
+        2800.0,
+        2070.0
+      ],
+      "sheet_detected": true,
+      "part_count": 10,
+      "remnants": [
+        [
+          2257,
+          1740
+        ],
+        [
+          396,
+          510
+        ],
+        [
+          723,
+          202
+        ]
+      ]
+    }
+  ]
+}
