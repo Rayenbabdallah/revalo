@@ -4,7 +4,6 @@ import { motion } from 'motion/react'
 import { useRef, useState } from 'react'
 import { Link } from 'wouter'
 
-import { useActor } from '../../lib/actor'
 import { checkFit, getMaterials, reuseRemnants, type FitPlan, type FitUse } from '../../lib/api'
 import { fmtKg, fmtMm, fmtTnd } from '../../lib/format'
 
@@ -40,7 +39,6 @@ function RemnantDrawing({ use }: { use: FitUse }) {
 
 export function FitPage() {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const catalog = useQuery({ queryKey: ['materials'], queryFn: getMaterials, staleTime: Infinity })
   const fileInput = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -65,7 +63,6 @@ export function FitPage() {
       reuseRemnants(
         plan.uses.map((u) => u.piece.id),
         jobName.trim() || file?.name || 'Next job',
-        actor,
       ),
     onSuccess: () => {
       for (const key of ['stock', 'listings', 'job', 'jobs']) queryClient.invalidateQueries({ queryKey: [key] })

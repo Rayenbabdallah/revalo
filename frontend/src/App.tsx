@@ -1,7 +1,11 @@
 import { FileBarChart, Layers, ScanLine, Settings, Store, Upload, Warehouse } from 'lucide-react'
 import { Redirect, Route, Switch, useLocation } from 'wouter'
 
+import { AuthGate } from './components/auth/AuthGate'
+import { RequireRole } from './components/auth/RequireRole'
 import { AppShell, type NavItem } from './components/shell/AppShell'
+import type { Role } from './lib/api'
+import { atLeast, useUser } from './lib/auth'
 import { AnalyzePage } from './pages/analyze/AnalyzePage'
 import { BuyPage } from './pages/buy/BuyPage'
 import { JobReviewPage } from './pages/jobs/JobReviewPage'
@@ -15,46 +19,72 @@ import { FitPage } from './pages/stock/FitPage'
 import { StockPage } from './pages/stock/StockPage'
 import { UploadPage } from './pages/upload/UploadPage'
 
-const NAV: NavItem[] = [
-  { id: '/upload', label: 'Upload', icon: Upload },
-  { id: '/analyze', label: 'Analyze', icon: ScanLine },
-  { id: '/jobs', label: 'Jobs', icon: Layers },
-  { id: '/stock', label: 'Stock', icon: Warehouse },
-  { id: '/market', label: 'Market', icon: Store },
-  { id: '/report', label: 'Report', icon: FileBarChart },
-  { id: '/settings', label: 'Settings', icon: Settings },
+const NAV: (NavItem & { min: Role })[] = [
+  { id: '/upload', label: 'Upload', icon: Upload, min: 'operator' },
+  { id: '/analyze', label: 'Analyze', icon: ScanLine, min: 'operator' },
+  { id: '/jobs', label: 'Jobs', icon: Layers, min: 'operator' },
+  { id: '/stock', label: 'Stock', icon: Warehouse, min: 'operator' },
+  { id: '/market', label: 'Market', icon: Store, min: 'manager' },
+  { id: '/report', label: 'Report', icon: FileBarChart, min: 'manager' },
+  { id: '/settings', label: 'Settings', icon: Settings, min: 'operator' },
 ]
 
-export default function App() {
+/** The signed-in app: navigation and pages follow the person's role. */
+function Workspace() {
   const [location, navigate] = useLocation()
-  const active = NAV.find((item) => location.startsWith(item.id))?.id ?? null
+  const user = useUser()
+  const nav = NAV.filter((item) => atLeast(user.role, item.min))
+  const active = nav.find((item) => location.startsWith(item.id))?.id ?? null
 
   return (
+    <AppShell nav={nav} active={active} onNavigate={navigate}>
+      <Switch>
+        <Route path="/analyze" component={AnalyzePage} />
+        <Route path="/jobs" component={JobsPage} />
+        <Route path="/stock/fit" component={FitPage} />
+        <Route path="/stock" component={StockPage} />
+        <Route path="/market">
+          <RequireRole min="manager">
+            <MarketPage />
+          </RequireRole>
+        </Route>
+        <Route path="/report">
+          <RequireRole min="manager">
+            <ReportPage />
+          </RequireRole>
+        </Route>
+        <Route path="/upload" component={UploadPage} />
+        <Route path="/settings" component={SettingsPage} />
+        <Route path="/prices">
+          <Redirect to="/settings?tab=prices" />
+        </Route>
+        <Route path="/jobs/:id/labels">{(params) => <LabelsPage id={params.id} />}</Route>
+        <Route path="/jobs/:id">{(params) => <JobReviewPage id={params.id} />}</Route>
+        <Route>
+          <Redirect to={user.role === 'operator' ? '/upload' : '/analyze'} />
+        </Route>
+      </Switch>
+    </AppShell>
+  )
+}
+
+export default function App() {
+  return (
     <Switch>
-      {/* Opened from a QR label, often on a phone: no app chrome. */}
-      <Route path="/p/:code">{(params) => <PiecePage code={params.code} />}</Route>
+      {/* Public: what buyers see. */}
       <Route path="/buy" component={BuyPage} />
+      {/* Opened from a QR label, often on a phone: no app chrome. */}
+      <Route path="/p/:code">
+        {(params) => (
+          <AuthGate>
+            <PiecePage code={params.code} />
+          </AuthGate>
+        )}
+      </Route>
       <Route>
-        <AppShell nav={NAV} active={active} onNavigate={navigate}>
-          <Switch>
-            <Route path="/analyze" component={AnalyzePage} />
-            <Route path="/jobs" component={JobsPage} />
-            <Route path="/stock/fit" component={FitPage} />
-            <Route path="/stock" component={StockPage} />
-            <Route path="/market" component={MarketPage} />
-            <Route path="/report" component={ReportPage} />
-            <Route path="/upload" component={UploadPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/prices">
-              <Redirect to="/settings?tab=prices" />
-            </Route>
-            <Route path="/jobs/:id/labels">{(params) => <LabelsPage id={params.id} />}</Route>
-            <Route path="/jobs/:id">{(params) => <JobReviewPage id={params.id} />}</Route>
-            <Route>
-              <Redirect to="/analyze" />
-            </Route>
-          </Switch>
-        </AppShell>
+        <AuthGate>
+          <Workspace />
+        </AuthGate>
       </Route>
     </Switch>
   )

@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useRef, useState } from 'react'
 import { Link } from 'wouter'
 
-import { useActor } from '../../lib/actor'
 import { createJob, getMachines, type JobDetail, type Machine } from '../../lib/api'
 import { fmtKg, fmtTnd, materialLabel, processLabel } from '../../lib/format'
 
@@ -40,13 +39,12 @@ function MachineTile({ machine, selected, onSelect }: { machine: Machine; select
 /** For the operator at the machine: two taps and the job is with the manager. */
 export function UploadPage() {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const machines = useQuery({ queryKey: ['machines'], queryFn: () => getMachines() })
   const [machineId, setMachineId] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
   const upload = useMutation({
     mutationFn: ({ file, machine }: { file: File; machine: string | null }) =>
-      createJob(file, {}, actor, machine ?? undefined),
+      createJob(file, {}, machine ?? undefined),
     onSuccess: (job) => {
       queryClient.setQueryData(['job', job.id], job)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })

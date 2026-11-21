@@ -13,7 +13,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`${BASE}${path}`, init)
+    response = await fetch(`${BASE}${path}`, { credentials: 'include', ...init })
   } catch {
     throw new ApiError(0, 'The Revalo server cannot be reached.')
   }
@@ -28,6 +28,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new ApiError(response.status, message)
   }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 
@@ -264,12 +265,10 @@ export interface JobDetail extends JobSummary {
 export function createJob(
   file: File,
   options: AnalysisOptions = {},
-  actor = 'operator',
   machineId?: string,
 ): Promise<JobDetail> {
   const form = new FormData()
   form.append('file', file)
-  form.append('actor', actor)
   if (machineId) form.append('machine_id', machineId)
   for (const [key, value] of Object.entries(options)) {
     if (value !== undefined && value !== '' && !Number.isNaN(value)) form.append(key, String(value))
@@ -281,7 +280,6 @@ export const listJobs = () => request<{ jobs: JobSummary[] }>('/v1/jobs')
 export const getJob = (id: string) => request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}`)
 
 export interface PiecePatch {
-  actor?: string
   weight_actual_kg?: number
   clear_weight?: boolean
   width_mm?: number
@@ -299,8 +297,8 @@ const json = (body: unknown): RequestInit => ({
 export const patchPiece = (id: string, patch: PiecePatch) =>
   request<PieceWithHistory>(`/v1/pieces/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(patch) })
 
-export const approveJob = (id: string, actor = 'manager') =>
-  request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}/approve`, { method: 'POST', ...json({ actor }) })
+export const approveJob = (id: string) =>
+  request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}/approve`, { method: 'POST' })
 
 export const getPieceByCode = (code: string) =>
   request<PieceWithHistory & { job: { id: string; file_name: string; status: string } }>(
@@ -353,7 +351,6 @@ export interface PriceUpdate {
   scrap_tnd_per_kg: number
   resale_factor: number
   source?: string
-  actor?: string
 }
 
 export const getPrices = () => request<{ prices: PriceRow[] }>('/v1/prices')
@@ -445,15 +442,15 @@ export interface MarketSummary {
 
 export type ListingAction = 'reprice' | 'reserve' | 'reopen' | 'sell' | 'withdraw'
 
-export const createListing = (pieceId: string, priceTnd?: number, actor = 'manager') =>
+export const createListing = (pieceId: string, priceTnd?: number) =>
   request<WorkshopListing>(`/v1/pieces/${encodeURIComponent(pieceId)}/listing`, {
     method: 'POST',
-    ...json({ price_tnd: priceTnd, actor }),
+    ...json({ price_tnd: priceTnd }),
   })
 
 export const actOnListing = (
   id: string,
-  body: { action: ListingAction; price_tnd?: number; buyer_request_id?: string; actor?: string },
+  body: { action: ListingAction; price_tnd?: number; buyer_request_id?: string },
 ) => request<WorkshopListing>(`/v1/listings/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
 
 export const getListings = () =>
@@ -558,10 +555,10 @@ export function checkFit(input: {
   return request<FitPlan>('/v1/stock/fit', { method: 'POST', body: form })
 }
 
-export const reuseRemnants = (pieceIds: string[], jobName: string, actor = 'manager') =>
+export const reuseRemnants = (pieceIds: string[], jobName: string) =>
   request<{ pieces: Piece[] }>('/v1/stock/fit/reuse', {
     method: 'POST',
-    ...json({ piece_ids: pieceIds, job_name: jobName, actor }),
+    ...json({ piece_ids: pieceIds, job_name: jobName }),
   })
 
 /* ---------- Recycler pickups ---------- */
@@ -610,12 +607,12 @@ export interface Pickup {
 export const getRecycleQueue = () => request<{ groups: RecycleGroup[] }>('/v1/pickups/queue')
 export const getPickups = () => request<{ pickups: Pickup[] }>('/v1/pickups')
 
-export const createPickup = (recyclerId: string, pieceIds: string[], actor = 'manager') =>
-  request<Pickup>('/v1/pickups', { method: 'POST', ...json({ recycler_id: recyclerId, piece_ids: pieceIds, actor }) })
+export const createPickup = (recyclerId: string, pieceIds: string[]) =>
+  request<Pickup>('/v1/pickups', { method: 'POST', ...json({ recycler_id: recyclerId, piece_ids: pieceIds }) })
 
 export const actOnPickup = (
   id: string,
-  body: { action: 'schedule' | 'collect' | 'cancel'; scheduled_for?: string; weighed_kg?: number; paid_tnd?: number; actor?: string },
+  body: { action: 'schedule' | 'collect' | 'cancel'; scheduled_for?: string; weighed_kg?: number; paid_tnd?: number },
 ) => request<Pickup>(`/v1/pickups/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
 
 /* ---------- Reports ---------- */
@@ -653,3 +650,46 @@ export interface Alert {
 }
 
 export const getAlerts = () => request<{ alerts: Alert[] }>('/v1/alerts')
+
+/* ---------- Accounts ---------- */
+
+export type Role = 'operator' | 'manager' | 'owner'
+
+export interface User {
+  id: string
+  email: string
+  name: string
+  role: Role
+  active: boolean
+  created_at: string
+  last_login_at: string | null
+}
+
+export interface Me {
+  user: User | null
+  setup_required: boolean
+  workshop: { name: string; governorate: string | null }
+}
+
+export const getMe = () => request<Me>('/v1/auth/me')
+
+export const signIn = (email: string, password: string) =>
+  request<Me>('/v1/auth/login', { method: 'POST', ...json({ email, password }) })
+
+export const setupWorkshop = (body: { workshop_name?: string; name: string; email: string; password: string }) =>
+  request<Me>('/v1/auth/setup', { method: 'POST', ...json(body) })
+
+export const signOut = () => request<void>('/v1/auth/logout', { method: 'POST' })
+
+export const changePassword = (current: string, next: string) =>
+  request<void>('/v1/auth/password', { method: 'POST', ...json({ current, new: next }) })
+
+export const listUsers = () => request<{ users: User[] }>('/v1/users')
+
+export const addUser = (body: { email: string; name: string; role: Role; password: string }) =>
+  request<User>('/v1/users', { method: 'POST', ...json(body) })
+
+export const updateUser = (
+  id: string,
+  body: { name?: string; role?: Role; active?: boolean; password?: string },
+) => request<User>(`/v1/users/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })

@@ -8,7 +8,6 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
 import { RecyclingTab } from './RecyclingTab'
 import { StatusBadge } from '../../components/ui/StatusBadge'
-import { useActor } from '../../lib/actor'
 import {
   actOnListing,
   getBuyerRequests,
@@ -86,11 +85,10 @@ function MatchRow({ match, onReserve, busy }: { match: BuyerMatch; onReserve: ()
 
 function ListingCard({ listing }: { listing: WorkshopListing }) {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const [price, setPrice] = useState<string | null>(null)
   const act = useMutation({
     mutationFn: (body: { action: ListingAction; price_tnd?: number; buyer_request_id?: string }) =>
-      actOnListing(listing.id, { ...body, actor }),
+      actOnListing(listing.id, body),
     onSuccess: () => {
       for (const key of ['listings', 'stock', 'job', 'jobs']) queryClient.invalidateQueries({ queryKey: [key] })
       setPrice(null)

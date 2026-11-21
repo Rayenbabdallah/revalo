@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { Pencil, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { useActor } from '../../lib/actor'
 import { getMaterials, getPrices, putPrice, resetPrice, type PriceRow } from '../../lib/api'
 import { fmtDate } from '../../lib/format'
 
@@ -24,7 +23,6 @@ const inputClass =
 
 function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const [newPrice, setNewPrice] = useState(row.new_tnd_per_kg?.toString() ?? '')
   const [scrap, setScrap] = useState(row.scrap_tnd_per_kg?.toString() ?? '0')
   const [resale, setResale] = useState(row.resale_factor ? String(Math.round(row.resale_factor * 100)) : '40')
@@ -36,7 +34,6 @@ function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
         scrap_tnd_per_kg: Number(scrap.replace(',', '.')),
         resale_factor: Number(resale) / 100,
         source,
-        actor,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prices'] })

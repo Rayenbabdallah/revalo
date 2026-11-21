@@ -3,16 +3,14 @@ import clsx from 'clsx'
 import { Store } from 'lucide-react'
 import { Link } from 'wouter'
 
-import { useActor } from '../../lib/actor'
 import { createListing, type Piece } from '../../lib/api'
 import { fmtTnd } from '../../lib/format'
 
 /** Put an in-stock piece on the marketplace at its suggested price, or show where it is. */
 export function ListButton({ piece, className }: { piece: Piece; className?: string }) {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const list = useMutation({
-    mutationFn: () => createListing(piece.id, undefined, actor),
+    mutationFn: () => createListing(piece.id),
     onSuccess: () => {
       for (const key of ['job', 'jobs', 'stock', 'listings']) queryClient.invalidateQueries({ queryKey: [key] })
     },

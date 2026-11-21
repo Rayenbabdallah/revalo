@@ -4,7 +4,6 @@ import { MapPin, MessageCircle, Recycle, Truck } from 'lucide-react'
 import { useState } from 'react'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
-import { useActor } from '../../lib/actor'
 import {
   actOnPickup,
   createPickup,
@@ -26,13 +25,12 @@ function invalidate(queryClient: ReturnType<typeof useQueryClient>) {
 
 function GroupCard({ group }: { group: RecycleGroup }) {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const [selected, setSelected] = useState<string[]>(group.pieces.map((p) => p.id))
   const [recycler, setRecycler] = useState<string | null>(
     group.recyclers.find((r) => r.lot_ok)?.recycler.id ?? null,
   )
   const create = useMutation({
-    mutationFn: () => createPickup(recycler!, selected, actor),
+    mutationFn: () => createPickup(recycler!, selected),
     onSuccess: (pickup) => {
       window.open(pickup.whatsapp_url, '_blank', 'noopener')
       invalidate(queryClient)
@@ -129,11 +127,10 @@ function GroupCard({ group }: { group: RecycleGroup }) {
 
 function PickupRow({ pickup }: { pickup: Pickup }) {
   const queryClient = useQueryClient()
-  const [actor] = useActor()
   const [date, setDate] = useState('')
   const [kg, setKg] = useState('')
   const act = useMutation({
-    mutationFn: (body: Parameters<typeof actOnPickup>[1]) => actOnPickup(pickup.id, { ...body, actor }),
+    mutationFn: (body: Parameters<typeof actOnPickup>[1]) => actOnPickup(pickup.id, body),
     onSuccess: () => invalidate(queryClient),
   })
   const open = pickup.status === 'requested' || pickup.status === 'scheduled'

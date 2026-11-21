@@ -8,6 +8,7 @@ import { Link } from 'wouter'
 import { ACTION_ICON } from '../../components/decision/icons'
 import { ListButton } from '../../components/market/ListButton'
 import { getStock, getStockSummary, stockExportUrl, type DecisionAction, type StockSummaryRow } from '../../lib/api'
+import { useCan } from '../../lib/auth'
 import { actionLabel, fmtDate, fmtKg, fmtM2, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 
 /* Chart series: the two brand colours, validated on the card surface (#fffdf9).
@@ -130,6 +131,7 @@ const FILTERS = [
 
 export function StockPage() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number][0]>('all')
+  const canSell = useCan('manager')
   const summary = useQuery({ queryKey: ['stock', 'summary'], queryFn: getStockSummary })
   const pieces = useQuery({
     queryKey: ['stock', 'pieces', filter],
@@ -144,18 +146,20 @@ export function StockPage() {
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <p className="text-[15px] text-ink-400">Approved leftovers, waiting to be reused, sold or recycled.</p>
         <div className="flex gap-2">
-        <a
-          href={stockExportUrl}
-          className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[14px] font-medium text-ink-100 hover:border-brand-500"
-        >
-          <Download className="size-4" /> Excel (CSV)
-        </a>
-        <Link
-          href="/stock/fit"
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400"
-        >
-          <Scissors className="size-4" /> Check before cutting
-        </Link>
+          {canSell && (
+            <a
+              href={stockExportUrl}
+              className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[14px] font-medium text-ink-100 hover:border-brand-500"
+            >
+              <Download className="size-4" /> Excel (CSV)
+            </a>
+          )}
+          <Link
+            href="/stock/fit"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400"
+          >
+            <Scissors className="size-4" /> Check before cutting
+          </Link>
         </div>
       </div>
 
@@ -275,7 +279,7 @@ export function StockPage() {
                         )}
                       </td>
                       <td className="px-3 py-3">
-                        <ListButton piece={p} />
+                        {canSell ? <ListButton piece={p} /> : '—'}
                       </td>
                     </motion.tr>
                   )

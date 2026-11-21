@@ -12,7 +12,6 @@ import { fmtKg, fmtM2, fmtMm } from '../../lib/format'
 interface PieceCardProps {
   piece: Piece
   jobId: string
-  actor: string
   highlighted: boolean
   onHighlight: (label: string | null) => void
   /** The job is approved: records are final. */
@@ -63,11 +62,11 @@ function NumberField({
   )
 }
 
-export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locked }: PieceCardProps) {
+export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: PieceCardProps) {
   const queryClient = useQueryClient()
   const [noteDraft, setNoteDraft] = useState<string | null>(null)
   const save = useMutation({
-    mutationFn: (patch: PiecePatch) => patchPiece(piece.id, { actor, ...patch }),
+    mutationFn: (patch: PiecePatch) => patchPiece(piece.id, patch),
     onSuccess: (updated) => {
       queryClient.setQueryData<JobDetail>(['job', jobId], (job) =>
         job ? { ...job, pieces: job.pieces.map((p) => (p.id === updated.id ? updated : p)) } : job,

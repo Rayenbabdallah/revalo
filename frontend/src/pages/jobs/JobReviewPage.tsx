@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, Box, CheckCheck, Printer, Scan, UserRound } from 'lucide-react'
+import { ArrowLeft, Box, CheckCheck, Printer, Scan } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'wouter'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
-import { useActor } from '../../lib/actor'
 import { approveJob, getJob, type JobDetail, type SheetAnalysis } from '../../lib/api'
+import { useCan } from '../../lib/auth'
 import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel, processLabel } from '../../lib/format'
 import { PieceCard } from './PieceCard'
 
@@ -29,41 +29,16 @@ function sheetWithRecords(job: JobDetail, index: number): SheetAnalysis {
   }
 }
 
-function ActorChip({ actor, onChange }: { actor: string; onChange: (name: string) => void }) {
-  const [editing, setEditing] = useState(false)
-  return editing ? (
-    <input
-      autoFocus
-      defaultValue={actor}
-      onBlur={(e) => {
-        onChange(e.target.value)
-        setEditing(false)
-      }}
-      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-      className="w-40 rounded-lg border border-brand-500 bg-ink-950 px-3 py-2 text-sm text-ink-50 focus:outline-none"
-    />
-  ) : (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      title="Who is reviewing on this device"
-      className="inline-flex items-center gap-2 rounded-lg border border-ink-700 px-3 py-2 text-sm text-ink-200 transition hover:border-ink-500"
-    >
-      <UserRound className="size-4 text-ink-400" /> {actor}
-    </button>
-  )
-}
-
 export function JobReviewPage({ id }: { id: string }) {
   const queryClient = useQueryClient()
   const job = useQuery({ queryKey: ['job', id], queryFn: () => getJob(id) })
-  const [actor, setActor] = useActor()
+  const canApprove = useCan('manager')
   const [sheetIndex, setSheetIndex] = useState(0)
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const [mode, setMode] = useState<ViewMode>('3d')
 
   const approve = useMutation({
-    mutationFn: () => approveJob(id, actor),
+    mutationFn: () => approveJob(id),
     onSuccess: (updated) => {
       queryClient.setQueryData(['job', id], updated)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
@@ -110,7 +85,6 @@ export function JobReviewPage({ id }: { id: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ActorChip actor={actor} onChange={setActor} />
           {approved && (
             <Link
               href={`/jobs/${id}/labels`}
@@ -195,7 +169,6 @@ export function JobReviewPage({ id }: { id: string }) {
               key={piece.id}
               piece={piece}
               jobId={id}
-              actor={actor}
               highlighted={highlighted === piece.label}
               onHighlight={setHighlighted}
               locked={approved}
@@ -221,14 +194,20 @@ export function JobReviewPage({ id }: { id: string }) {
                     {drafts.length} record{drafts.length === 1 ? '' : 's'} go to stock
                   </p>
                 </div>
-                <button
-                  type="button"
-                  disabled={approve.isPending || drafts.length === 0}
-                  onClick={() => approve.mutate()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
-                >
-                  <CheckCheck className="size-4" /> {approve.isPending ? 'Approving…' : 'Approve batch'}
-                </button>
+                {canApprove ? (
+                  <button
+                    type="button"
+                    disabled={approve.isPending || drafts.length === 0}
+                    onClick={() => approve.mutate()}
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
+                  >
+                    <CheckCheck className="size-4" /> {approve.isPending ? 'Approving…' : 'Approve batch'}
+                  </button>
+                ) : (
+                  <p className="max-w-[180px] text-right text-[12.5px] leading-snug text-ink-400">
+                    A manager approves this batch before it goes to stock.
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

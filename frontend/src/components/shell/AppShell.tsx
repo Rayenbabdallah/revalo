@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { getHealth } from '../../lib/api'
 import { LogoMark, Wordmark } from '../brand/Logo'
 import { AlertsBell } from './AlertsBell'
+import { UserMenu } from './UserMenu'
 
 export interface NavItem {
   id: string
@@ -76,6 +77,9 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
         </nav>
         <AlertsBell />
         <div className="mt-3">
+          <UserMenu />
+        </div>
+        <div className="mt-4">
           <ServerStatus compact />
         </div>
       </aside>
@@ -87,6 +91,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
           <div className="flex items-center gap-2">
             <ServerStatus compact />
             <AlertsBell placement="header" />
+            <UserMenu placement="header" />
           </div>
         </header>
 

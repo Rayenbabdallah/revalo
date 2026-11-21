@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useState } from 'react'
 import { useLocation } from 'wouter'
 
-import { useActor } from '../../lib/actor'
 import { analyzeFile, createJob, fetchSampleFile, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
 import { formatLabel, processLabel, sourceLabel } from '../../lib/format'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
@@ -52,11 +51,10 @@ function Results({
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const [mode, setMode] = useState<ViewMode>('3d')
   const [showSettings, setShowSettings] = useState(false)
-  const [actor] = useActor()
   const [, navigate] = useLocation()
   const queryClient = useQueryClient()
   const save = useMutation({
-    mutationFn: () => createJob(file, options, actor),
+    mutationFn: () => createJob(file, options),
     onSuccess: (job) => {
       queryClient.setQueryData(['job', job.id], job)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
