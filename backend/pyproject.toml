@@ -12,6 +12,9 @@ dependencies = [
     "uvicorn[standard]>=0.30",
 ]
 
+[project.scripts]
+revalo = "revalo.cli:main"
+
 [dependency-groups]
 dev = [
     "httpx>=0.27",
