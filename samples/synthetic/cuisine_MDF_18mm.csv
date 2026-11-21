@@ -1,0 +1,9 @@
+﻿Désignation;Longueur;Largeur;Qté;Fil;Matière;Épaisseur
+Panneau;2800;2070;1;;MDF;18
+Côté caisson bas;720;560;4;oui;MDF;18
+Fond caisson bas;764;560;2;oui;MDF;18
+Étagère;762;520;4;non;MDF;18
+Traverse;764;100;4;non;MDF;18
+Façade tiroir;596,5;140;6;oui;MDF;18
+Porte haute;715;396;4;oui;MDF;18
+Plinthe;2400;120;1;oui;MDF;18
