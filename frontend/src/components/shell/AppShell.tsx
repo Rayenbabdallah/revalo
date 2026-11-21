@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 
 import { getHealth } from '../../lib/api'
 import { LogoMark, Wordmark } from '../brand/Logo'
+import { AlertsBell } from './AlertsBell'
 
 export interface NavItem {
   id: string
@@ -73,14 +74,20 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
             )
           })}
         </nav>
-        <ServerStatus compact />
+        <AlertsBell />
+        <div className="mt-3">
+          <ServerStatus compact />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar on small screens */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-800/80 bg-ink-950/70 px-4 py-3 backdrop-blur-xl md:hidden">
           <Wordmark />
-          <ServerStatus />
+          <div className="flex items-center gap-2">
+            <ServerStatus compact />
+            <AlertsBell placement="header" />
+          </div>
         </header>
 
         <main className="flex-1 pb-24 md:pb-0">{children}</main>

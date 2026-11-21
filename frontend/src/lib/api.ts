@@ -642,3 +642,14 @@ export const getMonthlyReport = (month: string) =>
   request<MonthlyReport>(`/v1/reports/monthly?month=${encodeURIComponent(month)}`)
 
 export const stockExportUrl = `${BASE}/v1/stock/export.csv`
+
+/* ---------- Alerts ---------- */
+
+export interface Alert {
+  kind: 'review' | 'due' | 'match' | 'recycle' | 'pickup' | 'buyer'
+  title: string
+  detail: string
+  link: string
+}
+
+export const getAlerts = () => request<{ alerts: Alert[] }>('/v1/alerts')
