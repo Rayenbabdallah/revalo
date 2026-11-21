@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from revalo.db.models import Job, Piece, PieceStatus
 from revalo.db.session import get_session
-from revalo.services.jobs import job_detail, piece_to_dict
+from revalo.services.jobs import default_workshop, job_detail, piece_to_dict
 from revalo.services.pieces import (
     PieceChanges,
     ReviewError,
@@ -20,6 +20,7 @@ from revalo.services.pieces import (
     stock_summary,
     update_piece,
 )
+from revalo.services.prices import price_book
 
 router = APIRouter(tags=["pieces"])
 DbSession = Annotated[Session, Depends(get_session)]
@@ -40,9 +41,9 @@ class Approval(BaseModel):
     actor: str = Field("manager", max_length=120)
 
 
-def _piece_with_history(piece: Piece) -> dict[str, Any]:
+def _piece_with_history(piece: Piece, session: Session) -> dict[str, Any]:
     return {
-        **piece_to_dict(piece),
+        **piece_to_dict(piece, price_book(session, piece.workshop_id)),
         "events": [
             {"at": e.at.isoformat(), "actor": e.actor, "action": e.action, "data": e.data}
             for e in piece.events
@@ -60,7 +61,7 @@ def patch_piece(piece_id: str, body: PiecePatch, session: DbSession) -> dict[str
         update_piece(session, piece, changes, body.actor)
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
-    return _piece_with_history(piece)
+    return _piece_with_history(piece, session)
 
 
 @router.post("/v1/jobs/{job_id}/approve")
@@ -72,7 +73,7 @@ def approve(job_id: str, body: Approval, session: DbSession) -> dict[str, Any]:
         approve_job(session, job, body.actor)
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
-    return job_detail(job)
+    return job_detail(job, price_book(session, job.workshop_id))
 
 
 @router.get("/v1/pieces/{piece_id}")
@@ -80,7 +81,7 @@ def get_piece(piece_id: str, session: DbSession) -> dict[str, Any]:
     piece = session.get(Piece, piece_id)
     if piece is None:
         raise HTTPException(404, "Piece not found.")
-    return _piece_with_history(piece)
+    return _piece_with_history(piece, session)
 
 
 @router.get("/v1/codes/{code}")
@@ -90,7 +91,7 @@ def get_piece_by_code(code: str, session: DbSession) -> dict[str, Any]:
     if piece is None:
         raise HTTPException(404, "No piece with this code.")
     return {
-        **_piece_with_history(piece),
+        **_piece_with_history(piece, session),
         "job": {"id": piece.job.id, "file_name": piece.job.file_name, "status": piece.job.status},
     }
 
@@ -103,9 +104,11 @@ def list_stock(
 ) -> dict[str, Any]:
     if status and status not in {s.value for s in PieceStatus}:
         raise HTTPException(422, f"Unknown status: {status}")
-    return {"pieces": [piece_to_dict(p) for p in stock_pieces(session, status or None, kind)]}
+    book = price_book(session, default_workshop(session).id)
+    pieces = stock_pieces(session, status or None, kind)
+    return {"pieces": [piece_to_dict(p, book) for p in pieces]}
 
 
 @router.get("/v1/stock/summary")
 def get_stock_summary(session: DbSession) -> dict[str, Any]:
-    return stock_summary(session)
+    return stock_summary(session, price_book(session, default_workshop(session).id))

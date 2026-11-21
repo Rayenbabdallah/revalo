@@ -13,7 +13,8 @@ from revalo.db.models import Job
 from revalo.db.session import get_session
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions
-from revalo.services.jobs import create_job, job_detail, job_summary
+from revalo.services.jobs import create_job, default_workshop, job_detail, job_summary
+from revalo.services.prices import price_book
 from revalo.storage import FileStorage, get_storage
 
 router = APIRouter(prefix="/v1/jobs", tags=["jobs"])
@@ -38,13 +39,14 @@ def upload_job(
         job = create_job(session, storage, data, file.filename or "upload", options, actor)
     except JobImportError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return job_detail(job)
+    return job_detail(job, price_book(session, job.workshop_id))
 
 
 @router.get("")
 def list_jobs(session: DbSession, limit: int = 50) -> dict[str, Any]:
     jobs = session.scalars(select(Job).order_by(Job.created_at.desc()).limit(min(limit, 200)))
-    return {"jobs": [job_summary(j) for j in jobs]}
+    book = price_book(session, default_workshop(session).id)
+    return {"jobs": [job_summary(j, book) for j in jobs]}
 
 
 @router.get("/{job_id}")
@@ -52,4 +54,4 @@ def get_job(job_id: str, session: DbSession) -> dict[str, Any]:
     job = session.get(Job, job_id)
     if job is None:
         raise HTTPException(404, "Job not found.")
-    return job_detail(job)
+    return job_detail(job, price_book(session, job.workshop_id))

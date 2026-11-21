@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from revalo.db.models import Job, Piece, PieceEvent, PieceKind, Workshop
 from revalo.engine.pipeline import AnalysisOptions, analyze
+from revalo.services.decisions import decide_piece
+from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
 from revalo.storage import FileStorage
 
@@ -102,7 +104,7 @@ def create_job(
     return job
 
 
-def piece_to_dict(piece: Piece) -> dict[str, Any]:
+def piece_to_dict(piece: Piece, book: dict[str, EffectivePrice]) -> dict[str, Any]:
     return {
         "id": piece.id,
         "code": piece.code,
@@ -131,12 +133,36 @@ def piece_to_dict(piece: Piece) -> dict[str, Any]:
         ),
         "label_url": f"{get_settings().public_url}/p/{piece.code}",
         "updated_at": piece.updated_at.isoformat(),
+        "decision": decide_piece(piece, book).to_dict(),
     }
 
 
-def job_summary(job: Job) -> dict[str, Any]:
-    remnants = [p for p in job.pieces if p.kind == PieceKind.REMNANT and p.status != "rejected"]
-    scrap = [p for p in job.pieces if p.kind == PieceKind.SCRAP and p.status != "rejected"]
+def recommended_value(pieces: list[Piece], book: dict[str, EffectivePrice]) -> dict[str, Any]:
+    """What the pieces are worth if each follows its recommendation."""
+    value = 0.0
+    co2 = 0.0
+    priced = 0
+    for piece in pieces:
+        decision = decide_piece(piece, book)
+        if decision.recommended is None:
+            continue
+        option = decision.option(decision.recommended)
+        if option.value_tnd is not None:
+            value += option.value_tnd
+            priced += 1
+        co2 += option.co2_kg or 0.0
+    return {
+        "value_tnd": round(value, 2),
+        "co2_kg": round(co2, 1),
+        "priced_pieces": priced,
+        "pieces": len(pieces),
+    }
+
+
+def job_summary(job: Job, book: dict[str, EffectivePrice]) -> dict[str, Any]:
+    kept = [p for p in job.pieces if p.status != "rejected"]
+    remnants = [p for p in kept if p.kind == PieceKind.REMNANT]
+    scrap = [p for p in kept if p.kind == PieceKind.SCRAP]
 
     def total(pieces: list[Piece]) -> float | None:
         weights = [p.weight_kg for p in pieces]
@@ -155,15 +181,16 @@ def job_summary(job: Job) -> dict[str, Any]:
         "remnant_count": len(remnants),
         "remnant_weight_kg": total(remnants),
         "scrap_weight_kg": total(scrap),
+        "recovered": recommended_value(kept, book),
         "created_at": job.created_at.isoformat(),
         "approved_at": job.approved_at.isoformat() if job.approved_at else None,
         "approved_by": job.approved_by,
     }
 
 
-def job_detail(job: Job) -> dict[str, Any]:
+def job_detail(job: Job, book: dict[str, EffectivePrice]) -> dict[str, Any]:
     return {
-        **job_summary(job),
+        **job_summary(job, book),
         "analysis": job.analysis,
-        "pieces": [piece_to_dict(p) for p in job.pieces],
+        "pieces": [piece_to_dict(p, book) for p in job.pieces],
     }

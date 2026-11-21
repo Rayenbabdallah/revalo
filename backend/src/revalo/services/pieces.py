@@ -10,7 +10,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from revalo.db.models import Job, JobStatus, Piece, PieceEvent, PieceKind, PieceStatus, utcnow
+from revalo.engine.decision import Action
 from revalo.engine.materials import materials
+from revalo.services.decisions import decide_piece
+from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
 
 EDITABLE_STATUSES = {PieceStatus.DRAFT, PieceStatus.REJECTED}
@@ -128,9 +131,10 @@ def stock_pieces(session: Session, status: str | None, kind: str | None) -> list
     return list(session.scalars(query.limit(500)))
 
 
-def stock_summary(session: Session) -> dict[str, Any]:
+def stock_summary(session: Session, book: dict[str, EffectivePrice]) -> dict[str, Any]:
     pieces = session.scalars(select(Piece).where(Piece.status == PieceStatus.IN_STOCK))
     by_material: dict[str, dict[str, Any]] = {}
+    actions = {a.value: {"count": 0, "value_tnd": 0.0} for a in Action}
     for piece in pieces:
         key = piece.material_code or "unknown"
         row = by_material.setdefault(
@@ -144,8 +148,18 @@ def stock_summary(session: Session) -> dict[str, Any]:
                 "scrap_weight_kg": 0.0,
                 "unweighed": 0,
                 "due_for_review": 0,
+                "value_tnd": 0.0,
+                "co2_kg": 0.0,
             },
         )
+        decision = decide_piece(piece, book)
+        if decision.recommended is not None:
+            option = decision.option(decision.recommended)
+            row["value_tnd"] += option.value_tnd or 0.0
+            row["co2_kg"] += option.co2_kg or 0.0
+            slot = actions[decision.recommended.value]
+            slot["count"] += 1
+            slot["value_tnd"] += option.value_tnd or 0.0
         weight = piece.weight_kg
         if weight is None:
             row["unweighed"] += 1
@@ -165,6 +179,8 @@ def stock_summary(session: Session) -> dict[str, Any]:
     for row in rows:
         for field in ("remnant_area_m2", "remnant_weight_kg", "scrap_weight_kg"):
             row[field] = round(row[field], 3)
+        row["value_tnd"] = round(row["value_tnd"], 2)
+        row["co2_kg"] = round(row["co2_kg"], 1)
     totals = {
         field: round(sum(r[field] for r in rows), 3)
         for field in (
@@ -174,6 +190,10 @@ def stock_summary(session: Session) -> dict[str, Any]:
             "scrap_lots",
             "scrap_weight_kg",
             "due_for_review",
+            "value_tnd",
+            "co2_kg",
         )
     }
-    return {"materials": rows, "totals": totals}
+    for slot in actions.values():
+        slot["value_tnd"] = round(slot["value_tnd"], 2)
+    return {"materials": rows, "totals": totals, "actions": actions}
