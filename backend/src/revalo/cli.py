@@ -1,8 +1,9 @@
-"""Command line entry point: `revalo analyze <file>`."""
+"""Command line entry point: `revalo analyze <file>`, `revalo users add ...`."""
 
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import sys
 from pathlib import Path
@@ -83,11 +84,52 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--json", action="store_true", help="print the full JSON result")
 
     sub.add_parser("materials", help="list known materials")
+
+    u = sub.add_parser("users", help="list or add workshop accounts")
+    usub = u.add_subparsers(dest="users_command", required=True)
+    usub.add_parser("list", help="list accounts")
+    add = usub.add_parser("add", help="add an account (asks for the password)")
+    add.add_argument("--email", required=True)
+    add.add_argument("--name", required=True)
+    add.add_argument("--role", choices=["operator", "manager", "owner"], default="operator")
     return parser
+
+
+def _users(args: argparse.Namespace) -> int:
+    from sqlalchemy import select
+
+    from revalo.db.migrate import upgrade
+    from revalo.db.models import Role, User
+    from revalo.db.session import _session_factory
+    from revalo.services.auth import AuthError, create_user
+    from revalo.services.jobs import default_workshop
+
+    upgrade()
+    with _session_factory()() as session:
+        if args.users_command == "list":
+            for user in session.scalars(select(User).order_by(User.created_at)):
+                state = "" if user.active else "  (removed)"
+                print(f"{user.role:<9} {user.email:<32} {user.name}{state}")
+            return 0
+        password = getpass.getpass("Password: ")
+        if password != getpass.getpass("Again: "):
+            print("error: the passwords differ", file=sys.stderr)
+            return 1
+        try:
+            user = create_user(
+                session, default_workshop(session), args.email, args.name, Role(args.role), password
+            )
+        except AuthError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"Added {user.name} <{user.email}> as {user.role}.")
+        return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "users":
+        return _users(args)
     if args.command == "materials":
         for m in materials().values():
             print(f"{m.code:<18} {m.family:<8} {m.density_kg_m3:>6.0f} kg/m3  {m.name_en}")
