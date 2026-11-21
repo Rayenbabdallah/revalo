@@ -23,7 +23,8 @@ def default_workshop(session: Session) -> Workshop:
     if shop is None:
         shop = Workshop(
             name=os.getenv("REVALO_WORKSHOP_NAME", "Pilot workshop"),
-            governorate=os.getenv("REVALO_WORKSHOP_GOVERNORATE"),
+            # The pilot starts in Ben Arous (Market Playbook, section 4).
+            governorate=os.getenv("REVALO_WORKSHOP_GOVERNORATE", "Ben Arous"),
         )
         session.add(shop)
         session.flush()
@@ -134,6 +135,13 @@ def piece_to_dict(piece: Piece, book: dict[str, EffectivePrice]) -> dict[str, An
         "label_url": f"{get_settings().public_url}/p/{piece.code}",
         "updated_at": piece.updated_at.isoformat(),
         "decision": decide_piece(piece, book).to_dict(),
+        "listing": None
+        if piece.listing is None
+        else {
+            "id": piece.listing.id,
+            "status": piece.listing.status,
+            "price_tnd": piece.listing.price_tnd,
+        },
     }
 
 

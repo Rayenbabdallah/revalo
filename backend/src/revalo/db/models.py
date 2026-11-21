@@ -99,6 +99,11 @@ class Job(Base):
     pieces: Mapped[list[Piece]] = relationship(
         back_populates="job", cascade="all, delete-orphan", order_by="Piece.position"
     )
+    workshop: Mapped[Workshop] = relationship()
+
+    @property
+    def workshop_governorate(self) -> str | None:
+        return self.workshop.governorate if self.workshop else None
 
 
 class Piece(Base):
@@ -138,6 +143,7 @@ class Piece(Base):
     events: Mapped[list[PieceEvent]] = relationship(
         back_populates="piece", cascade="all, delete-orphan", order_by="PieceEvent.at"
     )
+    listing: Mapped[Listing | None] = relationship(back_populates="piece", uselist=False)
 
     @property
     def weight_kg(self) -> float | None:
@@ -238,5 +244,5 @@ class Listing(Base):
     )
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    piece: Mapped[Piece] = relationship()
+    piece: Mapped[Piece] = relationship(back_populates="listing")
     buyer: Mapped[BuyerRequest | None] = relationship()

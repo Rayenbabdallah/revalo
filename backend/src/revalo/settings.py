@@ -17,6 +17,8 @@ class Settings:
     public_url: str
     review_days: int
     """Days a piece stays in stock before it is scored again."""
+    workshop_phone: str | None
+    """WhatsApp number buyers reach from the public marketplace (+216...)."""
 
 
 @lru_cache(maxsize=1)
@@ -29,4 +31,5 @@ def get_settings() -> Settings:
         storage_dir=Path(os.getenv("REVALO_STORAGE_DIR", str(var_dir / "files"))),
         public_url=os.getenv("REVALO_PUBLIC_URL", "http://localhost:5173").rstrip("/"),
         review_days=int(os.getenv("REVALO_REVIEW_DAYS", "30")),
+        workshop_phone=os.getenv("REVALO_WORKSHOP_PHONE") or None,
     )
