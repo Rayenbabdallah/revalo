@@ -1,0 +1,223 @@
+import { useQuery } from '@tanstack/react-query'
+import clsx from 'clsx'
+import { CalendarClock, PackageOpen } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useState } from 'react'
+import { Link } from 'wouter'
+
+import { getStock, getStockSummary, type StockSummaryRow } from '../../lib/api'
+import { fmtDate, fmtKg, fmtM2, fmtMm, materialLabel } from '../../lib/format'
+
+/* Chart series colours, validated on the dark surface (#0f1115): lightness band,
+   chroma floor, contrast, normal-vision separation all pass; colour-blind separation
+   is 7.3, so every bar also carries a legend, direct values and a table view. */
+const SERIES = { remnant: '#7ba208', scrap: '#b85f05' } as const
+
+function Tile({ label, value, unit, hint, accent }: { label: string; value: string; unit?: string; hint?: string; accent?: boolean }) {
+  return (
+    <div className="panel p-5">
+      <p className="eyebrow !text-[10px]">{label}</p>
+      <p className={clsx('readout mt-2 text-[32px] leading-none', accent ? 'text-reclaim-400' : 'text-graphite-50')}>
+        {value}
+        {unit && <span className="ml-1.5 text-base text-graphite-400">{unit}</span>}
+      </p>
+      {hint && <p className="mt-2 text-[12px] text-graphite-500">{hint}</p>}
+    </div>
+  )
+}
+
+function MaterialBars({ rows }: { rows: StockSummaryRow[] }) {
+  const [hover, setHover] = useState<string | null>(null)
+  const max = Math.max(...rows.map((r) => r.remnant_weight_kg + r.scrap_weight_kg), 1)
+  return (
+    <section className="panel p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-semibold">Stock by material</h2>
+        <div className="flex items-center gap-4 font-mono text-[11px] text-graphite-300" aria-label="Legend">
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-sm" style={{ background: SERIES.remnant }} /> Reusable remnants
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-sm" style={{ background: SERIES.scrap }} /> Scrap lots
+          </span>
+        </div>
+      </div>
+      <ul className="mt-5 space-y-4">
+        {rows.map((r) => {
+          const key = r.material_code ?? 'unknown'
+          const total = r.remnant_weight_kg + r.scrap_weight_kg
+          const active = hover === key
+          return (
+            <li
+              key={key}
+              onMouseEnter={() => setHover(key)}
+              onMouseLeave={() => setHover(null)}
+              className="relative"
+            >
+              <div className="flex items-baseline justify-between gap-3 text-[13px]">
+                <span className="font-medium text-graphite-100">{materialLabel(r.material_code)}</span>
+                <span className="readout text-graphite-300">
+                  {fmtKg(r.remnant_weight_kg)} kg reusable <span className="text-graphite-600">·</span> {fmtKg(r.scrap_weight_kg)} kg scrap
+                </span>
+              </div>
+              {/* Hit target taller than the bar. */}
+              <div className="mt-2 flex h-6 items-center">
+                <div className="flex h-3 w-full overflow-hidden rounded bg-graphite-800/60">
+                  <div
+                    className="h-full rounded-l transition-[width] duration-700"
+                    style={{ width: `${(r.remnant_weight_kg / max) * 100}%`, background: SERIES.remnant, opacity: hover && !active ? 0.45 : 1 }}
+                  />
+                  {r.scrap_weight_kg > 0 && (
+                    <div
+                      className="ml-[2px] h-full rounded-r transition-[width] duration-700"
+                      style={{ width: `${(r.scrap_weight_kg / max) * 100}%`, background: SERIES.scrap, opacity: hover && !active ? 0.45 : 1 }}
+                    />
+                  )}
+                </div>
+              </div>
+              {active && (
+                <div className="pointer-events-none absolute right-0 top-full z-10 mt-1 rounded-lg border border-graphite-700 bg-graphite-950/95 px-3 py-2 font-mono text-[11px] text-graphite-200 shadow-xl backdrop-blur">
+                  <p>{r.remnant_count} remnants · {fmtM2(r.remnant_area_m2)} m²</p>
+                  <p>{r.scrap_lots} scrap lot{r.scrap_lots === 1 ? '' : 's'} · {fmtKg(total)} kg total</p>
+                  {r.unweighed > 0 && <p className="text-ember-300">{r.unweighed} without a weight</p>}
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+const FILTERS = [
+  ['all', 'All'],
+  ['remnant', 'Remnants'],
+  ['scrap', 'Scrap lots'],
+] as const
+
+export function StockPage() {
+  const [filter, setFilter] = useState<(typeof FILTERS)[number][0]>('all')
+  const summary = useQuery({ queryKey: ['stock', 'summary'], queryFn: getStockSummary })
+  const pieces = useQuery({
+    queryKey: ['stock', 'pieces', filter],
+    queryFn: () => getStock(filter === 'all' ? undefined : filter),
+  })
+  const totals = summary.data?.totals
+
+  return (
+    <div className="mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-12">
+      <p className="eyebrow">Stock</p>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">What is on the racks</h1>
+      <p className="mt-2 text-[15px] text-graphite-400">Approved leftovers, waiting to be reused, sold or recycled.</p>
+
+      <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Tile label="Reusable in stock" value={fmtKg(totals?.remnant_weight_kg ?? 0)} unit="kg" accent hint={`${fmtM2(totals?.remnant_area_m2 ?? 0)} m² of clean remnants`} />
+        <Tile label="Remnants" value={String(totals?.remnant_count ?? 0)} hint="Pieces with a QR label" />
+        <Tile label="Scrap waiting" value={fmtKg(totals?.scrap_weight_kg ?? 0)} unit="kg" hint={`${totals?.scrap_lots ?? 0} lots for recyclers`} />
+        <Tile label="Due for review" value={String(totals?.due_for_review ?? 0)} hint="Past their review date" />
+      </div>
+
+      {summary.data && summary.data.materials.length > 0 && (
+        <div className="mt-5">
+          <MaterialBars rows={summary.data.materials} />
+        </div>
+      )}
+
+      <section className="panel mt-5 overflow-hidden">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-graphite-800 px-6 py-4">
+          <h2 className="font-display text-lg font-semibold">Pieces in stock</h2>
+          <div className="flex rounded-xl border border-graphite-700 p-1">
+            {FILTERS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={clsx(
+                  'rounded-lg px-3 py-1.5 text-[13px] font-medium transition',
+                  filter === value ? 'bg-graphite-700 text-graphite-50' : 'text-graphite-400 hover:text-graphite-100',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </header>
+        {pieces.data && pieces.data.pieces.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+            <PackageOpen className="size-8 text-graphite-500" strokeWidth={1.5} />
+            <p className="font-display text-lg font-semibold">Nothing in stock yet</p>
+            <p className="max-w-sm text-[14px] text-graphite-400">
+              Approve a job's records and its remnants and scrap lots appear here.
+            </p>
+            <Link href="/jobs" className="mt-1 text-[14px] font-medium text-ember-400 hover:text-ember-300">
+              Go to jobs
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left">
+              <thead>
+                <tr className="border-b border-graphite-800 font-mono text-[10.5px] uppercase tracking-[0.14em] text-graphite-500">
+                  <th className="px-6 py-3 font-normal">Code</th>
+                  <th className="px-3 py-3 font-normal">Piece</th>
+                  <th className="px-3 py-3 font-normal">Material</th>
+                  <th className="px-3 py-3 text-right font-normal">Weight</th>
+                  <th className="px-3 py-3 font-normal">Location</th>
+                  <th className="px-3 py-3 font-normal">Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(pieces.data?.pieces ?? []).map((p, i) => {
+                  const due = p.due_for_review
+                  return (
+                    <motion.tr
+                      key={p.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: Math.min(i * 0.02, 0.4) }}
+                      className="border-b border-graphite-800/70 last:border-0 hover:bg-graphite-850"
+                    >
+                      <td className="px-6 py-3">
+                        <Link href={`/p/${p.code}`} className="readout text-[13px] text-graphite-100 hover:text-ember-300">
+                          {p.code}
+                        </Link>
+                      </td>
+                      <td className="readout px-3 py-3 text-[14px] text-graphite-100">
+                        {p.kind === 'remnant' ? (
+                          <>
+                            {fmtMm(p.width_mm ?? 0)} <span className="text-graphite-500">×</span> {fmtMm(p.height_mm ?? 0)}
+                          </>
+                        ) : (
+                          <span className="font-sans text-rust-400">Scrap lot</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-[13px] text-graphite-300">
+                        {materialLabel(p.material_code)}
+                        {p.thickness_mm ? ` · ${p.thickness_mm} mm` : ''}
+                      </td>
+                      <td className="readout px-3 py-3 text-right text-[13px] text-graphite-200">
+                        {p.weight_kg !== null ? `${fmtKg(p.weight_kg)} kg` : '—'}
+                      </td>
+                      <td className="px-3 py-3 text-[13px] text-graphite-400">{p.location ?? '—'}</td>
+                      <td className="px-3 py-3">
+                        {p.review_date ? (
+                          <span className={clsx('inline-flex items-center gap-1.5 font-mono text-[12px]', due ? 'text-ember-300' : 'text-graphite-400')}>
+                            {due && <CalendarClock className="size-3.5" />}
+                            {fmtDate(p.review_date)}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                    </motion.tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}

@@ -192,6 +192,8 @@ export interface Piece {
   condition_note: string | null
   location: string | null
   review_date: string | null
+  /** In stock and past its review date: score it again. */
+  due_for_review: boolean
   label_url: string
   updated_at: string
 }
