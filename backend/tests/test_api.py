@@ -55,3 +55,20 @@ def test_analyze_rejects_bad_input():
         data={"thickness_mm": "-1"},
     )
     assert negative.status_code == 422
+
+
+def test_sample_catalogue_and_download():
+    samples = client.get("/v1/samples").json()["samples"]
+    assert any(s["name"] == "laser_S235_3mm_3000x1500.dxf" for s in samples)
+    public = [s for s in samples if s["collection"] == "public"]
+    assert public and all(s["licence"] for s in public)
+
+    first = samples[0]
+    response = client.get(f"/v1/samples/{first['id']}")
+    assert response.status_code == 200
+    assert len(response.content) == first["size"]
+
+
+def test_sample_ids_cannot_escape_the_catalogue():
+    assert client.get("/v1/samples/..__..__pyproject.toml").status_code == 404
+    assert client.get("/v1/samples/catalog.json").status_code == 404

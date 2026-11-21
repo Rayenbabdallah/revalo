@@ -1,0 +1,74 @@
+{
+  "samples": [
+    {
+      "file": "synthetic/laser_S235_3mm_3000x1500.dxf",
+      "title": "Fibre-laser nest, mild steel 3 mm",
+      "process": "fiber_laser",
+      "licence": null,
+      "source": null
+    },
+    {
+      "file": "synthetic/inox_304_1.5mm_2500x1250.dxf",
+      "title": "Stainless nest, exploded lines and arcs",
+      "process": "fiber_laser",
+      "licence": null,
+      "source": null
+    },
+    {
+      "file": "synthetic/plasma_S355_10mm_2000x1000.nc",
+      "title": "Plasma program, S355 10 mm",
+      "process": "plasma",
+      "licence": null,
+      "source": null
+    },
+    {
+      "file": "synthetic/router_MDF_18mm_2440x1220.nc",
+      "title": "Router program, MDF 18 mm",
+      "process": "router",
+      "licence": null,
+      "source": null
+    },
+    {
+      "file": "synthetic/cuisine_MDF_18mm.csv",
+      "title": "Kitchen cut list, MDF 18 mm",
+      "process": "panel_saw",
+      "licence": null,
+      "source": null
+    },
+    {
+      "file": "public/ergotravel_acrylic_case_plates.dxf",
+      "title": "Laser layout of a keyboard case",
+      "process": "co2_laser",
+      "licence": "MIT",
+      "source": "https://github.com/jpconstantineau/ErgoTravel"
+    },
+    {
+      "file": "public/linuxcnc_plasmatest.ngc",
+      "title": "LinuxCNC plasma test program",
+      "process": "plasma",
+      "licence": "GPL-2.0",
+      "source": "https://github.com/LinuxCNC/linuxcnc"
+    },
+    {
+      "file": "public/linuxcnc_plasmac_metric_wrench.ngc",
+      "title": "LinuxCNC plasma wrench",
+      "process": "plasma",
+      "licence": "GPL-2.0",
+      "source": "https://github.com/LinuxCNC/linuxcnc"
+    },
+    {
+      "file": "public/stmbl_mounting_plate.dxf",
+      "title": "Aluminium mounting plate",
+      "process": null,
+      "licence": "GPL-3.0",
+      "source": "https://github.com/rene-dev/stmbl"
+    },
+    {
+      "file": "public/dacha_enclosure_door.dxf",
+      "title": "Printer enclosure door panel",
+      "process": null,
+      "licence": "Apache-2.0",
+      "source": "https://github.com/dennisss/dacha"
+    }
+  ]
+}

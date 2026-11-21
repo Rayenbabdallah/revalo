@@ -11,6 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from revalo import __version__
+from revalo.api.samples import router as samples_router
 from revalo.engine.materials import materials, processes
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions, analyze
@@ -33,6 +34,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+app.include_router(samples_router)
 
 
 @app.get("/health")
