@@ -54,7 +54,7 @@ def test_missing_material_or_parts_is_explained(client):
 def test_using_remnants_takes_them_out_of_stock_and_off_sale(client, stock):  # noqa: F811
     remnant, _ = stock
     client.post(f"/v1/pieces/{remnant['id']}/listing", json={"price_tnd": 80})
-    body = {"piece_ids": [remnant["id"]], "job_name": "Order 2026-131", "actor": "Slim"}
+    body = {"piece_ids": [remnant["id"]], "job_name": "Order 2026-131"}
     response = client.post("/v1/stock/fit/reuse", json=body)
     assert response.status_code == 200
     piece = client.get(f"/v1/pieces/{remnant['id']}").json()

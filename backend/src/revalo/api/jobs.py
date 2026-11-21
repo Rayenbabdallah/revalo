@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import SignedIn, signed_in
 from revalo.api.forms import analysis_options
 from revalo.db.models import Job, Machine
 from revalo.db.session import get_session
@@ -18,7 +19,7 @@ from revalo.services.machines import apply_machine
 from revalo.services.prices import price_book
 from revalo.storage import FileStorage, get_storage
 
-router = APIRouter(prefix="/v1/jobs", tags=["jobs"])
+router = APIRouter(prefix="/v1/jobs", tags=["jobs"], dependencies=[signed_in])
 
 DbSession = Annotated[Session, Depends(get_session)]
 Storage = Annotated[FileStorage, Depends(get_storage)]
@@ -26,11 +27,11 @@ Storage = Annotated[FileStorage, Depends(get_storage)]
 
 @router.post("", status_code=201)
 def upload_job(
+    user: SignedIn,
     session: DbSession,
     storage: Storage,
     file: Annotated[UploadFile, File()],
     options: Annotated[AnalysisOptions, Depends(analysis_options)],
-    actor: Annotated[str, Form(max_length=120)] = "operator",
     machine_id: Annotated[str | None, Form()] = None,
 ) -> dict[str, Any]:
     # Sync endpoint: FastAPI runs it in a worker thread, so the engine never blocks the loop.
@@ -44,7 +45,9 @@ def upload_job(
             raise HTTPException(422, "Unknown machine.")
         options = apply_machine(options, machine)
     try:
-        job = create_job(session, storage, data, file.filename or "upload", options, actor, machine)
+        job = create_job(
+            session, storage, data, file.filename or "upload", options, user.name, machine
+        )
     except JobImportError as exc:
         raise HTTPException(422, str(exc)) from exc
     return job_detail(job, price_book(session, job.workshop_id))

@@ -39,7 +39,7 @@ def test_upload_with_a_machine_needs_no_typing(client):
     response = client.post(
         "/v1/jobs",
         files={"file": ("job_118.dxf", nest_bytes(), "application/dxf")},
-        data={"machine_id": machine["id"], "actor": "Operator"},
+        data={"machine_id": machine["id"]},
     )
     assert response.status_code == 201, response.text
     job = response.json()

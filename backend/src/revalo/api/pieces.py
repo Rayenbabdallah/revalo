@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import ManagerUser, SignedIn, signed_in
 from revalo.db.models import Job, Piece, PieceStatus
 from revalo.db.session import get_session
 from revalo.services.jobs import default_workshop, job_detail, piece_to_dict
@@ -22,12 +23,11 @@ from revalo.services.pieces import (
 )
 from revalo.services.prices import price_book
 
-router = APIRouter(tags=["pieces"])
+router = APIRouter(tags=["pieces"], dependencies=[signed_in])
 DbSession = Annotated[Session, Depends(get_session)]
 
 
 class PiecePatch(BaseModel):
-    actor: str = Field("manager", max_length=120)
     weight_actual_kg: float | None = Field(None, gt=0, le=100_000)
     clear_weight: bool = False
     width_mm: float | None = Field(None, gt=0, le=20_000)
@@ -35,10 +35,6 @@ class PiecePatch(BaseModel):
     condition_note: str | None = Field(None, max_length=500)
     location: str | None = Field(None, max_length=80)
     rejected: bool | None = None
-
-
-class Approval(BaseModel):
-    actor: str = Field("manager", max_length=120)
 
 
 def _piece_with_history(piece: Piece, session: Session) -> dict[str, Any]:
@@ -52,25 +48,27 @@ def _piece_with_history(piece: Piece, session: Session) -> dict[str, Any]:
 
 
 @router.patch("/v1/pieces/{piece_id}")
-def patch_piece(piece_id: str, body: PiecePatch, session: DbSession) -> dict[str, Any]:
+def patch_piece(
+    piece_id: str, body: PiecePatch, user: SignedIn, session: DbSession
+) -> dict[str, Any]:
     piece = session.get(Piece, piece_id)
     if piece is None:
         raise HTTPException(404, "Piece not found.")
-    changes = PieceChanges(**body.model_dump(exclude={"actor"}))
+    changes = PieceChanges(**body.model_dump())
     try:
-        update_piece(session, piece, changes, body.actor)
+        update_piece(session, piece, changes, user.name)
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
     return _piece_with_history(piece, session)
 
 
 @router.post("/v1/jobs/{job_id}/approve")
-def approve(job_id: str, body: Approval, session: DbSession) -> dict[str, Any]:
+def approve(job_id: str, user: ManagerUser, session: DbSession) -> dict[str, Any]:
     job = session.get(Job, job_id)
     if job is None:
         raise HTTPException(404, "Job not found.")
     try:
-        approve_job(session, job, body.actor)
+        approve_job(session, job, user.name)
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
     return job_detail(job, price_book(session, job.workshop_id))

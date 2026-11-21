@@ -30,7 +30,7 @@ def stock(client):
 
 def test_listing_uses_the_sale_value_as_asking_price(client, stock):
     remnant, _ = stock
-    response = client.post(f"/v1/pieces/{remnant['id']}/listing", json={"actor": "Slim"})
+    response = client.post(f"/v1/pieces/{remnant['id']}/listing", json={})
     assert response.status_code == 201, response.text
     listing = response.json()
     sell = next(o for o in remnant["decision"]["options"] if o["action"] == "sell")

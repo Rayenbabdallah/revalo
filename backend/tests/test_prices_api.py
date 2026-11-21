@@ -18,10 +18,9 @@ def test_workshop_sets_and_resets_its_own_price(client):
         "scrap_tnd_per_kg": 3.2,
         "resale_factor": 0.45,
         "source": "Quote from supplier, Nov 2026",
-        "actor": "Leila",
     }
     saved = client.put("/v1/prices/stainless_304", json=body).json()
-    assert saved["custom"] and saved["new_tnd_per_kg"] == 14.5 and saved["updated_by"] == "Leila"
+    assert saved["custom"] and saved["new_tnd_per_kg"] == 14.5 and saved["updated_by"] == "Slim"
     assert prices(client)["stainless_304"]["source"] == "Quote from supplier, Nov 2026"
 
     reset = client.delete("/v1/prices/stainless_304").json()

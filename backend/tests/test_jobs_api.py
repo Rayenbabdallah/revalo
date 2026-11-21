@@ -19,7 +19,7 @@ def upload(client, name="Tole_S235_3mm.dxf", data=None, **fields):
 
 
 def test_upload_creates_job_with_draft_records(client):
-    response = upload(client, actor="Sami")
+    response = upload(client)
     assert response.status_code == 201, response.text
     job = response.json()
     assert job["status"] == "draft"

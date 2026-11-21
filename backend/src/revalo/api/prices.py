@@ -8,11 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import ManagerUser, manager_only, signed_in
 from revalo.db.session import get_session
 from revalo.services.jobs import default_workshop
 from revalo.services.prices import PriceError, price_book, reset_price, set_price
 
-router = APIRouter(prefix="/v1/prices", tags=["prices"])
+router = APIRouter(prefix="/v1/prices", tags=["prices"], dependencies=[signed_in])
 DbSession = Annotated[Session, Depends(get_session)]
 
 
@@ -21,7 +22,6 @@ class PriceUpdate(BaseModel):
     scrap_tnd_per_kg: float = Field(ge=0, le=10_000)
     resale_factor: float = Field(gt=0, le=1)
     source: str | None = Field(None, max_length=500)
-    actor: str = Field("manager", max_length=120)
 
 
 @router.get("")
@@ -32,7 +32,9 @@ def list_prices(session: DbSession) -> dict[str, Any]:
 
 
 @router.put("/{material_code}")
-def update_price(material_code: str, body: PriceUpdate, session: DbSession) -> dict[str, Any]:
+def update_price(
+    material_code: str, body: PriceUpdate, user: ManagerUser, session: DbSession
+) -> dict[str, Any]:
     shop = default_workshop(session)
     try:
         entry = set_price(
@@ -43,14 +45,14 @@ def update_price(material_code: str, body: PriceUpdate, session: DbSession) -> d
             body.scrap_tnd_per_kg,
             body.resale_factor,
             body.source,
-            body.actor,
+            user.name,
         )
     except PriceError as exc:
         raise HTTPException(422, str(exc)) from exc
     return entry.to_dict()
 
 
-@router.delete("/{material_code}")
+@router.delete("/{material_code}", dependencies=[manager_only])
 def reset(material_code: str, session: DbSession) -> dict[str, Any]:
     shop = default_workshop(session)
     try:

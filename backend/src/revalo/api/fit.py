@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import SignedIn, signed_in
 from revalo.db.session import get_session
 from revalo.engine.fit import PartSize
 from revalo.engine.pipeline import MAX_FILE_BYTES
@@ -16,14 +17,13 @@ from revalo.services.fit import FitError, FitRequest, check_stock, mark_reused
 from revalo.services.jobs import default_workshop, piece_to_dict
 from revalo.services.prices import price_book
 
-router = APIRouter(prefix="/v1/stock/fit", tags=["stock"])
+router = APIRouter(prefix="/v1/stock/fit", tags=["stock"], dependencies=[signed_in])
 DbSession = Annotated[Session, Depends(get_session)]
 
 
 class ReuseBody(BaseModel):
     piece_ids: list[str] = Field(min_length=1, max_length=200)
     job_name: str = Field(min_length=1, max_length=160)
-    actor: str = Field("manager", max_length=120)
 
 
 def _typed_parts(raw: str | None) -> list[PartSize]:
@@ -72,9 +72,9 @@ def fit(
 
 
 @router.post("/reuse")
-def reuse(body: ReuseBody, session: DbSession) -> dict[str, Any]:
+def reuse(body: ReuseBody, user: SignedIn, session: DbSession) -> dict[str, Any]:
     try:
-        pieces = mark_reused(session, body.piece_ids, body.job_name, body.actor)
+        pieces = mark_reused(session, body.piece_ids, body.job_name, user.name)
     except FitError as exc:
         raise HTTPException(409, str(exc)) from exc
     book = price_book(session, default_workshop(session).id)

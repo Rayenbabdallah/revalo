@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import ManagerUser, manager_only
 from revalo.db.models import Pickup
 from revalo.db.session import get_session
 from revalo.services.jobs import default_workshop
@@ -23,14 +24,13 @@ from revalo.services.pickups import (
 )
 from revalo.services.prices import price_book
 
-router = APIRouter(prefix="/v1/pickups", tags=["pickups"])
+router = APIRouter(prefix="/v1/pickups", tags=["pickups"], dependencies=[manager_only])
 DbSession = Annotated[Session, Depends(get_session)]
 
 
 class PickupCreate(BaseModel):
     recycler_id: str
     piece_ids: list[str] = Field(min_length=1, max_length=500)
-    actor: str = Field("manager", max_length=120)
 
 
 class PickupAction(BaseModel):
@@ -38,7 +38,6 @@ class PickupAction(BaseModel):
     scheduled_for: date | None = None
     weighed_kg: float | None = Field(None, gt=0, le=1_000_000)
     paid_tnd: float | None = Field(None, ge=0, le=10_000_000)
-    actor: str = Field("manager", max_length=120)
 
 
 @router.get("/queue")
@@ -55,17 +54,19 @@ def list_pickups(session: DbSession) -> dict[str, Any]:
 
 
 @router.post("", status_code=201)
-def create(body: PickupCreate, session: DbSession) -> dict[str, Any]:
+def create(body: PickupCreate, user: ManagerUser, session: DbSession) -> dict[str, Any]:
     shop = default_workshop(session)
     try:
-        pickup = request_pickup(session, body.recycler_id, body.piece_ids, body.actor, shop.id)
+        pickup = request_pickup(session, body.recycler_id, body.piece_ids, user.name, shop.id)
     except PickupError as exc:
         raise HTTPException(409, str(exc)) from exc
     return pickup_to_dict(pickup)
 
 
 @router.patch("/{pickup_id}")
-def act(pickup_id: str, body: PickupAction, session: DbSession) -> dict[str, Any]:
+def act(
+    pickup_id: str, body: PickupAction, user: ManagerUser, session: DbSession
+) -> dict[str, Any]:
     pickup = session.get(Pickup, pickup_id)
     if pickup is None:
         raise HTTPException(404, "Pickup not found.")
@@ -74,7 +75,7 @@ def act(pickup_id: str, body: PickupAction, session: DbSession) -> dict[str, Any
             session,
             pickup,
             body.action,
-            body.actor,
+            user.name,
             body.scheduled_for,
             body.weighed_kg,
             body.paid_tnd,

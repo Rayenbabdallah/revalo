@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 from revalo.db import session as db_session
 from revalo.settings import get_settings
 
+OWNER = {"name": "Slim", "email": "slim@atelier.test", "password": "steel-sheet-42"}
+
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
@@ -19,6 +21,9 @@ def client(tmp_path, monkeypatch):
     from revalo.api.main import app
 
     with TestClient(app) as test_client:  # runs startup, which applies migrations
+        # Tests act as the workshop owner unless they sign out or switch user.
+        response = test_client.post("/v1/auth/setup", json=OWNER)
+        assert response.status_code == 201, response.text
         yield test_client
     for cached in (get_settings, db_session.get_engine, db_session._session_factory):
         cached.cache_clear()

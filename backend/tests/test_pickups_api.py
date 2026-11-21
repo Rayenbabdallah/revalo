@@ -35,7 +35,7 @@ def test_pickup_lifecycle(client, stock):  # noqa: F811
     recycler = client.post("/v1/buyer-requests", json=RECYCLER).json()
     created = client.post(
         "/v1/pickups",
-        json={"recycler_id": recycler["id"], "piece_ids": [lot["id"]], "actor": "Slim"},
+        json={"recycler_id": recycler["id"], "piece_ids": [lot["id"]]},
     )
     assert created.status_code == 201, created.text
     pickup = created.json()

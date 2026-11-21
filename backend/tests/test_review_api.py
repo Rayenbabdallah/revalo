@@ -22,7 +22,6 @@ def test_manager_corrects_weight_and_trims_a_damaged_edge(client, job):
     response = client.patch(
         f"/v1/pieces/{piece['id']}",
         json={
-            "actor": "Sami",
             "weight_actual_kg": 69.4,
             "width_mm": 1950,
             "condition_note": "Edge dented",
@@ -35,7 +34,7 @@ def test_manager_corrects_weight_and_trims_a_damaged_edge(client, job):
     assert body["area_m2"] == pytest.approx(1950 * 1500 / 1e6, rel=1e-4)
     assert body["weight_est_kg"] < piece["weight_est_kg"]
     corrected = body["events"][-1]
-    assert corrected["actor"] == "Sami" and corrected["action"] == "corrected"
+    assert corrected["actor"] == "Slim" and corrected["action"] == "corrected"
     assert corrected["data"]["size"]["from"] == [1999, 1500]
 
 
@@ -57,10 +56,10 @@ def test_approval_moves_drafts_to_stock_and_skips_rejected(client, job):
     first, *_ = [p for p in job["pieces"] if p["kind"] == "remnant"]
     client.patch(f"/v1/pieces/{first['id']}", json={"rejected": True})
 
-    response = client.post(f"/v1/jobs/{job['id']}/approve", json={"actor": "Leila"})
+    response = client.post(f"/v1/jobs/{job['id']}/approve")
     assert response.status_code == 200
     approved = response.json()
-    assert approved["status"] == "approved" and approved["approved_by"] == "Leila"
+    assert approved["status"] == "approved" and approved["approved_by"] == "Slim"
     statuses = {p["id"]: p["status"] for p in approved["pieces"]}
     assert statuses[first["id"]] == "rejected"
     others = [p for p in approved["pieces"] if p["id"] != first["id"]]

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from revalo.api.deps import ManagerUser, manager_only
 from revalo.db.models import BuyerRequest, Listing, ListingStatus, Piece
 from revalo.db.session import get_session
 from revalo.engine.geo import GOVERNORATES
@@ -39,14 +40,12 @@ DbSession = Annotated[Session, Depends(get_session)]
 
 class ListingCreate(BaseModel):
     price_tnd: float | None = Field(None, gt=0, le=1_000_000)
-    actor: str = Field("manager", max_length=120)
 
 
 class ListingAction(BaseModel):
     action: Literal["reprice", "reserve", "reopen", "sell", "withdraw"]
     price_tnd: float | None = Field(None, gt=0, le=1_000_000)
     buyer_request_id: str | None = None
-    actor: str = Field("manager", max_length=120)
 
 
 class BuyerRequestCreate(BaseModel):
@@ -116,13 +115,15 @@ def post_request(body: BuyerRequestCreate, session: DbSession) -> dict[str, Any]
 
 
 @router.post("/v1/pieces/{piece_id}/listing", status_code=201)
-def create_listing(piece_id: str, body: ListingCreate, session: DbSession) -> dict[str, Any]:
+def create_listing(
+    piece_id: str, body: ListingCreate, user: ManagerUser, session: DbSession
+) -> dict[str, Any]:
     piece = session.get(Piece, piece_id)
     if piece is None:
         raise HTTPException(404, "Piece not found.")
     try:
         listing = list_piece(
-            session, piece, price_book(session, piece.workshop_id), body.price_tnd, body.actor
+            session, piece, price_book(session, piece.workshop_id), body.price_tnd, user.name
         )
     except MarketError as exc:
         raise HTTPException(409, str(exc)) from exc
@@ -130,18 +131,20 @@ def create_listing(piece_id: str, body: ListingCreate, session: DbSession) -> di
 
 
 @router.patch("/v1/listings/{listing_id}")
-def act_on_listing(listing_id: str, body: ListingAction, session: DbSession) -> dict[str, Any]:
+def act_on_listing(
+    listing_id: str, body: ListingAction, user: ManagerUser, session: DbSession
+) -> dict[str, Any]:
     listing = _listing(session, listing_id)
     try:
         update_listing(
-            session, listing, body.action, body.actor, body.price_tnd, body.buyer_request_id
+            session, listing, body.action, user.name, body.price_tnd, body.buyer_request_id
         )
     except MarketError as exc:
         raise HTTPException(409, str(exc)) from exc
     return listing_to_dict(listing)
 
 
-@router.get("/v1/listings")
+@router.get("/v1/listings", dependencies=[manager_only])
 def workshop_listings(session: DbSession, status: str | None = None) -> dict[str, Any]:
     query = select(Listing).order_by(Listing.updated_at.desc())
     if status:
@@ -158,7 +161,7 @@ def workshop_listings(session: DbSession, status: str | None = None) -> dict[str
     return {"listings": rows, "summary": market_summary(session)}
 
 
-@router.get("/v1/listings/{listing_id}/matches")
+@router.get("/v1/listings/{listing_id}/matches", dependencies=[manager_only])
 def listing_matches(listing_id: str, session: DbSession) -> dict[str, Any]:
     listing = _listing(session, listing_id)
     return {
@@ -167,7 +170,7 @@ def listing_matches(listing_id: str, session: DbSession) -> dict[str, Any]:
     }
 
 
-@router.get("/v1/buyer-requests")
+@router.get("/v1/buyer-requests", dependencies=[manager_only])
 def list_requests(session: DbSession, active: bool | None = None) -> dict[str, Any]:
     query = select(BuyerRequest).order_by(BuyerRequest.created_at.desc())
     if active is not None:
@@ -180,7 +183,7 @@ def list_requests(session: DbSession, active: bool | None = None) -> dict[str, A
     return {"requests": rows}
 
 
-@router.patch("/v1/buyer-requests/{request_id}")
+@router.patch("/v1/buyer-requests/{request_id}", dependencies=[manager_only])
 def toggle_request(request_id: str, body: RequestToggle, session: DbSession) -> dict[str, Any]:
     request = session.get(BuyerRequest, request_id)
     if request is None:
