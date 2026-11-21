@@ -30,8 +30,17 @@ when the user does not give them.
    kept in the piece's history.
 4. **Label.** Print QR labels (50 x 30 mm thermal or A4 sticker sheets). A
    scan opens the piece's page on any phone.
-5. **Stock.** See what is on the racks by material, what is reusable, what is
-   scrap for recyclers, and what is due for review.
+5. **Decide.** Every record is valued three ways in TND and CO2: reuse it
+   (new material you do not buy), sell it (at a share of the new price, minus
+   commission), or recycle it (scrap price by weight). Revalo recommends one and
+   says why. A remnant is first kept for reuse; once its review date passes it
+   should be sold, and after a second period recycled, so racks do not fill up.
+6. **Stock.** See what is on the racks by material, its recoverable value, the
+   next step for each piece, and what is due for review.
+
+Prices live in a per-workshop price book. Defaults ship only where a source
+exists (mild steel and MDF, from the financial model); every other material
+waits for the workshop's own quotes rather than an invented number.
 
 ## Repository layout
 
