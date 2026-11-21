@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.dxf -text
+*.nc -text
+*.gcode -text
+*.ngc -text
+*.tap -text
+*.png binary
+*.pdf binary
