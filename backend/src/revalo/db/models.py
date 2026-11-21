@@ -177,3 +177,66 @@ class PriceEntry(Base):
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )
     updated_by: Mapped[str] = mapped_column(String(120))
+
+
+class ListingStatus(StrEnum):
+    OPEN = "open"
+    RESERVED = "reserved"
+    SOLD = "sold"
+    WITHDRAWN = "withdrawn"
+
+
+class BuyerKind(StrEnum):
+    REUSE = "reuse"
+    """Artisans, joineries and small shops that buy offcuts to use them."""
+    RECYCLER = "recycler"
+    """Scrap dealers and recyclers that buy by weight."""
+
+
+class BuyerRequest(Base):
+    """A standing need posted by a buyer: what they want, where, and at what price."""
+
+    __tablename__ = "buyer_requests"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    kind: Mapped[str] = mapped_column(String(20), default=BuyerKind.REUSE)
+    name: Mapped[str] = mapped_column(String(120))
+    organization: Mapped[str | None] = mapped_column(String(160))
+    phone: Mapped[str] = mapped_column(String(32))
+    """WhatsApp number, stored in international form (+216...)."""
+    governorate: Mapped[str] = mapped_column(String(40))
+    materials: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    """{"codes": [...]}; an empty list means any material."""
+    thickness_min_mm: Mapped[float | None] = mapped_column(Float)
+    thickness_max_mm: Mapped[float | None] = mapped_column(Float)
+    min_length_mm: Mapped[float | None] = mapped_column(Float)
+    min_width_mm: Mapped[float | None] = mapped_column(Float)
+    max_price_tnd_per_kg: Mapped[float | None] = mapped_column(Float)
+    note: Mapped[str | None] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Listing(Base):
+    """A piece offered on the marketplace, and the deal that follows."""
+
+    __tablename__ = "listings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    piece_id: Mapped[str] = mapped_column(ForeignKey("pieces.id"), unique=True)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default=ListingStatus.OPEN, index=True)
+    price_tnd: Mapped[float] = mapped_column(Float)
+    buyer_request_id: Mapped[str | None] = mapped_column(ForeignKey("buyer_requests.id"))
+    """The buyer the piece is reserved for or sold to."""
+    sold_price_tnd: Mapped[float | None] = mapped_column(Float)
+    fee_tnd: Mapped[float | None] = mapped_column(Float)
+    """Revalo's commission on the completed sale."""
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    piece: Mapped[Piece] = relationship()
+    buyer: Mapped[BuyerRequest | None] = relationship()
