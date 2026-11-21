@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { CalendarClock, PackageOpen, Scissors } from 'lucide-react'
+import { CalendarClock, Download, PackageOpen, Scissors } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'wouter'
 
 import { ACTION_ICON } from '../../components/decision/icons'
 import { ListButton } from '../../components/market/ListButton'
-import { getStock, getStockSummary, type DecisionAction, type StockSummaryRow } from '../../lib/api'
+import { getStock, getStockSummary, stockExportUrl, type DecisionAction, type StockSummaryRow } from '../../lib/api'
 import { actionLabel, fmtDate, fmtKg, fmtM2, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 
 /* Chart series: the two brand colours, validated on the card surface (#fffdf9).
@@ -143,12 +143,20 @@ export function StockPage() {
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">What is on the racks</h1>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <p className="text-[15px] text-ink-400">Approved leftovers, waiting to be reused, sold or recycled.</p>
+        <div className="flex gap-2">
+        <a
+          href={stockExportUrl}
+          className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[14px] font-medium text-ink-100 hover:border-brand-500"
+        >
+          <Download className="size-4" /> Excel (CSV)
+        </a>
         <Link
           href="/stock/fit"
           className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400"
         >
           <Scissors className="size-4" /> Check before cutting
         </Link>
+        </div>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">

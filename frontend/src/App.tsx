@@ -1,4 +1,4 @@
-import { Layers, ScanLine, Settings, Store, Upload, Warehouse } from 'lucide-react'
+import { FileBarChart, Layers, ScanLine, Settings, Store, Upload, Warehouse } from 'lucide-react'
 import { Redirect, Route, Switch, useLocation } from 'wouter'
 
 import { AppShell, type NavItem } from './components/shell/AppShell'
@@ -9,6 +9,7 @@ import { JobsPage } from './pages/jobs/JobsPage'
 import { LabelsPage } from './pages/jobs/LabelsPage'
 import { MarketPage } from './pages/market/MarketPage'
 import { PiecePage } from './pages/piece/PiecePage'
+import { ReportPage } from './pages/report/ReportPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { FitPage } from './pages/stock/FitPage'
 import { StockPage } from './pages/stock/StockPage'
@@ -20,6 +21,7 @@ const NAV: NavItem[] = [
   { id: '/jobs', label: 'Jobs', icon: Layers },
   { id: '/stock', label: 'Stock', icon: Warehouse },
   { id: '/market', label: 'Market', icon: Store },
+  { id: '/report', label: 'Report', icon: FileBarChart },
   { id: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="/stock/fit" component={FitPage} />
             <Route path="/stock" component={StockPage} />
             <Route path="/market" component={MarketPage} />
+            <Route path="/report" component={ReportPage} />
             <Route path="/upload" component={UploadPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/prices">

@@ -126,6 +126,13 @@
 
 /* Printing labels: only the label sheet goes to the printer. */
 @media print {
+  @page {
+    margin: 12mm;
+  }
+  .report {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
   body {
     background: #fff !important;
   }

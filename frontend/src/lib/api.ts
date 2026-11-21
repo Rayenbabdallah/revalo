@@ -617,3 +617,28 @@ export const actOnPickup = (
   id: string,
   body: { action: 'schedule' | 'collect' | 'cancel'; scheduled_for?: string; weighed_kg?: number; paid_tnd?: number; actor?: string },
 ) => request<Pickup>(`/v1/pickups/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
+
+/* ---------- Reports ---------- */
+
+export interface MonthlyReport {
+  month: string
+  workshop: string
+  generated_at: string
+  production: { jobs: number; sheets: number; parts: number; remnant_kg: number; scrap_kg: number }
+  outcomes: {
+    reused: { pieces: number; kg: number; tnd: number }
+    sold: { pieces: number; kg: number; tnd: number; fees_tnd: number }
+    recycled: { pickups: number; kg: number; tnd: number }
+  }
+  recovered_tnd: number
+  diverted_kg: number
+  co2_avoided_kg: number
+  plan_tnd: number
+  return_on_plan: number | null
+  stock: { value_tnd: number; remnant_count: number; remnant_kg: number; scrap_kg: number; due_for_review: number }
+}
+
+export const getMonthlyReport = (month: string) =>
+  request<MonthlyReport>(`/v1/reports/monthly?month=${encodeURIComponent(month)}`)
+
+export const stockExportUrl = `${BASE}/v1/stock/export.csv`
