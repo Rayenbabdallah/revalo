@@ -6,3 +6,5 @@
 *.tap -text
 *.png binary
 *.pdf binary
+samples/synthetic/** -text
+samples/public/** -text
