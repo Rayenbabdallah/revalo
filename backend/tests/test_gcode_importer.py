@@ -136,6 +136,27 @@ def test_plasma_m07_m08_convention():
     assert len(job.sheets[0].parts) == 1
 
 
+def test_contour_with_lead_in_is_closed():
+    # Pierce inside the hole area, lead in to the contour, cut around, stop at the entry.
+    job = run(
+        """
+        G21 G90
+        G0 X40 Y30
+        M07
+        G1 X50 Y30
+        G1 X50 Y10
+        G1 X150 Y10
+        G1 X150 Y110
+        G1 X50 Y110
+        G1 X50 Y30
+        M08
+        """
+    )
+    parts = job.sheets[0].parts
+    assert len(parts) == 1
+    assert parts[0].area == pytest.approx(100 * 100)
+
+
 def test_sheet_size_from_file_name():
     job = run(
         "G21 G90\nG0 X10 Y10\nG1 X60 Y10\nG1 X60 Y60\nG1 X10 Y60\nG1 X10 Y10\n",

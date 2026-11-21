@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 from shapely import STRtree
 from shapely.geometry import LineString, MultiLineString, Polygon
-from shapely.ops import linemerge, polygonize
+from shapely.ops import linemerge, polygonize, unary_union
 from shapely.validation import make_valid
 
 Point = tuple[float, float]
@@ -110,8 +110,9 @@ def assemble_loops(paths: Iterable[Path], tol: float = 0.05) -> LoopSet:
             else:
                 leftovers.append(line)
         if leftovers:
-            # Some outlines close only through T-junctions; polygonize finds those faces.
-            faces = list(polygonize(leftovers))
+            # Some outlines close only through T-junctions or carry a lead-in move
+            # (plasma and laser programs); noding the lines lets polygonize find them.
+            faces = list(polygonize(unary_union(leftovers)))
             for face in faces:
                 poly = _clean_polygon(list(face.exterior.coords)[:-1])
                 if poly is not None:
