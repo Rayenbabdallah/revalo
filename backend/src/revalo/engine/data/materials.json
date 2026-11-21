@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "currency": "TND",
+  "materials": [
+    {
+      "code": "steel_mild",
+      "name": {"en": "Mild steel", "fr": "Acier doux"},
+      "family": "metal",
+      "density_kg_m3": 7850,
+      "aliases": ["s235", "s275", "s355", "st37", "st52", "dc01", "dc04", "e24", "acier", "steel", "mild", "tole noire", "hrc", "crc"],
+      "price": {
+        "new_tnd_per_kg": 3.0,
+        "scrap_tnd_per_kg": 0.27,
+        "source": "Scrap: IRMC Maghreb letter no. 34 (2023), El Fouladh 270 TND/t sorted steel. New: regulated rebar price ~2,900-3,000 TND/t (Dec 2021) used as a proxy for sheet."
+      }
+    },
+    {
+      "code": "steel_galvanized",
+      "name": {"en": "Galvanized steel", "fr": "Acier galvanisé"},
+      "family": "metal",
+      "density_kg_m3": 7850,
+      "aliases": ["galva", "galvanise", "galvanisé", "galvanized", "dx51", "zingue"],
+      "price": null
+    },
+    {
+      "code": "stainless_304",
+      "name": {"en": "Stainless steel 304", "fr": "Inox 304"},
+      "family": "metal",
+      "density_kg_m3": 7930,
+      "aliases": ["inox", "304", "1.4301", "ss304", "inox304", "stainless", "aisi304"],
+      "price": null
+    },
+    {
+      "code": "stainless_316",
+      "name": {"en": "Stainless steel 316", "fr": "Inox 316"},
+      "family": "metal",
+      "density_kg_m3": 7980,
+      "aliases": ["316", "316l", "1.4404", "ss316", "inox316", "aisi316"],
+      "price": null
+    },
+    {
+      "code": "aluminium",
+      "name": {"en": "Aluminium", "fr": "Aluminium"},
+      "family": "metal",
+      "density_kg_m3": 2700,
+      "aliases": ["alu", "aluminium", "aluminum", "5754", "5083", "1050", "almg3"],
+      "price": null
+    },
+    {
+      "code": "copper",
+      "name": {"en": "Copper", "fr": "Cuivre"},
+      "family": "metal",
+      "density_kg_m3": 8960,
+      "aliases": ["cuivre", "copper"],
+      "price": null
+    },
+    {
+      "code": "brass",
+      "name": {"en": "Brass", "fr": "Laiton"},
+      "family": "metal",
+      "density_kg_m3": 8500,
+      "aliases": ["laiton", "brass"],
+      "price": null
+    },
+    {
+      "code": "mdf",
+      "name": {"en": "MDF", "fr": "MDF"},
+      "family": "wood",
+      "density_kg_m3": 700,
+      "aliases": ["mdf"],
+      "price": {
+        "new_tnd_per_m3": 1866,
+        "scrap_tnd_per_kg": 0.0,
+        "source": "Workshop price assumption of 100 TND per 2440x1220x18 mm panel (import average 496 USD/m3 in 2022). Wood offcuts have almost no scrap value."
+      }
+    },
+    {
+      "code": "hdf",
+      "name": {"en": "HDF", "fr": "HDF"},
+      "family": "wood",
+      "density_kg_m3": 850,
+      "aliases": ["hdf"],
+      "price": null
+    },
+    {
+      "code": "plywood",
+      "name": {"en": "Plywood", "fr": "Contreplaqué"},
+      "family": "wood",
+      "density_kg_m3": 600,
+      "aliases": ["plywood", "ply", "contreplaque", "contreplaqué", "multiplis", "cp"],
+      "price": null
+    },
+    {
+      "code": "particleboard",
+      "name": {"en": "Particleboard", "fr": "Aggloméré"},
+      "family": "wood",
+      "density_kg_m3": 650,
+      "aliases": ["agglo", "agglomere", "aggloméré", "particleboard", "chipboard"],
+      "price": null
+    },
+    {
+      "code": "melamine_board",
+      "name": {"en": "Melamine-faced board", "fr": "Panneau mélaminé"},
+      "family": "wood",
+      "density_kg_m3": 680,
+      "aliases": ["melamine", "mélaminé", "mela", "stratifie"],
+      "price": null
+    },
+    {
+      "code": "osb",
+      "name": {"en": "OSB", "fr": "OSB"},
+      "family": "wood",
+      "density_kg_m3": 620,
+      "aliases": ["osb"],
+      "price": null
+    },
+    {
+      "code": "solid_pine",
+      "name": {"en": "Solid pine", "fr": "Pin massif"},
+      "family": "wood",
+      "density_kg_m3": 510,
+      "aliases": ["pine", "pin", "sapin"],
+      "price": null
+    },
+    {
+      "code": "solid_beech",
+      "name": {"en": "Solid beech", "fr": "Hêtre massif"},
+      "family": "wood",
+      "density_kg_m3": 720,
+      "aliases": ["beech", "hetre", "hêtre"],
+      "price": null
+    },
+    {
+      "code": "pmma",
+      "name": {"en": "Acrylic (PMMA)", "fr": "Plexiglas (PMMA)"},
+      "family": "plastic",
+      "density_kg_m3": 1190,
+      "aliases": ["pmma", "acrylic", "acrylique", "plexi", "plexiglas", "plexiglass"],
+      "price": null
+    }
+  ],
+  "processes": {
+    "fiber_laser": {"kerf_mm": 0.2, "families": ["metal", "plastic"]},
+    "co2_laser": {"kerf_mm": 0.2, "families": ["wood", "plastic"]},
+    "plasma": {"kerf_mm": 1.5, "families": ["metal"]},
+    "waterjet": {"kerf_mm": 1.0, "families": ["metal", "plastic", "wood"]},
+    "router": {"kerf_mm": 6.0, "families": ["wood", "plastic"]},
+    "panel_saw": {"kerf_mm": 3.2, "families": ["wood"]}
+  }
+}
