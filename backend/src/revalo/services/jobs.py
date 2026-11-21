@@ -9,7 +9,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from revalo.db.models import Job, Piece, PieceEvent, PieceKind, Workshop
+from revalo.db.models import Job, Machine, Piece, PieceEvent, PieceKind, Workshop
 from revalo.engine.geo import canonical
 from revalo.engine.pipeline import AnalysisOptions, analyze
 from revalo.services.decisions import decide_piece
@@ -43,6 +43,7 @@ def create_job(
     filename: str,
     options: AnalysisOptions,
     actor: str,
+    machine: Machine | None = None,
 ) -> Job:
     result = analyze(data, filename, options)
     body = result.to_dict(include_geometry=True)
@@ -51,6 +52,7 @@ def create_job(
 
     job = Job(
         workshop_id=shop.id,
+        machine_id=machine.id if machine else None,
         file_name=filename,
         file_format=body["source"]["format"],
         file_sha256=digest,
@@ -188,6 +190,7 @@ def job_summary(job: Job, book: dict[str, EffectivePrice]) -> dict[str, Any]:
         "material_code": job.material_code,
         "thickness_mm": job.thickness_mm,
         "process": job.process,
+        "machine_id": job.machine_id,
         "status": job.status,
         "sheet_count": job.sheet_count,
         "part_count": job.part_count,

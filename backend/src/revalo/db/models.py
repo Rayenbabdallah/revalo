@@ -74,11 +74,32 @@ class Workshop(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class Machine(Base):
+    """A cutting machine and its usual settings, so an upload needs no typing."""
+
+    __tablename__ = "machines"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    process: Mapped[str] = mapped_column(String(40))
+    material_code: Mapped[str | None] = mapped_column(String(40))
+    thickness_mm: Mapped[float | None] = mapped_column(Float)
+    kerf_mm: Mapped[float | None] = mapped_column(Float)
+    sheet_width_mm: Mapped[float | None] = mapped_column(Float)
+    sheet_height_mm: Mapped[float | None] = mapped_column(Float)
+    min_side_mm: Mapped[float | None] = mapped_column(Float)
+    active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    machine_id: Mapped[str | None] = mapped_column(ForeignKey("machines.id"))
+    """The machine the job was cut on, when the operator picked one."""
     file_name: Mapped[str] = mapped_column(String(255))
     file_format: Mapped[str] = mapped_column(String(20))
     file_sha256: Mapped[str] = mapped_column(String(64), index=True)

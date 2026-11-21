@@ -9,11 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from revalo.api.forms import analysis_options
-from revalo.db.models import Job
+from revalo.db.models import Job, Machine
 from revalo.db.session import get_session
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions
 from revalo.services.jobs import create_job, default_workshop, job_detail, job_summary
+from revalo.services.machines import apply_machine
 from revalo.services.prices import price_book
 from revalo.storage import FileStorage, get_storage
 
@@ -30,13 +31,20 @@ def upload_job(
     file: Annotated[UploadFile, File()],
     options: Annotated[AnalysisOptions, Depends(analysis_options)],
     actor: Annotated[str, Form(max_length=120)] = "operator",
+    machine_id: Annotated[str | None, Form()] = None,
 ) -> dict[str, Any]:
     # Sync endpoint: FastAPI runs it in a worker thread, so the engine never blocks the loop.
     data = file.file.read(MAX_FILE_BYTES + 1)
     if len(data) > MAX_FILE_BYTES:
         raise HTTPException(413, "File is larger than 25 MB.")
+    machine = None
+    if machine_id:
+        machine = session.get(Machine, machine_id)
+        if machine is None or not machine.active:
+            raise HTTPException(422, "Unknown machine.")
+        options = apply_machine(options, machine)
     try:
-        job = create_job(session, storage, data, file.filename or "upload", options, actor)
+        job = create_job(session, storage, data, file.filename or "upload", options, actor, machine)
     except JobImportError as exc:
         raise HTTPException(422, str(exc)) from exc
     return job_detail(job, price_book(session, job.workshop_id))
