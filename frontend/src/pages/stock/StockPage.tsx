@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Link } from 'wouter'
 
 import { ACTION_ICON } from '../../components/decision/icons'
+import { ListButton } from '../../components/market/ListButton'
 import { getStock, getStockSummary, type DecisionAction, type StockSummaryRow } from '../../lib/api'
 import { actionLabel, fmtDate, fmtKg, fmtM2, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 
@@ -199,6 +200,7 @@ export function StockPage() {
                   <th className="px-3 py-3 font-normal">Next step</th>
                   <th className="px-3 py-3 font-normal">Location</th>
                   <th className="px-3 py-3 font-normal">Review</th>
+                  <th className="px-3 py-3 font-normal">Sale</th>
                 </tr>
               </thead>
               <tbody>
@@ -255,6 +257,9 @@ export function StockPage() {
                         ) : (
                           '—'
                         )}
+                      </td>
+                      <td className="px-3 py-3">
+                        <ListButton piece={p} />
                       </td>
                     </motion.tr>
                   )
