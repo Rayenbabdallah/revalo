@@ -13,6 +13,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from revalo import __version__
+from revalo.api.auth import router as auth_router
 from revalo.api.fit import router as fit_router
 from revalo.api.forms import analysis_options
 from revalo.api.jobs import router as jobs_router
@@ -55,8 +56,10 @@ app.add_middleware(
         if o.strip()
     ],
     allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+    allow_credentials=True,
     allow_headers=["*"],
 )
+app.include_router(auth_router)
 app.include_router(samples_router)
 app.include_router(jobs_router)
 app.include_router(pieces_router)

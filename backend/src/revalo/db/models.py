@@ -314,3 +314,47 @@ class PickupItem(Base):
 
     pickup: Mapped[Pickup] = relationship(back_populates="items")
     piece: Mapped[Piece] = relationship()
+
+
+class Role(StrEnum):
+    """What a person may do. Each role includes everything the ones below it can."""
+
+    OPERATOR = "operator"
+    """Uploads jobs, measures and moves pieces, takes remnants for new jobs."""
+    MANAGER = "manager"
+    """Approves records, sells, books pickups, sets prices and machines."""
+    OWNER = "owner"
+    """Everything, plus who has an account."""
+
+    @property
+    def rank(self) -> int:
+        return {"operator": 1, "manager": 2, "owner": 3}[self.value]
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True)
+    name: Mapped[str] = mapped_column(String(120))
+    role: Mapped[str] = mapped_column(String(20), default=Role.OPERATOR)
+    password_hash: Mapped[str] = mapped_column(String(300))
+    active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    workshop: Mapped[Workshop] = relationship()
+
+
+class AuthSession(Base):
+    """A signed-in browser. Only a hash of the cookie token is stored."""
+
+    __tablename__ = "auth_sessions"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship()
