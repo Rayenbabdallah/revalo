@@ -65,6 +65,8 @@ class Job:
     layout_estimated: bool = False
     """True when part positions were computed by Revalo, not read from the file."""
     warnings: list[str] = field(default_factory=list)
+    metadata_text: str = ""
+    """Layer names, comments and labels from the file, used to infer material and thickness."""
 
     @property
     def part_count(self) -> int:
