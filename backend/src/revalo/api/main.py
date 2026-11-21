@@ -13,6 +13,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 
 from revalo import __version__
+from revalo.api.fit import router as fit_router
 from revalo.api.forms import analysis_options
 from revalo.api.jobs import router as jobs_router
 from revalo.api.machines import router as machines_router
@@ -60,6 +61,7 @@ app.include_router(pieces_router)
 app.include_router(prices_router)
 app.include_router(market_router)
 app.include_router(machines_router)
+app.include_router(fit_router)
 
 
 @app.get("/health")
