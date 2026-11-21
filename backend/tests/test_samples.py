@@ -57,7 +57,9 @@ def test_sample_matches_expected(path: Path):
     expected_file = EXPECTED / f"{path.name}.json"
     if os.getenv("REVALO_UPDATE_EXPECTED") == "1" or not expected_file.exists():
         EXPECTED.mkdir(parents=True, exist_ok=True)
-        expected_file.write_text(json.dumps(actual, indent=2) + "\n", encoding="utf-8")
+        expected_file.write_text(
+            json.dumps(actual, indent=2) + "\n", encoding="utf-8", newline="\n"
+        )
         if os.getenv("REVALO_UPDATE_EXPECTED") != "1":
             pytest.fail(f"No expected result for {path.name}; wrote one, review and commit it.")
         return
