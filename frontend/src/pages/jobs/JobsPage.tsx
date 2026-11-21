@@ -5,7 +5,7 @@ import { Link } from 'wouter'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { listJobs } from '../../lib/api'
-import { fmtDateTime, fmtKg, formatLabel, materialLabel } from '../../lib/format'
+import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel } from '../../lib/format'
 
 export function JobsPage() {
   const jobs = useQuery({ queryKey: ['jobs'], queryFn: listJobs })
@@ -53,6 +53,7 @@ export function JobsPage() {
                   <th className="px-3 py-3 text-right font-normal">Remnants</th>
                   <th className="px-3 py-3 text-right font-normal">Reusable</th>
                   <th className="px-3 py-3 text-right font-normal">Scrap</th>
+                  <th className="px-3 py-3 text-right font-normal">Value</th>
                   <th className="px-3 py-3 font-normal">Status</th>
                   <th className="px-3 py-3 font-normal">Saved</th>
                   <th className="w-10" />
@@ -85,6 +86,9 @@ export function JobsPage() {
                     </td>
                     <td className="readout px-3 py-4 text-right text-rust-400">
                       {job.scrap_weight_kg !== null ? `${fmtKg(job.scrap_weight_kg)} kg` : '—'}
+                    </td>
+                    <td className="readout px-3 py-4 text-right text-graphite-100">
+                      {job.recovered.priced_pieces > 0 ? fmtTnd(job.recovered.value_tnd) : '—'}
                     </td>
                     <td className="px-3 py-4">
                       <StatusBadge status={job.status} />

@@ -169,6 +169,31 @@ export function analyzeFile(file: File, options: AnalysisOptions = {}): Promise<
 
 /* ---------- Jobs and pieces ---------- */
 
+export type DecisionAction = 'reuse' | 'sell' | 'recycle'
+
+export interface DecisionOption {
+  action: DecisionAction
+  available: boolean
+  value_tnd: number | null
+  co2_kg: number | null
+  note: string
+}
+
+export interface Decision {
+  recommended: DecisionAction | null
+  /** new: just recorded · review: past one review period · overdue: past two */
+  stage: 'new' | 'review' | 'overdue'
+  reasons: string[]
+  options: DecisionOption[]
+}
+
+export interface Recovered {
+  value_tnd: number
+  co2_kg: number
+  priced_pieces: number
+  pieces: number
+}
+
 export type PieceStatus = 'draft' | 'rejected' | 'in_stock' | 'reserved' | 'reused' | 'sold' | 'recycled'
 
 export interface Piece {
@@ -196,6 +221,7 @@ export interface Piece {
   due_for_review: boolean
   label_url: string
   updated_at: string
+  decision: Decision
 }
 
 export interface PieceEvent {
@@ -222,6 +248,7 @@ export interface JobSummary {
   remnant_count: number
   remnant_weight_kg: number | null
   scrap_weight_kg: number | null
+  recovered: Recovered
   created_at: string
   approved_at: string | null
   approved_by: string | null
@@ -281,12 +308,50 @@ export interface StockSummaryRow {
   scrap_weight_kg: number
   unweighed: number
   due_for_review: number
+  value_tnd: number
+  co2_kg: number
 }
 
 export const getStock = (kind?: 'remnant' | 'scrap') =>
   request<{ pieces: Piece[] }>(`/v1/stock${kind ? `?kind=${kind}` : ''}`)
 
 export const getStockSummary = () =>
-  request<{ materials: StockSummaryRow[]; totals: Omit<StockSummaryRow, 'material_code' | 'unweighed'> }>(
-    '/v1/stock/summary',
-  )
+  request<{
+    materials: StockSummaryRow[]
+    totals: Omit<StockSummaryRow, 'material_code' | 'unweighed'>
+    actions: Record<DecisionAction, { count: number; value_tnd: number }>
+  }>('/v1/stock/summary')
+
+/* ---------- Price book ---------- */
+
+export interface PriceRow {
+  material_code: string
+  name: { en: string; fr: string }
+  family: MaterialFamily
+  new_tnd_per_kg: number | null
+  scrap_tnd_per_kg: number | null
+  resale_factor: number | null
+  source: string | null
+  custom: boolean
+  updated_at: string | null
+  updated_by: string | null
+  co2_primary_kg_per_kg: number | null
+  co2_recycling_saves_kg_per_kg: number | null
+  co2_source: string | null
+}
+
+export interface PriceUpdate {
+  new_tnd_per_kg: number
+  scrap_tnd_per_kg: number
+  resale_factor: number
+  source?: string
+  actor?: string
+}
+
+export const getPrices = () => request<{ prices: PriceRow[] }>('/v1/prices')
+
+export const putPrice = (code: string, body: PriceUpdate) =>
+  request<PriceRow>(`/v1/prices/${encodeURIComponent(code)}`, { method: 'PUT', ...json(body) })
+
+export const resetPrice = (code: string) =>
+  request<PriceRow>(`/v1/prices/${encodeURIComponent(code)}`, { method: 'DELETE' })

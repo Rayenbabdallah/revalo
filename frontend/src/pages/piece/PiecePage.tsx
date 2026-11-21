@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'wouter'
 
 import { Wordmark } from '../../components/brand/Logo'
+import { OptionGrid } from '../../components/decision/Decision'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { getPieceByCode } from '../../lib/api'
 import { fmtDate, fmtDateTime, fmtKg, fmtM2, fmtMm, materialLabel } from '../../lib/format'
@@ -88,6 +89,20 @@ export function PiecePage({ code }: { code: string }) {
             <p className="mt-3 rounded-xl border border-ember-500/25 bg-ember-500/5 px-4 py-3 text-[14px] text-graphite-200">
               {p.condition_note}
             </p>
+          )}
+
+          {p.decision.recommended && (
+            <section className="mt-6">
+              <p className="eyebrow">What to do with it</p>
+              <div className="mt-3">
+                <OptionGrid decision={p.decision} />
+              </div>
+              <ul className="mt-3 space-y-1.5 text-[14px] leading-relaxed text-graphite-300">
+                {p.decision.reasons.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </section>
           )}
 
           <section className="mt-6">

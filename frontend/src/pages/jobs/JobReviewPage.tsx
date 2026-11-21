@@ -9,7 +9,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
 import { useActor } from '../../lib/actor'
 import { approveJob, getJob, type JobDetail, type SheetAnalysis } from '../../lib/api'
-import { fmtDateTime, fmtKg, formatLabel, materialLabel, processLabel } from '../../lib/format'
+import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel, processLabel } from '../../lib/format'
 import { PieceCard } from './PieceCard'
 
 const SheetViewer = lazy(() => import('../../components/viewer/SheetViewer'))
@@ -211,7 +211,12 @@ export function JobReviewPage({ id }: { id: string }) {
                 className="sticky bottom-20 z-10 mt-2 flex items-center justify-between gap-4 rounded-2xl border border-graphite-700 bg-graphite-900/95 p-4 shadow-2xl backdrop-blur-xl md:bottom-4"
               >
                 <div>
-                  <p className="readout text-lg text-reclaim-400">{fmtKg(keptWeight)} kg</p>
+                  <p className="readout text-lg text-reclaim-400">
+                    {data.recovered.priced_pieces > 0 ? fmtTnd(data.recovered.value_tnd) : `${fmtKg(keptWeight)} kg`}
+                    <span className="ml-2 text-[12px] text-graphite-500">
+                      {fmtKg(keptWeight)} kg · {fmtKg(data.recovered.co2_kg, 0)} kg CO₂
+                    </span>
+                  </p>
                   <p className="text-[12px] text-graphite-400">
                     {drafts.length} record{drafts.length === 1 ? '' : 's'} go to stock
                   </p>

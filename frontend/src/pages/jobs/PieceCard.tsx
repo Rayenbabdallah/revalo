@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { Ban, Check, Loader2, RotateCcw } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 
+import { DecisionStrip } from '../../components/decision/Decision'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { patchPiece, type JobDetail, type Piece, type PiecePatch } from '../../lib/api'
 import { fmtKg, fmtM2, fmtMm } from '../../lib/format'
@@ -181,6 +182,7 @@ export function PieceCard({ piece, jobId, actor, highlighted, onHighlight, locke
           </button>
         )}
       </div>
+      {!rejected && <DecisionStrip decision={piece.decision} />}
       {save.isError && <p className="mt-2 text-[12px] text-alarm-400">{save.error.message}</p>}
     </article>
   )

@@ -5,8 +5,9 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'wouter'
 
-import { getStock, getStockSummary, type StockSummaryRow } from '../../lib/api'
-import { fmtDate, fmtKg, fmtM2, fmtMm, materialLabel } from '../../lib/format'
+import { ACTION_ICON } from '../../components/decision/icons'
+import { getStock, getStockSummary, type DecisionAction, type StockSummaryRow } from '../../lib/api'
+import { actionLabel, fmtDate, fmtKg, fmtM2, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 
 /* Chart series colours, validated on the dark surface (#0f1115): lightness band,
    chroma floor, contrast, normal-vision separation all pass; colour-blind separation
@@ -90,6 +91,36 @@ function MaterialBars({ rows }: { rows: StockSummaryRow[] }) {
   )
 }
 
+function NextActions({ actions }: { actions: Record<DecisionAction, { count: number; value_tnd: number }> }) {
+  const order: DecisionAction[] = ['reuse', 'sell', 'recycle']
+  const hint = {
+    reuse: 'Keep for your next jobs',
+    sell: 'Not reused in time: list them',
+    recycle: 'Scrap lots and pieces past their time',
+  }
+  return (
+    <section className="mt-5 grid gap-3 md:grid-cols-3">
+      {order.map((a) => {
+        const Icon = ACTION_ICON[a]
+        return (
+          <div key={a} className="panel flex items-center gap-4 p-5">
+            <span className="grid size-11 place-items-center rounded-xl border border-graphite-700 bg-graphite-850">
+              <Icon className="size-5 text-reclaim-300" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[14px] font-medium text-graphite-100">
+                {actionLabel(a)} <span className="readout text-graphite-400">· {actions[a].count}</span>
+              </p>
+              <p className="readout text-[18px] text-graphite-50">{fmtTnd(actions[a].value_tnd)}</p>
+              <p className="truncate text-[12px] text-graphite-500">{hint[a]}</p>
+            </div>
+          </div>
+        )
+      })}
+    </section>
+  )
+}
+
 const FILTERS = [
   ['all', 'All'],
   ['remnant', 'Remnants'],
@@ -112,11 +143,13 @@ export function StockPage() {
       <p className="mt-2 text-[15px] text-graphite-400">Approved leftovers, waiting to be reused, sold or recycled.</p>
 
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile label="Reusable in stock" value={fmtKg(totals?.remnant_weight_kg ?? 0)} unit="kg" accent hint={`${fmtM2(totals?.remnant_area_m2 ?? 0)} m² of clean remnants`} />
-        <Tile label="Remnants" value={String(totals?.remnant_count ?? 0)} hint="Pieces with a QR label" />
+        <Tile label="Recoverable value" value={fmtTnd(totals?.value_tnd ?? 0).replace(' TND', '')} unit="TND" accent hint={`${fmtKg(totals?.co2_kg ?? 0, 0)} kg CO₂ avoided if each piece follows its recommendation`} />
+        <Tile label="Reusable in stock" value={fmtKg(totals?.remnant_weight_kg ?? 0)} unit="kg" hint={`${totals?.remnant_count ?? 0} remnants · ${fmtM2(totals?.remnant_area_m2 ?? 0)} m²`} />
         <Tile label="Scrap waiting" value={fmtKg(totals?.scrap_weight_kg ?? 0)} unit="kg" hint={`${totals?.scrap_lots ?? 0} lots for recyclers`} />
         <Tile label="Due for review" value={String(totals?.due_for_review ?? 0)} hint="Past their review date" />
       </div>
+
+      {summary.data && summary.data.materials.length > 0 && <NextActions actions={summary.data.actions} />}
 
       {summary.data && summary.data.materials.length > 0 && (
         <div className="mt-5">
@@ -163,6 +196,7 @@ export function StockPage() {
                   <th className="px-3 py-3 font-normal">Piece</th>
                   <th className="px-3 py-3 font-normal">Material</th>
                   <th className="px-3 py-3 text-right font-normal">Weight</th>
+                  <th className="px-3 py-3 font-normal">Next step</th>
                   <th className="px-3 py-3 font-normal">Location</th>
                   <th className="px-3 py-3 font-normal">Review</th>
                 </tr>
@@ -198,6 +232,18 @@ export function StockPage() {
                       </td>
                       <td className="readout px-3 py-3 text-right text-[13px] text-graphite-200">
                         {p.weight_kg !== null ? `${fmtKg(p.weight_kg)} kg` : '—'}
+                      </td>
+                      <td className="px-3 py-3 text-[13px] text-graphite-200">
+                        {p.decision.recommended ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            {actionLabel(p.decision.recommended)}
+                            <span className="readout text-graphite-500">
+                              {fmtTnd(p.decision.options.find((o) => o.action === p.decision.recommended)?.value_tnd)}
+                            </span>
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="px-3 py-3 text-[13px] text-graphite-400">{p.location ?? '—'}</td>
                       <td className="px-3 py-3">

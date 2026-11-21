@@ -79,3 +79,9 @@ const STATUS_LABEL: Record<string, string> = {
   approved: 'Approved',
 }
 export const statusLabel = (status: string) => STATUS_LABEL[status] ?? status
+
+export const fmtTnd = (v: number | null | undefined, digits = 0) =>
+  v === null || v === undefined ? '—' : `${nf(digits).format(v)} TND`
+
+const ACTION_LABEL = { reuse: 'Reuse', sell: 'Sell', recycle: 'Recycle' } as const
+export const actionLabel = (a: keyof typeof ACTION_LABEL) => ACTION_LABEL[a]
