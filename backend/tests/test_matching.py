@@ -97,3 +97,18 @@ def test_closer_and_fresher_buyers_rank_higher():
 
 def test_empty_material_list_means_any_material():
     assert match(offer(material_code="aluminium"), need(materials=()), NOW) is not None
+
+
+def test_recyclers_rank_below_reuse_buyers_for_remnants():
+    recycler = need(
+        kind="recycler",
+        min_length_mm=None,
+        min_width_mm=None,
+        max_price_tnd_per_kg=None,
+        governorate="Ben Arous",
+    )
+    reuse = match(offer(), need(governorate="Sfax"), NOW)
+    fallback = match(offer(), recycler, NOW)
+    assert fallback is not None and reuse is not None
+    assert fallback.score < reuse.score
+    assert any("fallback" in r for r in fallback.reasons)

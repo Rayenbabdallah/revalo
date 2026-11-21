@@ -19,6 +19,7 @@ from datetime import UTC, datetime
 from revalo.engine.geo import distance_km
 
 MAX_DISTANCE_KM = 400.0
+RECYCLER_REMNANT_PENALTY = 40
 
 
 @dataclass(frozen=True)
@@ -135,6 +136,13 @@ def match(offer: Offer, need: Need, now: datetime | None = None) -> Match | None
         reasons.append(f"Request posted {age_days} days ago: check it is still open.")
 
     score = round(distance_points + size_points + price_points + fresh_points)
+    if need.kind == "recycler" and offer.kind == "remnant":
+        # A recycler pays scrap price by weight: for a reusable piece it is the fallback,
+        # ranked below any buyer who will reuse it.
+        score -= RECYCLER_REMNANT_PENALTY
+        reasons.append("Pays scrap price: keep as a fallback if no one reuses it.")
     return Match(
-        score=min(score, 100), distance_km=None if km is None else round(km, 1), reasons=reasons
+        score=max(min(score, 100), 0),
+        distance_km=None if km is None else round(km, 1),
+        reasons=reasons,
     )
