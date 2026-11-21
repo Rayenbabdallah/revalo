@@ -10,6 +10,7 @@ import { LabelsPage } from './pages/jobs/LabelsPage'
 import { MarketPage } from './pages/market/MarketPage'
 import { PiecePage } from './pages/piece/PiecePage'
 import { SettingsPage } from './pages/settings/SettingsPage'
+import { FitPage } from './pages/stock/FitPage'
 import { StockPage } from './pages/stock/StockPage'
 import { UploadPage } from './pages/upload/UploadPage'
 
@@ -36,6 +37,7 @@ export default function App() {
           <Switch>
             <Route path="/analyze" component={AnalyzePage} />
             <Route path="/jobs" component={JobsPage} />
+            <Route path="/stock/fit" component={FitPage} />
             <Route path="/stock" component={StockPage} />
             <Route path="/market" component={MarketPage} />
             <Route path="/upload" component={UploadPage} />

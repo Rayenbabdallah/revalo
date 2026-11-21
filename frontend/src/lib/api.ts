@@ -515,3 +515,45 @@ export const saveMachine = (body: MachineInput & { active?: boolean }, id?: stri
     method: id ? 'PUT' : 'POST',
     ...json(id ? { active: true, ...body } : body),
   })
+
+/* ---------- Check stock before cutting ---------- */
+
+export interface FitUse {
+  piece: { id: string; code: string; width_mm: number; height_mm: number; location: string | null }
+  fill: number
+  placements: { label: string; x: number; y: number; width: number; height: number }[]
+}
+
+export interface FitPlan {
+  material_code: string
+  material_name: { en: string; fr: string }
+  thickness_mm: number
+  kerf_mm: number
+  part_count: number
+  placed_count: number
+  candidates: number
+  saved_kg: number
+  saved_tnd: number | null
+  uses: FitUse[]
+  unplaced: { label: string; length: number; width: number }[]
+}
+
+export function checkFit(input: {
+  file?: File
+  material?: string
+  thickness_mm?: number
+  parts?: { length: number; width: number; qty: number; label?: string }[]
+}): Promise<FitPlan> {
+  const form = new FormData()
+  if (input.file) form.append('file', input.file)
+  if (input.material) form.append('material', input.material)
+  if (input.thickness_mm) form.append('thickness_mm', String(input.thickness_mm))
+  if (input.parts?.length) form.append('parts', JSON.stringify(input.parts))
+  return request<FitPlan>('/v1/stock/fit', { method: 'POST', body: form })
+}
+
+export const reuseRemnants = (pieceIds: string[], jobName: string, actor = 'manager') =>
+  request<{ pieces: Piece[] }>('/v1/stock/fit/reuse', {
+    method: 'POST',
+    ...json({ piece_ids: pieceIds, job_name: jobName, actor }),
+  })
