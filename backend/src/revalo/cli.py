@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import os
+import secrets
 import sys
 from pathlib import Path
 
@@ -92,7 +94,38 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--email", required=True)
     add.add_argument("--name", required=True)
     add.add_argument("--role", choices=["operator", "manager", "owner"], default="operator")
+
+    sub.add_parser(
+        "demo",
+        help="fill an empty database with a demo workshop (password: REVALO_DEMO_PASSWORD)",
+    )
     return parser
+
+
+def _demo() -> int:
+    from revalo.api.samples import samples_dir
+    from revalo.db.migrate import upgrade
+    from revalo.db.session import _session_factory
+    from revalo.services.demo import DemoError, seed_demo
+    from revalo.storage import get_storage
+
+    upgrade()
+    password = os.getenv("REVALO_DEMO_PASSWORD") or secrets.token_urlsafe(9)
+    with _session_factory()() as session:
+        try:
+            summary = seed_demo(session, get_storage(), samples_dir(), password)
+        except DemoError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+    print(
+        f"Demo workshop ready: {summary.jobs} jobs, {summary.in_stock} pieces in stock, "
+        f"{summary.listings} listings, {summary.buyers} buyers."
+    )
+    for role, email, name in summary.accounts:
+        print(f"  {role:<9} {email:<28} {name}")
+    if not os.getenv("REVALO_DEMO_PASSWORD"):
+        print(f"Password for all three: {password}")
+    return 0
 
 
 def _users(args: argparse.Namespace) -> int:
@@ -130,6 +163,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "users":
         return _users(args)
+    if args.command == "demo":
+        return _demo()
     if args.command == "materials":
         for m in materials().values():
             print(f"{m.code:<18} {m.family:<8} {m.density_kg_m3:>6.0f} kg/m3  {m.name_en}")
