@@ -44,6 +44,44 @@ when the user does not give them.
    WhatsApp with a ready message; reserve, mark sold, or withdraw, and the 5%
    commission is recorded on each sale. Recyclers are offered scrap lots, and
    reusable remnants only as a fallback.
+8. **Recycle.** Scrap lots and pieces past their time are grouped by material
+   for the recycler who pays the most nearby. Book a pickup on WhatsApp, set
+   the date, and record the weighed ticket when the truck leaves.
+9. **Check before cutting.** Give Revalo the next job (a drawing or part
+   sizes): it places the parts on remnants already in stock, so a new sheet is
+   opened only for what does not fit.
+10. **Report.** One printable page for the owner each month: what leftovers
+    brought back in TND against the Revalo plan, kg kept out of the bin and CO2
+    avoided. Stock exports to Excel (CSV).
+
+Operators work at the machine: they pick a machine preset and the file it just
+cut, nothing to type. The alerts bell lists what needs a manager now: jobs to
+review, pieces past their date, buyer matches, scrap ready for a recycler.
+
+## Accounts and roles
+
+Each person signs in with their own email and password; every record keeps
+the name of who made or changed it.
+
+| Role | Can |
+|---|---|
+| Operator | upload jobs, measure and move pieces, take remnants for a new job |
+| Manager | also approve records, sell, book pickups, set prices and machines, see the report |
+| Owner | also add people, change roles, reset passwords, remove access |
+
+On a fresh install the first screen creates the workshop and its owner. From a
+terminal: `uv run revalo users add --email you@example.tn --name You --role owner`.
+Passwords are hashed with scrypt; a sign-in is an HttpOnly cookie whose token is
+stored only as a hash, and repeated wrong passwords are slowed down. The public
+buyer page (`/buy`) needs no account.
+
+## Languages
+
+The interface is in English, French and Arabic (right to left), switched from
+the account menu, the sign-in page or the buyer page. Text the server writes
+(decision reasons, alerts, errors) follows the same choice. Translations live in
+`frontend/src/lib/locales` and `backend/src/revalo/i18n.py`;
+`pnpm check:i18n` fails when a text has no French or Arabic version.
 
 Prices live in a per-workshop price book. Defaults ship only where a source
 exists (mild steel and MDF, from the financial model); every other material
@@ -90,6 +128,13 @@ pnpm install
 pnpm dev   # http://localhost:5173, proxies /api to the backend
 ```
 
+A demo workshop (three accounts, machines, four jobs, buyers, a sale and a
+recycler pickup) for presentations, on an empty database only:
+
+```bash
+REVALO_DEMO_PASSWORD=revalo-demo-2026 uv run revalo demo
+```
+
 Analyze a file from the command line:
 
 ```bash
@@ -109,3 +154,21 @@ uv run revalo analyze ../samples/synthetic/laser_S235_3mm_3000x1500.dxf --svg pr
 | `REVALO_AUTO_MIGRATE` | `1` | Apply migrations when the API starts |
 | `REVALO_WORKSHOP_GOVERNORATE` | `Ben Arous` | Workshop location, used for distances to buyers |
 | `REVALO_WORKSHOP_PHONE` | none | WhatsApp number buyers reach from the public page |
+| `REVALO_PLAN_TND` | `120` | Monthly plan price in the owner report |
+| `REVALO_SECURE_COOKIES` | auto | `1` forces Secure cookies (set automatically behind HTTPS) |
+| `REVALO_DEMO_PASSWORD` | none | Password of the demo accounts created by `revalo demo` |
+
+## Deployment
+
+`compose.yaml` runs the whole product on one server: PostgreSQL, the API, and
+the web app behind Caddy, which serves HTTPS for your domain automatically and
+sends `/api` to the API.
+
+```bash
+cp .env.example .env    # set POSTGRES_PASSWORD, SITE_ADDRESS (your domain) and REVALO_PUBLIC_URL
+docker compose up -d --build
+```
+
+Point the domain's DNS at the server first. Job files are kept in the `files`
+volume and the database in `db`; back both up. CI builds both images and starts
+the stack on every change, and runs the migrations and the demo on PostgreSQL.
