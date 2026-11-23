@@ -1,0 +1,12 @@
+flowchart LR
+    A["CNC job file"] --> B["Leftovers found,<br/>measured and weighed"]
+    B --> C["Manager review<br/>and QR labels"]
+    C --> D{"Best outcome<br/>in TND and CO2"}
+    D -->|Reuse| E["Next jobs cut<br/>from the racks"]
+    D -->|Sell| F["Buyers nearby<br/>on WhatsApp"]
+    D -->|Recycle| G["Best-paying<br/>recycler pickup"]
+    E --> H["Monthly report<br/>for the owner"]
+    F --> H
+    G --> H
+    classDef hero fill:#66ca53,stroke:#3f9a2f,color:#121212
+    class D hero

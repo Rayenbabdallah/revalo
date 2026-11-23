@@ -1,0 +1,11 @@
+flowchart LR
+    W["Web app<br/>English, French, Arabic"] -->|/api| C
+    Q["QR label<br/>scanned on a phone"] --> C
+    subgraph S["Workshop server"]
+        C["Caddy<br/>automatic HTTPS"] --> A["FastAPI"]
+        A --> E["Leftover engine<br/>ezdxf, Shapely"]
+        A --> P[("PostgreSQL")]
+        A --> F[("Job files")]
+    end
+    classDef hero fill:#66ca53,stroke:#3f9a2f,color:#121212
+    class E hero

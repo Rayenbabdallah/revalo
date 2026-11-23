@@ -32,16 +32,9 @@ bought for parts that would have fit on them.
 
 ## What Revalo does
 
-```mermaid
-flowchart LR
-    A[CNC job file] --> B[Leftovers found,<br/>measured, weighed]
-    B --> C[Manager review<br/>and QR labels]
-    C --> D{Best outcome<br/>in TND and CO2}
-    D -->|Reuse| E[Next jobs cut<br/>from the racks]
-    D -->|Sell| F[Buyers nearby<br/>on WhatsApp]
-    D -->|Recycle| G[Best-paying<br/>recycler pickup]
-    E & F & G --> H[Monthly report<br/>for the owner]
-```
+<p align="center">
+  <img src="docs/images/diagram-flow.png" alt="From the CNC job file to leftovers measured and labelled, the best outcome chosen (reuse, sell or recycle), and a monthly report for the owner" width="900">
+</p>
 
 1. **Upload.** The operator picks the machine and the file it just cut. No
    typing, no measuring tape.
@@ -139,20 +132,9 @@ material uses the workshop's own quotes.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph Browser
-      W[React app<br/>EN · FR · AR]
-    end
-    subgraph Server
-      C[Caddy<br/>HTTPS] --> A[FastAPI]
-      A --> E[Leftover engine<br/>ezdxf · Shapely]
-      A --> P[(PostgreSQL)]
-      A --> F[(Job files)]
-    end
-    W -->|/api| C
-    Q[QR label on a phone] --> C
-```
+<p align="center">
+  <img src="docs/images/diagram-architecture.png" alt="The web app and QR scans reach Caddy over HTTPS, which serves the FastAPI app, the leftover engine, PostgreSQL and the job files" width="760">
+</p>
 
 | Layer | Technology |
 |---|---|
@@ -245,7 +227,8 @@ backend/
   tests/                 automated tests
 frontend/                web app, with brand assets in public/brand
 samples/                 sample jobs, their licences and reviewed results
-docs/images/             screenshots
+docs/images/             screenshots and diagrams
+docs/diagrams/           diagram sources (Mermaid)
 compose.yaml             production stack
 ```
 
