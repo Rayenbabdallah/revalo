@@ -159,6 +159,8 @@ class Piece(Base):
     height_mm: Mapped[float | None] = mapped_column(Float)
     area_m2: Mapped[float] = mapped_column(Float)
     weight_est_kg: Mapped[float | None] = mapped_column(Float)
+    weight_raw_kg: Mapped[float | None] = mapped_column(Float)
+    """Area x thickness x density before calibration; the base for learning factors."""
     weight_actual_kg: Mapped[float | None] = mapped_column(Float)
     """Set by the manager after weighing; overrides the estimate."""
     condition_note: Mapped[str | None] = mapped_column(Text)

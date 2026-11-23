@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from revalo.db.models import Job, JobStatus, Piece, PieceEvent, PieceKind, PieceStatus, utcnow
 from revalo.engine.materials import infer_material, materials
 from revalo.i18n import tr
+from revalo.services.calibration import calibrate, factors
 from revalo.services.jobs import default_workshop
 from revalo.settings import get_settings
 
@@ -126,9 +127,7 @@ def check_rows(session: Session, rows: list[IntakeRow]) -> list[dict[str, Any]]:
     return out
 
 
-def _weight(code: str, row: IntakeRow) -> float | None:
-    if row.weight_kg:
-        return row.weight_kg
+def _raw_weight(code: str, row: IntakeRow) -> float:
     mat = materials()[code]
     return round(mat.weight_kg((row.width_mm or 0) * (row.height_mm or 0), row.thickness_mm), 3)
 
@@ -159,6 +158,7 @@ def add_existing(session: Session, rows: list[IntakeRow], name: str | None, acto
         created_by=actor,
     )
     review = today + timedelta(days=get_settings().review_days)
+    learned = factors(session)
     position = 0
     for row, check in zip(rows, checks, strict=True):
         code = check["material_code"]
@@ -177,7 +177,9 @@ def add_existing(session: Session, rows: list[IntakeRow], name: str | None, acto
                 width_mm=row.width_mm if remnant else None,
                 height_mm=row.height_mm if remnant else None,
                 area_m2=round(area, 4),
-                weight_est_kg=_weight(code, row),
+                # A weight typed from the scale is used as it is; otherwise calibrate.
+                weight_raw_kg=row.weight_kg or _raw_weight(code, row),
+                weight_est_kg=row.weight_kg or calibrate(_raw_weight(code, row), code, learned),
                 location=(row.location or "").strip()[:80] or None,
                 review_date=review,
             )

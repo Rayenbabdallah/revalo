@@ -21,6 +21,7 @@ from revalo.db.models import (
 )
 from revalo.engine.decision import Action
 from revalo.engine.materials import materials
+from revalo.services.calibration import calibrate, factors
 from revalo.services.decisions import decide_piece
 from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
@@ -81,7 +82,8 @@ def update_piece(session: Session, piece: Piece, changes: PieceChanges, actor: s
         diff["size"] = {"from": [piece.width_mm, piece.height_mm], "to": [width, height]}
         piece.width_mm, piece.height_mm = width, height
         piece.area_m2 = round(width * height / 1e6, 4)
-        piece.weight_est_kg = _estimate_weight(piece)
+        piece.weight_raw_kg = _estimate_weight(piece)
+        piece.weight_est_kg = calibrate(piece.weight_raw_kg, piece.material_code, factors(session))
 
     if changes.clear_weight:
         diff["weight_actual_kg"] = {"from": piece.weight_actual_kg, "to": None}

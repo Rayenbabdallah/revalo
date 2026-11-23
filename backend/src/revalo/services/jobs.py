@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from revalo.db.models import Job, JobStatus, Machine, Piece, PieceEvent, PieceKind, Workshop
 from revalo.engine.geo import canonical
 from revalo.engine.pipeline import AnalysisOptions, analyze
+from revalo.services.calibration import calibrate, factors
 from revalo.services.decisions import decide_piece
 from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
@@ -94,6 +95,7 @@ def create_job(
     )
 
     position = 0
+    learned = factors(session)
     # Every run of the program is a real sheet that leaves its own offcuts.
     for run, sheet in ((r, s) for r in range(runs) for s in body["sheets"]):
         for remnant in sheet["remnants"]:
@@ -112,7 +114,8 @@ def create_job(
                     width_mm=remnant["width"],
                     height_mm=remnant["height"],
                     area_m2=remnant["area_m2"],
-                    weight_est_kg=remnant["weight_kg"],
+                    weight_raw_kg=remnant["weight_kg"],
+                    weight_est_kg=calibrate(remnant["weight_kg"], job.material_code, learned),
                 )
             )
             position += 1
@@ -129,7 +132,8 @@ def create_job(
                     material_code=job.material_code,
                     thickness_mm=job.thickness_mm,
                     area_m2=sheet["scrap_area_m2"],
-                    weight_est_kg=sheet["scrap_weight_kg"],
+                    weight_raw_kg=sheet["scrap_weight_kg"],
+                    weight_est_kg=calibrate(sheet["scrap_weight_kg"], job.material_code, learned),
                 )
             )
             position += 1
@@ -160,6 +164,7 @@ def piece_to_dict(piece: Piece, book: dict[str, EffectivePrice]) -> dict[str, An
         "height_mm": piece.height_mm,
         "area_m2": piece.area_m2,
         "weight_est_kg": piece.weight_est_kg,
+        "weight_raw_kg": piece.weight_raw_kg,
         "weight_actual_kg": piece.weight_actual_kg,
         "weight_kg": piece.weight_kg,
         "condition_note": piece.condition_note,

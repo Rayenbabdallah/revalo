@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from revalo.api.deps import ManagerUser, manager_only, signed_in
 from revalo.db.session import get_session
+from revalo.services.calibration import calibration_table
 from revalo.services.jobs import default_workshop
 from revalo.services.prices import PriceError, price_book, reset_price, set_price
 
@@ -60,3 +61,9 @@ def reset(material_code: str, session: DbSession) -> dict[str, Any]:
     except PriceError as exc:
         raise HTTPException(422, str(exc)) from exc
     return entry.to_dict()
+
+
+@router.get("/calibration")
+def calibration(session: DbSession) -> dict[str, Any]:
+    """Weight corrections learned from pieces that were weighed."""
+    return {"materials": calibration_table(session)}
