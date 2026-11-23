@@ -7,14 +7,43 @@ import { Link } from 'wouter'
 import { Wordmark } from '../../components/brand/Logo'
 import { OptionGrid } from '../../components/decision/Decision'
 import { StatusBadge } from '../../components/ui/StatusBadge'
-import { getPieceByCode } from '../../lib/api'
+import { getPieceByCode, type PieceEvent } from '../../lib/api'
 import { fmtDate, fmtDateTime, fmtKg, fmtM2, fmtMm, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
+import { ScanActions } from './ScanActions'
 
 const ACTION_LABEL: Record<string, string> = {
   created: t('Recorded from the cut file'),
   corrected: t('Corrected'),
   approved: t('Approved into stock'),
+  moved: t('Moved'),
+  weighed: t('Weighed on the rack'),
+  scrapped: t('Sent to scrap'),
+  reused: t('Taken for a job'),
+  listed: t('Listed for sale'),
+  listing_reprice: t('Price changed'),
+  listing_reserve: t('Reserved for a buyer'),
+  listing_reopen: t('Back on sale'),
+  listing_sell: t('Sold'),
+  listing_withdraw: t('Withdrawn from sale'),
+  pickup_requested: t('Pickup requested'),
+  pickup_cancelled: t('Pickup cancelled'),
+  recycled: t('Collected by the recycler'),
+}
+
+/** The one detail worth reading next to an event: where to, for what, why. */
+function eventDetail(e: PieceEvent): string | null {
+  const d = e.data as Record<string, { to?: unknown } | string | number | undefined>
+  const to = (key: string) => {
+    const v = d[key]
+    return v && typeof v === 'object' && 'to' in v && v.to != null ? String(v.to) : null
+  }
+  if (e.action === 'moved') return to('location')
+  if (e.action === 'weighed') return to('weight_actual_kg') && `${to('weight_actual_kg')} kg`
+  if (e.action === 'reused') return typeof d.for === 'string' ? d.for : null
+  if (e.action === 'scrapped') return typeof d.reason === 'string' ? d.reason : null
+  if (e.action === 'listing_reserve' || e.action === 'listing_sell') return typeof d.buyer === 'string' ? d.buyer : null
+  return null
 }
 
 function Fact({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
@@ -92,6 +121,8 @@ export function PiecePage({ code }: { code: string }) {
             </p>
           )}
 
+          <ScanActions piece={p} jobId={p.job.id} />
+
           {p.decision.recommended && (
             <section className="mt-6">
               <p className="eyebrow">{t('What to do with it')}</p>
@@ -112,7 +143,10 @@ export function PiecePage({ code }: { code: string }) {
               {p.events.map((e, i) => (
                 <li key={i} className="relative pb-4 last:pb-0">
                   <span className="absolute -start-[25px] top-1.5 size-2 rounded-full bg-ink-500 ring-4 ring-ink-950" />
-                  <p className="text-[14px] text-ink-100">{ACTION_LABEL[e.action] ?? e.action}</p>
+                  <p className="text-[14px] text-ink-100">
+                    {ACTION_LABEL[e.action] ?? e.action}
+                    {eventDetail(e) && <span className="text-ink-400"> · {eventDetail(e)}</span>}
+                  </p>
                   <p className="font-mono text-[11px] text-ink-500">
                     {fmtDateTime(e.at)} · {e.actor}
                   </p>

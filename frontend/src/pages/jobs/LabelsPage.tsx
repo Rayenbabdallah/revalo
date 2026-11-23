@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'wouter'
+import { Link, useSearch } from 'wouter'
 
 import { QrCode } from '../../components/ui/QrCode'
 import { getJob, type Piece } from '../../lib/api'
@@ -47,7 +47,11 @@ function Label({ piece, format }: { piece: Piece; format: LabelFormat }) {
 export function LabelsPage({ id }: { id: string }) {
   const job = useQuery({ queryKey: ['job', id], queryFn: () => getJob(id) })
   const [format, setFormat] = useState<LabelFormat>('thermal')
-  const pieces = (job.data?.pieces ?? []).filter((p) => p.status !== 'rejected' && p.status !== 'draft')
+  // ?code=RV-… reprints one label (opened from a scanned piece).
+  const only = new URLSearchParams(useSearch()).get('code')
+  const pieces = (job.data?.pieces ?? []).filter(
+    (p) => p.status !== 'rejected' && p.status !== 'draft' && (!only || p.code === only),
+  )
 
   return (
     <div className="mx-auto max-w-[1100px] px-4 py-8 md:px-10">

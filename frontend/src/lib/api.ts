@@ -331,6 +331,9 @@ export const patchPiece = (id: string, patch: PiecePatch) =>
 export const approveJob = (id: string) =>
   request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}/approve`, { method: 'POST' })
 
+export const scrapPiece = (id: string, reason: string) =>
+  request<PieceWithHistory>(`/v1/pieces/${encodeURIComponent(id)}/scrap`, { method: 'POST', ...json({ reason }) })
+
 export const getPieceByCode = (code: string) =>
   request<PieceWithHistory & { job: { id: string; file_name: string; status: string } }>(
     `/v1/codes/${encodeURIComponent(code)}`,
