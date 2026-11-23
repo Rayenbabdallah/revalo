@@ -45,9 +45,10 @@ bought for parts that would have fit on them.
 4. **Decide.** Each piece is valued three ways, in dinars and CO₂: reuse (new
    material not bought), sell (resale minus commission), recycle (scrap price by
    weight). Revalo recommends one and shows why.
-5. **Reuse, sell or recycle.** Coming jobs are checked against the racks before a
-   new sheet is opened. Pieces that will not be reused go to buyers matched by
-   material, size, price and distance; scrap goes to recyclers as sorted lots.
+5. **Reuse, sell or recycle.** Coming jobs are checked against the racks, and
+   against offcuts other workshops offer, before a new sheet is opened. Pieces
+   that will not be reused go to buyers matched by material, size, price and
+   distance; scrap goes to recyclers as sorted lots.
 6. **Report.** One page for the owner each month: what leftovers brought back,
    against the price of Revalo, with kilograms kept out of the bin and CO₂
    avoided.
@@ -100,6 +101,10 @@ bought for parts that would have fit on them.
   list sorted by rack.
 - Recycler pickups: scrap grouped by material for the best-paying recycler
   nearby, with the weighed ticket recorded.
+- Buying: other workshops and suppliers offer their offcuts on the public page.
+  Each offer is priced against new material and checked against coming jobs;
+  a bought offer goes straight into stock, and the check before cutting
+  suggests offers for parts the racks cannot hold.
 
 **For the workshop and its owner**
 - Roles for operators, managers and owners; every record keeps the name of who
@@ -150,7 +155,7 @@ throttled, and every route checks the person's role on the server.
 
 ## Quality
 
-- **261 automated tests** covering the importers, geometry, decisions, matching,
+- **270 automated tests** covering the importers, geometry, decisions, matching,
   every API route and role, and the database migrations.
 - **Continuous integration** on every change: lint and tests, the full migration
   history and demo data on PostgreSQL, the translation check, and a build and
@@ -220,7 +225,7 @@ uv run revalo analyze ../samples/synthetic/laser_S235_3mm_3000x1500.dxf --svg pr
 ```
 backend/
   src/revalo/engine/     file importers, leftover geometry, decisions, matching, fitting
-  src/revalo/services/   jobs, stock, market, lots, pickups, reports, accounts
+  src/revalo/services/   jobs, stock, market, lots, pickups, buying, reports, accounts
   src/revalo/api/        HTTP API
   src/revalo/db/         database models
   migrations/            database migrations
