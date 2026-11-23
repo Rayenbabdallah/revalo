@@ -30,3 +30,6 @@ Thumbs.db
 # Local output
 /out/
 *.local.*
+
+# Internal working notes, never published
+/internal/
