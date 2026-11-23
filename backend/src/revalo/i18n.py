@@ -165,6 +165,8 @@ CATALOG: dict[str, dict[str, str | dict[str, str]]] = {
         "Job not found.": "Travail introuvable.",
         "No piece with this code.": "Aucune pièce avec ce code.",
         "Unknown machine.": "Machine inconnue.",
+        "This program was already recorded. Did you cut it again?": "Ce programme est déjà enregistré. L'avez-vous découpé à nouveau ?",
+        "This job is not a repeat run of an earlier job.": "Ce travail n'est pas une nouvelle passe d'un travail précédent.",
     },
     "ar": {
         "Skeleton and slugs cannot be reused.": "الهيكل والقطع الصغيرة لا يُعاد استعمالها.",
@@ -240,5 +242,7 @@ CATALOG: dict[str, dict[str, str | dict[str, str]]] = {
         "Job not found.": "العمل غير موجود.",
         "No piece with this code.": "لا توجد قطعة بهذا الرمز.",
         "Unknown machine.": "آلة غير معروفة.",
+        "This program was already recorded. Did you cut it again?": "هذا البرنامج مسجّل مسبقًا. هل قطعته مرة أخرى؟",
+        "This job is not a repeat run of an earlier job.": "هذا العمل ليس تكرارًا لعمل سابق.",
     },
 }

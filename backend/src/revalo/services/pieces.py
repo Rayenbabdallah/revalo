@@ -197,3 +197,38 @@ def stock_summary(session: Session, book: dict[str, EffectivePrice]) -> dict[str
     for slot in actions.values():
         slot["value_tnd"] = round(slot["value_tnd"], 2)
     return {"materials": rows, "totals": totals, "actions": actions}
+
+
+def copy_corrections(session: Session, job: Job, actor: str) -> int:
+    """Apply the first run's review to a repeat run: same program, same offcuts.
+
+    Copies rejections, trimmed sizes, weighed values and condition notes from
+    the matching piece (same sheet, same engine label) of the earlier job.
+    Returns how many pieces were changed.
+    """
+    source = session.get(Job, job.repeat_of_id) if job.repeat_of_id else None
+    if source is None:
+        raise ReviewError("This job is not a repeat run of an earlier job.")
+    reviewed = {(p.sheet_index, p.label): p for p in source.pieces if p.run_index == 0}
+    changed = 0
+    for piece in job.pieces:
+        src = reviewed.get((piece.sheet_index, piece.label))
+        if src is None or piece.status not in EDITABLE_STATUSES:
+            continue
+        changes = PieceChanges(
+            rejected=True if src.status == PieceStatus.REJECTED else None,
+            weight_actual_kg=src.weight_actual_kg,
+            condition_note=src.condition_note,
+        )
+        if piece.kind == PieceKind.REMNANT and src.width_mm and src.height_mm:
+            trimmed = (
+                src.width_mm < piece.width_mm - SIZE_TOLERANCE_MM
+                or src.height_mm < piece.height_mm - SIZE_TOLERANCE_MM
+            )
+            if trimmed:
+                changes.width_mm, changes.height_mm = src.width_mm, src.height_mm
+        if changes == PieceChanges():
+            continue
+        update_piece(session, piece, changes, actor)
+        changed += 1
+    return changed

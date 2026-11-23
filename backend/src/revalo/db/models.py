@@ -116,6 +116,13 @@ class Job(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[str | None] = mapped_column(String(120))
+    created_by: Mapped[str | None] = mapped_column(String(120))
+    runs: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    """How many sheets were cut with this program: each run leaves its own offcuts."""
+    repeat_of_id: Mapped[str | None] = mapped_column(
+        ForeignKey("jobs.id", name="fk_jobs_repeat_of_id_jobs")
+    )
+    """The earlier job with the same file, when this is the program cut again."""
 
     pieces: Mapped[list[Piece]] = relationship(
         back_populates="job", cascade="all, delete-orphan", order_by="Piece.position"
@@ -140,6 +147,8 @@ class Piece(Base):
     kind: Mapped[str] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(20), default=PieceStatus.DRAFT)
     sheet_index: Mapped[int] = mapped_column(Integer)
+    run_index: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    """Which run of the program the piece came from (0 for the first sheet cut)."""
     label: Mapped[str] = mapped_column(String(20))
     """Engine reference within the job, e.g. S1-R2 or S1-SCRAP."""
     material_code: Mapped[str | None] = mapped_column(String(40))

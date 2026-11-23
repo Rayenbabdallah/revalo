@@ -2,20 +2,31 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from revalo.api.deps import SignedIn, signed_in
+from revalo.api.deps import ManagerUser, SignedIn, signed_in
 from revalo.api.forms import analysis_options
 from revalo.db.models import Job, Machine
 from revalo.db.session import get_session
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions
-from revalo.services.jobs import create_job, default_workshop, job_detail, job_summary
+from revalo.i18n import tr
+from revalo.services.jobs import (
+    MAX_RUNS,
+    create_job,
+    default_workshop,
+    earlier_runs,
+    job_detail,
+    job_summary,
+    likely_answer,
+)
 from revalo.services.machines import apply_machine
+from revalo.services.pieces import ReviewError, copy_corrections
 from revalo.services.prices import price_book
 from revalo.storage import FileStorage, get_storage
 
@@ -33,6 +44,8 @@ def upload_job(
     file: Annotated[UploadFile, File()],
     options: Annotated[AnalysisOptions, Depends(analysis_options)],
     machine_id: Annotated[str | None, Form()] = None,
+    runs: Annotated[int, Form(ge=1, le=MAX_RUNS)] = 1,
+    repeat: Annotated[str | None, Form(pattern="^new$")] = None,
 ) -> dict[str, Any]:
     # Sync endpoint: FastAPI runs it in a worker thread, so the engine never blocks the loop.
     data = file.file.read(MAX_FILE_BYTES + 1)
@@ -44,9 +57,39 @@ def upload_job(
         if machine is None or not machine.active:
             raise HTTPException(422, "Unknown machine.")
         options = apply_machine(options, machine)
+    # The same program sent again: a mistake, or the nest cut again? Ask, never guess.
+    earlier = earlier_runs(session, hashlib.sha256(data).hexdigest())
+    if earlier and repeat != "new":
+        raise HTTPException(
+            409,
+            {
+                "code": "repeat_run",
+                "message": tr("This program was already recorded. Did you cut it again?"),
+                "suggest": likely_answer(earlier[0]),
+                "jobs": [
+                    {
+                        "id": j.id,
+                        "file_name": j.file_name,
+                        "status": j.status,
+                        "created_at": j.created_at.isoformat(),
+                        "created_by": j.created_by,
+                        "runs": j.runs,
+                    }
+                    for j in earlier[:5]
+                ],
+            },
+        )
     try:
         job = create_job(
-            session, storage, data, file.filename or "upload", options, user.name, machine
+            session,
+            storage,
+            data,
+            file.filename or "upload",
+            options,
+            user.name,
+            machine,
+            runs=runs,
+            repeat_of=earlier[0] if earlier else None,
         )
     except JobImportError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -66,3 +109,16 @@ def get_job(job_id: str, session: DbSession) -> dict[str, Any]:
     if job is None:
         raise HTTPException(404, "Job not found.")
     return job_detail(job, price_book(session, job.workshop_id))
+
+
+@router.post("/{job_id}/copy-corrections")
+def copy_last_run(job_id: str, user: ManagerUser, session: DbSession) -> dict[str, Any]:
+    """A repeat run takes the earlier run's corrections in one step."""
+    job = session.get(Job, job_id)
+    if job is None:
+        raise HTTPException(404, "Job not found.")
+    try:
+        changed = copy_corrections(session, job, user.name)
+    except ReviewError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {**job_detail(job, price_book(session, job.workshop_id)), "copied": changed}

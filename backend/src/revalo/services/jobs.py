@@ -3,19 +3,39 @@
 from __future__ import annotations
 
 import os
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from revalo.db.models import Job, Machine, Piece, PieceEvent, PieceKind, Workshop
+from revalo.db.models import Job, JobStatus, Machine, Piece, PieceEvent, PieceKind, Workshop
 from revalo.engine.geo import canonical
 from revalo.engine.pipeline import AnalysisOptions, analyze
 from revalo.services.decisions import decide_piece
 from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
 from revalo.storage import FileStorage
+
+MAX_RUNS = 50
+# A copy of a program still in review and this recent is most likely sent twice by mistake.
+MISTAKE_WINDOW = timedelta(hours=2)
+
+
+def earlier_runs(session: Session, digest: str) -> list[Job]:
+    """Jobs recorded from exactly the same file, newest first."""
+    return list(
+        session.scalars(
+            select(Job).where(Job.file_sha256 == digest).order_by(Job.created_at.desc())
+        )
+    )
+
+
+def likely_answer(job: Job, now: datetime | None = None) -> str:
+    """'same' when the earlier copy looks like a double send, 'new' for a real repeat run."""
+    created = job.created_at if job.created_at.tzinfo else job.created_at.replace(tzinfo=UTC)
+    recent = (now or datetime.now(UTC)) - created < MISTAKE_WINDOW
+    return "same" if job.status == JobStatus.DRAFT and recent else "new"
 
 
 def default_workshop(session: Session) -> Workshop:
@@ -44,7 +64,11 @@ def create_job(
     options: AnalysisOptions,
     actor: str,
     machine: Machine | None = None,
+    runs: int = 1,
+    repeat_of: Job | None = None,
 ) -> Job:
+    if not 1 <= runs <= MAX_RUNS:
+        raise ValueError(f"Between 1 and {MAX_RUNS} sheets per upload.")
     result = analyze(data, filename, options)
     body = result.to_dict(include_geometry=True)
     key, digest = storage.put(data, filename)
@@ -61,13 +85,17 @@ def create_job(
         thickness_mm=body["thickness_mm"],
         process=body["process"],
         kerf_mm=body["kerf_mm"],
-        sheet_count=len(body["sheets"]),
-        part_count=sum(s["part_count"] for s in body["sheets"]),
+        sheet_count=len(body["sheets"]) * runs,
+        part_count=sum(s["part_count"] for s in body["sheets"]) * runs,
         analysis=body,
+        created_by=actor,
+        runs=runs,
+        repeat_of_id=repeat_of.id if repeat_of else None,
     )
 
     position = 0
-    for sheet in body["sheets"]:
+    # Every run of the program is a real sheet that leaves its own offcuts.
+    for run, sheet in ((r, s) for r in range(runs) for s in body["sheets"]):
         for remnant in sheet["remnants"]:
             job.pieces.append(
                 Piece(
@@ -75,6 +103,7 @@ def create_job(
                     position=position,
                     kind=PieceKind.REMNANT,
                     sheet_index=sheet["index"],
+                    run_index=run,
                     label=remnant["id"],
                     material_code=job.material_code,
                     thickness_mm=job.thickness_mm,
@@ -95,6 +124,7 @@ def create_job(
                     position=position,
                     kind=PieceKind.SCRAP,
                     sheet_index=sheet["index"],
+                    run_index=run,
                     label=f"S{sheet['index'] + 1}-SCRAP",
                     material_code=job.material_code,
                     thickness_mm=job.thickness_mm,
@@ -121,6 +151,7 @@ def piece_to_dict(piece: Piece, book: dict[str, EffectivePrice]) -> dict[str, An
         "status": piece.status,
         "label": piece.label,
         "sheet_index": piece.sheet_index,
+        "run_index": piece.run_index,
         "material_code": piece.material_code,
         "thickness_mm": piece.thickness_mm,
         "x_mm": piece.x_mm,
@@ -201,6 +232,9 @@ def job_summary(job: Job, book: dict[str, EffectivePrice]) -> dict[str, Any]:
         "created_at": job.created_at.isoformat(),
         "approved_at": job.approved_at.isoformat() if job.approved_at else None,
         "approved_by": job.approved_by,
+        "created_by": job.created_by,
+        "runs": job.runs,
+        "repeat_of_id": job.repeat_of_id,
     }
 
 
