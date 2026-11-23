@@ -42,7 +42,7 @@ jobs:
         working-directory: backend
     env:
       REVALO_DATABASE_URL: postgresql+psycopg://revalo:revalo@localhost:5432/revalo
-      REVALO_STORAGE_DIR: ${{ runner.temp }}/files
+      REVALO_STORAGE_DIR: /tmp/revalo-files
       REVALO_DEMO_PASSWORD: ci-demo-password
     steps:
       - uses: actions/checkout@v4
