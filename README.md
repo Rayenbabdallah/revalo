@@ -1,210 +1,257 @@
-# Revalo
+<p align="center">
+  <img src="frontend/public/brand/revalo-logo.png" alt="Revalo" width="340">
+</p>
 
-Revalo turns the job files that CNC and nesting software already produce into
-leftover records: every reusable remnant with its size and weight, plus the
-skeleton scrap that can only go to a recycler. Managers verify the records,
-then reuse, sell or recycle each piece.
+<p align="center"><strong>Every offcut, on the record.</strong></p>
 
-## What the engine reads
+<p align="center">
+  <a href="https://github.com/Rayenbabdallah/revalo/actions/workflows/backend.yml"><img src="https://github.com/Rayenbabdallah/revalo/actions/workflows/backend.yml/badge.svg" alt="Backend"></a>
+  <a href="https://github.com/Rayenbabdallah/revalo/actions/workflows/frontend.yml"><img src="https://github.com/Rayenbabdallah/revalo/actions/workflows/frontend.yml/badge.svg" alt="Frontend"></a>
+  <a href="https://github.com/Rayenbabdallah/revalo/actions/workflows/docker.yml"><img src="https://github.com/Rayenbabdallah/revalo/actions/workflows/docker.yml/badge.svg" alt="Docker"></a>
+</p>
 
-| Input | Typical source | Notes |
-|---|---|---|
-| DXF nest (`.dxf`) | CypNest, SigmaNEST, Lantek, Deepnest, AutoCAD | Blocks, arcs, splines, units, loose segments with small gaps, several sheets per file |
-| G-code (`.nc`, `.gcode`, `.tap`, ...) | Routers (NcStudio, Mach3), plasma tables, lasers | Rebuilds cut paths; ignores rapids, shallow passes and torch-off moves |
-| Cut list (`.csv`) | Panel saws, OptiCut exports, spreadsheets | Lays parts out with guillotine cuts; French or English headers |
+Revalo turns the files that CNC machines already produce into a verified record
+of every leftover piece: its size, weight and value, where it sits on the rack,
+and the best thing to do with it. Reuse it in a coming job, sell it to an artisan
+nearby, or send it to the recycler who pays the most. Built for small metal and
+wood workshops in Tunisia, in English, French and Arabic.
 
-For each sheet it returns the parts, the largest clean rectangular remnants
-(shorter side at least 100 mm for metal, 150 mm for wood by default), the
-scrap left between parts, and weights from the material library. Material,
-thickness, process and sheet size are read from the file name or file content
-when the user does not give them.
+<p align="center">
+  <img src="docs/images/job-3d.jpg" alt="A laser job in Revalo: the sheet in 3D, with every reusable remnant measured and weighed" width="900">
+</p>
 
-## The workflow
+---
 
-1. **Analyze.** Drop a job file, or pick a sample. The sheet appears in 3D with
-   every remnant lifted out of it, its size and weight attached.
-2. **Save and review.** The manager checks each draft record against the real
-   sheet: enter a weighed value, trim a damaged edge, note the condition, or
-   reject a piece. A remnant can shrink but never grow beyond the cut file.
-3. **Approve.** Records go into stock with a review date, and every change is
-   kept in the piece's history.
-4. **Label.** Print QR labels (50 x 30 mm thermal or A4 sticker sheets). A
-   scan opens the piece's page on any phone.
-5. **Decide.** Every record is valued three ways in TND and CO2: reuse it
-   (new material you do not buy), sell it (at a share of the new price, minus
-   commission), or recycle it (scrap price by weight). Revalo recommends one and
-   says why. A remnant is first kept for reuse; once its review date passes it
-   should be sold, and after a second period recycled, so racks do not fill up.
-6. **Stock.** See what is on the racks by material, its recoverable value, the
-   next step for each piece, and what is due for review.
-7. **Sell.** List a piece at its suggested price. Buyers (artisans, small
-   shops, recyclers) post what they need on the public page at `/buy`; each
-   listing is matched with them by material, thickness, size, price and
-   distance between governorates, with the reasons shown. One tap opens
-   WhatsApp with a ready message; reserve, mark sold, or withdraw, and the 5%
-   commission is recorded on each sale. Recyclers are offered scrap lots, and
-   reusable remnants only as a fallback.
-8. **Recycle.** Scrap lots and pieces past their time are grouped by material
-   for the recycler who pays the most nearby. Book a pickup on WhatsApp, set
-   the date, and record the weighed ticket when the truck leaves.
-9. **Check before cutting.** Give Revalo the next job (a drawing or part
-   sizes): it places the parts on remnants already in stock, so a new sheet is
-   opened only for what does not fit.
-10. **Report.** One printable page for the owner each month: what leftovers
-    brought back in TND against the Revalo plan, kg kept out of the bin and CO2
-    avoided. Stock exports to Excel (CSV).
+## The problem
 
-**Day to day on the floor**
+Every sheet cut on a laser, plasma table or router leaves material behind:
+reusable remnants and a scrap skeleton. In most small workshops these offcuts
+pile up in a corner. Nobody records their size, weight or value, so they are
+forgotten, sold by eye as scrap, or thrown away, while new sheets keep being
+bought for parts that would have fit on them.
 
-- **Repeat runs.** Sending a program Revalo already knows never doubles the
-  stock and is never refused: it asks "Did you cut it again?", with the likely
-  answer first. One upload can record several sheets cut with the same program,
-  and a repeat run can take the earlier run's corrections in one tap.
-- **Scan a label to act.** The piece page opened by a QR code has one-tap
-  actions by role: move to a rack, take for a job, weigh, scrap a damaged piece,
-  reprint the label, list for sale. Each lands in the piece's history.
-- **What was on the racks before.** Existing offcuts are entered by form or
-  from a CSV list (English or French columns), checked against the stock so
-  nothing is entered twice, then labelled.
-- **Offcuts that are already wanted.** Coming jobs can be kept as planned jobs;
-  every newly approved offcut is checked against them and against waiting
-  buyers, and the alerts say when a planned job can be cut from the racks.
-- **Batch lots.** Similar offcuts (same material and thickness, sizes in the
-  same band) are suggested as lots with a lot price. A buyer takes the whole lot
-  or part of it; each lot has a pick list sorted by rack and its own QR label,
-  and buyers can say they take whole lots.
-- **Remnants for the nesting software.** Any remnant, or all remnants of a
-  material in stock, downloads as a DXF: closed outlines at real size on layer
-  REMNANT, codes on layer LABEL, ready to import as remnant sheets.
-- **Weights that learn.** Each time a piece is weighed, Revalo compares the
-  scale with the calculation; after three weighings of a material, new estimates
-  are corrected by the median ratio (shown in the price book).
+## What Revalo does
 
-Operators work at the machine: they pick a machine preset and the file it just
-cut, nothing to type. The alerts bell lists what needs a manager now: jobs to
-review, pieces past their date, buyer matches, scrap ready for a recycler.
+```mermaid
+flowchart LR
+    A[CNC job file] --> B[Leftovers found,<br/>measured, weighed]
+    B --> C[Manager review<br/>and QR labels]
+    C --> D{Best outcome<br/>in TND and CO2}
+    D -->|Reuse| E[Next jobs cut<br/>from the racks]
+    D -->|Sell| F[Buyers nearby<br/>on WhatsApp]
+    D -->|Recycle| G[Best-paying<br/>recycler pickup]
+    E & F & G --> H[Monthly report<br/>for the owner]
+```
 
-## Accounts and roles
+1. **Upload.** The operator picks the machine and the file it just cut. No
+   typing, no measuring tape.
+2. **Analyze.** Revalo reads the cut and finds every reusable remnant and the
+   scrap skeleton, with exact sizes and weights, shown on the sheet in 3D.
+3. **Review and label.** The manager checks each record against the real sheet,
+   approves the batch, and prints QR labels. Every change keeps who made it.
+4. **Decide.** Each piece is valued three ways, in dinars and CO₂: reuse (new
+   material not bought), sell (resale minus commission), recycle (scrap price by
+   weight). Revalo recommends one and shows why.
+5. **Reuse, sell or recycle.** Coming jobs are checked against the racks before a
+   new sheet is opened. Pieces that will not be reused go to buyers matched by
+   material, size, price and distance; scrap goes to recyclers as sorted lots.
+6. **Report.** One page for the owner each month: what leftovers brought back,
+   against the price of Revalo, with kilograms kept out of the bin and CO₂
+   avoided.
 
-Each person signs in with their own email and password; every record keeps
-the name of who made or changed it.
+## Screenshots
 
-| Role | Can |
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/upload.jpg" alt="Operator upload"><br><sub><b>At the machine.</b> Two taps: the machine preset and the file it just cut.</sub></td>
+    <td width="50%"><img src="docs/images/job-review.jpg" alt="Manager review"><br><sub><b>Review.</b> Trim a damaged edge, enter a weighed value, approve the batch.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/stock.jpg" alt="Stock"><br><sub><b>Stock.</b> What is on the racks, its value, and the next step for each piece.</sub></td>
+    <td><img src="docs/images/fit.jpg" alt="Check before cutting"><br><sub><b>Before cutting.</b> The next job's parts placed on remnants already in stock.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/market.jpg" alt="Marketplace"><br><sub><b>Marketplace.</b> Listings matched with buyers, contacted on WhatsApp in one tap.</sub></td>
+    <td><img src="docs/images/report.jpg" alt="Owner report"><br><sub><b>Owner report.</b> What leftovers brought back this month.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/stock-ar.jpg" alt="Arabic interface"><br><sub><b>Arabic, right to left.</b> Also in French and English.</sub></td>
+    <td><img src="docs/images/buy.jpg" alt="Public buyer page"><br><sub><b>Buyer page.</b> Measured offcuts on offer, and a form to post a need.</sub></td>
+  </tr>
+</table>
+
+## Features
+
+**Reading the cut**
+- DXF nests, G-code programs (lasers, plasma tables, routers, including LinuxCNC
+  macros) and CSV cut lists for panel saws.
+- Material, thickness, process and sheet size read from the file when present.
+- Repeat runs recognised: a program sent again is never doubled in stock; Revalo
+  asks whether it was cut again, and one upload can record several sheets.
+
+**On the racks**
+- QR labels on thermal or A4 sticker paper; a scan opens the piece on any phone,
+  with one-tap actions: move, take for a job, weigh, scrap, reprint, list.
+- Offcuts already on the racks entered by form or CSV, checked for duplicates.
+- Weights that learn from the scale: after three weighings of a material, new
+  estimates are corrected.
+- Remnants exported as DXF sheets for the nesting software.
+
+**Finding a use for every piece**
+- Check before cutting: a coming job's parts placed on remnants in stock.
+- Planned jobs: every new offcut is checked against coming jobs and waiting
+  buyers the moment it is approved.
+- Marketplace with a public buyer page, matching by material, thickness, size,
+  price and distance between governorates, and ready WhatsApp messages.
+- Batch lots: similar offcuts sold as one deal, whole or in part, with a pick
+  list sorted by rack.
+- Recycler pickups: scrap grouped by material for the best-paying recycler
+  nearby, with the weighed ticket recorded.
+
+**For the workshop and its owner**
+- Roles for operators, managers and owners; every record keeps the name of who
+  made or changed it.
+- Alerts for what needs attention now; monthly owner report; Excel export.
+- English, French and Arabic (right to left), including text the server writes.
+
+## How the engine works
+
+- **Geometry.** Cut paths are rebuilt into closed contours (blocks, arcs,
+  splines, loose segments with small gaps). Holes are found with the even-odd
+  rule; the sheet outline is detected or estimated.
+- **Remnants.** The free area of each sheet, after parts and kerf, is searched
+  on a grid for the largest clean rectangles; a remnant is kept only if its
+  shorter side is useful (by default 100 mm for metal, 150 mm for wood). What
+  remains is the scrap skeleton.
+- **Weights.** Area × thickness × density from a material library with cited
+  sources, corrected by what the workshop's scale has shown.
+- **Decisions.** Transparent rules, not a black box: each option's value in TND
+  and CO₂, with the reasons written out. A remnant is first kept for reuse; after
+  its review date it should be sold, after a second period recycled.
+- **Matching and fitting.** Buyers are scored on material, thickness, size,
+  price and distance across Tunisia's 24 governorates. Coming jobs are packed onto
+  stock remnants with guillotine cuts, keeping the best of several strategies.
+
+Defaults are conservative: only rectangular remnants are counted and fits use
+straight cuts, so real results are usually a little better than predicted, never
+worse. Prices ship only where a source exists (mild steel and MDF); every other
+material uses the workshop's own quotes.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Browser
+      W[React app<br/>EN · FR · AR]
+    end
+    subgraph Server
+      C[Caddy<br/>HTTPS] --> A[FastAPI]
+      A --> E[Leftover engine<br/>ezdxf · Shapely]
+      A --> P[(PostgreSQL)]
+      A --> F[(Job files)]
+    end
+    W -->|/api| C
+    Q[QR label on a phone] --> C
+```
+
+| Layer | Technology |
 |---|---|
-| Operator | upload jobs, measure and move pieces, take remnants for a new job |
-| Manager | also approve records, sell, book pickups, set prices and machines, see the report |
-| Owner | also add people, change roles, reset passwords, remove access |
+| Engine | Python 3.11, ezdxf, Shapely, NumPy |
+| API | FastAPI, SQLAlchemy, Alembic, Pydantic |
+| Web app | React 19, TypeScript, Vite, Tailwind CSS, Three.js (React Three Fiber), TanStack Query |
+| Data | PostgreSQL in production, SQLite for development and tests |
+| Delivery | Docker Compose, Caddy with automatic HTTPS, GitHub Actions |
 
-On a fresh install the first screen creates the workshop and its owner. From a
-terminal: `uv run revalo users add --email you@example.tn --name You --role owner`.
-Passwords are hashed with scrypt; a sign-in is an HttpOnly cookie whose token is
-stored only as a hash, and repeated wrong passwords are slowed down. The public
-buyer page (`/buy`) needs no account.
+No paid service or cloud API is required. Passwords are hashed with scrypt,
+sessions are HttpOnly cookies stored only as hashes, sign-in attempts are
+throttled, and every route checks the person's role on the server.
 
-## Languages
+## Quality
 
-The interface is in English, French and Arabic (right to left), switched from
-the account menu, the sign-in page or the buyer page. Text the server writes
-(decision reasons, alerts, errors) follows the same choice. Translations live in
-`frontend/src/lib/locales` and `backend/src/revalo/i18n.py`;
-`pnpm check:i18n` fails when a text has no French or Arabic version.
+- **261 automated tests** covering the importers, geometry, decisions, matching,
+  every API route and role, and the database migrations.
+- **Continuous integration** on every change: lint and tests, the full migration
+  history and demo data on PostgreSQL, the translation check, and a build and
+  start of the complete Docker stack.
+- **Accuracy check** on any job files: `revalo accuracy` verifies that parts,
+  remnants and kerf fit within each sheet, that nothing overlaps or leaves the
+  sheet, that minimum sizes and weights hold, and compares results with reviewed
+  baselines. All 13 sample files pass, including 8 real open-source CAD and CAM
+  files ([samples](samples/README.md)).
 
-Prices live in a per-workshop price book. Defaults ship only where a source
-exists (mild steel and MDF, from the financial model); every other material
-waits for the workshop's own quotes rather than an invented number.
+## Run it
 
-## Repository layout
+**With Docker** (PostgreSQL, API and web app behind HTTPS):
 
-```
-backend/
-  src/revalo/engine/     importers, leftover geometry, material library
-  src/revalo/api/        HTTP API (FastAPI)
-  src/revalo/services/   jobs, record review, stock
-  src/revalo/db/         models and session (SQLAlchemy)
-  migrations/            database migrations (Alembic)
-  src/revalo/cli.py      command line tool
-  scripts/               sample generator
-  tests/                 automated tests
-frontend/                web app (React, TypeScript, Three.js), brand assets in public/brand
-samples/                 sample jobs and their expected results
+```bash
+cp .env.example .env          # set POSTGRES_PASSWORD, SITE_ADDRESS and REVALO_PUBLIC_URL
+docker compose up -d --build
 ```
 
-## Development
+Open the site and create the workshop and its owner on the first screen.
 
-Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), Node 22+ and pnpm.
+**A demo workshop** with three accounts, machines, jobs, buyers, a sale and a
+recycler pickup, on an empty database:
 
-Backend:
+```bash
+docker compose exec -e REVALO_DEMO_PASSWORD=choose-a-password api revalo demo
+```
+
+**For development** (Python 3.11+ with [uv](https://docs.astral.sh/uv/), Node 22+
+with pnpm):
+
+```bash
+cd backend && uv sync && uv run uvicorn revalo.api.main:app --reload   # API on :8000, docs at /docs
+cd frontend && pnpm install && pnpm dev                                # app on :5173
+```
 
 ```bash
 cd backend
-uv sync
-uv run pytest
-uv run uvicorn revalo.api.main:app --reload   # http://localhost:8000/docs
-```
-
-The API creates a SQLite database in `backend/var/` and applies migrations on
-start. Set `REVALO_DATABASE_URL` for PostgreSQL in production, and
-`REVALO_AUTO_MIGRATE=0` to run `alembic upgrade head` as a deploy step instead.
-
-Frontend:
-
-```bash
-cd frontend
-pnpm install
-pnpm dev   # http://localhost:5173, proxies /api to the backend
-```
-
-A demo workshop (three accounts, machines, four jobs, buyers, a sale and a
-recycler pickup) for presentations, on an empty database only:
-
-```bash
-REVALO_DEMO_PASSWORD=revalo-demo-2026 uv run revalo demo
-```
-
-Check the engine on job files: every sample by default, or your own files and
-folders. Each result is checked physically (parts, remnants and kerf within the
-sheet, no overlaps, minimum size respected, weights consistent) and compared with
-its reviewed baseline in `samples/expected` when there is one:
-
-```bash
-uv run revalo accuracy                  # all samples
-uv run revalo accuracy ../new-jobs/     # files you just received
-```
-
-Analyze a file from the command line:
-
-```bash
+uv run pytest                     # tests
+uv run revalo accuracy            # engine accuracy on the samples, or on your own files
 uv run revalo analyze ../samples/synthetic/laser_S235_3mm_3000x1500.dxf --svg preview.svg
 ```
 
-## Configuration
+<details>
+<summary><b>Configuration</b></summary>
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `REVALO_DATABASE_URL` | SQLite in `backend/var/` | Database connection |
 | `REVALO_STORAGE_DIR` | `backend/var/files` | Where original job files are kept |
-| `REVALO_PUBLIC_URL` | `http://localhost:5173` | Base URL printed in QR labels |
-| `REVALO_REVIEW_DAYS` | `30` | Days in stock before a piece is reviewed |
-| `REVALO_WORKSHOP_NAME` | `Pilot workshop` | Name of the workshop this deployment serves |
-| `REVALO_CORS_ORIGINS` | `http://localhost:5173` | Allowed web origins |
-| `REVALO_AUTO_MIGRATE` | `1` | Apply migrations when the API starts |
+| `REVALO_PUBLIC_URL` | `http://localhost:5173` | Address printed in QR labels and messages |
+| `REVALO_WORKSHOP_NAME` | `My workshop` | Name of the workshop this deployment serves |
 | `REVALO_WORKSHOP_GOVERNORATE` | `Ben Arous` | Workshop location, used for distances to buyers |
 | `REVALO_WORKSHOP_PHONE` | none | WhatsApp number buyers reach from the public page |
+| `REVALO_REVIEW_DAYS` | `30` | Days in stock before a piece is reviewed |
 | `REVALO_PLAN_TND` | `120` | Monthly plan price in the owner report |
+| `REVALO_CORS_ORIGINS` | `http://localhost:5173` | Allowed web origins |
+| `REVALO_AUTO_MIGRATE` | `1` | Apply migrations when the API starts |
 | `REVALO_SECURE_COOKIES` | auto | `1` forces Secure cookies (set automatically behind HTTPS) |
 | `REVALO_DEMO_PASSWORD` | none | Password of the demo accounts created by `revalo demo` |
 
-## Deployment
+</details>
 
-`compose.yaml` runs the whole product on one server: PostgreSQL, the API, and
-the web app behind Caddy, which serves HTTPS for your domain automatically and
-sends `/api` to the API.
+<details>
+<summary><b>Repository layout</b></summary>
 
-```bash
-cp .env.example .env    # set POSTGRES_PASSWORD, SITE_ADDRESS (your domain) and REVALO_PUBLIC_URL
-docker compose up -d --build
+```
+backend/
+  src/revalo/engine/     file importers, leftover geometry, decisions, matching, fitting
+  src/revalo/services/   jobs, stock, market, lots, pickups, reports, accounts
+  src/revalo/api/        HTTP API
+  src/revalo/db/         database models
+  migrations/            database migrations
+  tests/                 automated tests
+frontend/                web app, with brand assets in public/brand
+samples/                 sample jobs, their licences and reviewed results
+docs/images/             screenshots
+compose.yaml             production stack
 ```
 
-Point the domain's DNS at the server first. Job files are kept in the `files`
-volume and the database in `db`; back both up. CI builds both images and starts
-the stack on every change, and runs the migrations and the demo on PostgreSQL.
+</details>
+
+## Team
+
+Built by **Team Ferran**, IEEE TBS Student Branch, for the IEEE Tunisia SYP 14
+AOTN challenge.
