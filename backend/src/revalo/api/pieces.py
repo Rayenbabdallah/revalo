@@ -5,13 +5,15 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from revalo.api.deps import ManagerUser, SignedIn, signed_in
-from revalo.db.models import Job, Piece, PieceStatus
+from revalo.db.models import Job, Piece, PieceKind, PieceStatus
 from revalo.db.session import get_session
+from revalo.services.export import export_name, remnants_dxf
 from revalo.services.jobs import default_workshop, job_detail, piece_to_dict
 from revalo.services.pieces import (
     PieceChanges,
@@ -129,3 +131,38 @@ def list_stock(
 @router.get("/v1/stock/summary")
 def get_stock_summary(session: DbSession) -> dict[str, Any]:
     return stock_summary(session, price_book(session, default_workshop(session).id))
+
+
+def _dxf(pieces: list[Piece]) -> Response:
+    return Response(
+        content=remnants_dxf(pieces),
+        media_type="application/dxf",
+        headers={"Content-Disposition": f'attachment; filename="{export_name(pieces)}"'},
+    )
+
+
+@router.get("/v1/pieces/{piece_id}/remnant.dxf")
+def remnant_dxf(piece_id: str, session: DbSession) -> Response:
+    """One remnant as a DXF sheet for the nesting software."""
+    piece = session.get(Piece, piece_id)
+    if piece is None or piece.kind != PieceKind.REMNANT or not piece.width_mm:
+        raise HTTPException(404, "No remnant outline for this piece.")
+    return _dxf([piece])
+
+
+@router.get("/v1/stock/remnants.dxf")
+def stock_remnants_dxf(
+    session: DbSession, material: str | None = None, thickness_mm: float | None = None
+) -> Response:
+    """Every remnant in stock (optionally one material and thickness), ready to import."""
+    pieces = [
+        p
+        for p in stock_pieces(session, PieceStatus.IN_STOCK, PieceKind.REMNANT)
+        if p.width_mm
+        and (material is None or p.material_code == material)
+        and (thickness_mm is None or abs((p.thickness_mm or 0) - thickness_mm) <= 0.05)
+    ]
+    if not pieces:
+        raise HTTPException(404, "No remnant in stock matches.")
+    pieces.sort(key=lambda p: (p.thickness_mm or 0, -(p.width_mm or 0) * (p.height_mm or 0)))
+    return _dxf(pieces)
