@@ -12,7 +12,7 @@
         "new_tnd_per_kg": 3.0,
         "scrap_tnd_per_kg": 0.27,
         "resale_factor": 0.4,
-        "source": "Scrap: IRMC Maghreb letter no. 34 (2023), El Fouladh 270 TND/t sorted steel. New: regulated rebar price ~2,900-3,000 TND/t (Dec 2021) used as a proxy for sheet. Resale at 40% of new price: Revalo assumption, to be measured in the pilot."
+        "source": "Scrap: IRMC Maghreb letter no. 34 (2023), El Fouladh 270 TND/t sorted steel. New: regulated rebar price ~2,900-3,000 TND/t (Dec 2021) used as a proxy for sheet. Resale at 40% of new price: Revalo assumption, to be confirmed with partner workshops."
       },
       "co2": {
         "primary_kg_per_kg": 1.92,

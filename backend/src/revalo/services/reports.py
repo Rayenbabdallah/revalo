@@ -26,7 +26,7 @@ from revalo.services.decisions import decide_piece
 from revalo.services.pieces import stock_summary
 from revalo.services.prices import EffectivePrice
 
-# Standard plan of the Market Playbook (section 5); the pilot can override it.
+# Standard monthly plan price; REVALO_PLAN_TND overrides it.
 DEFAULT_PLAN_TND = 120.0
 
 

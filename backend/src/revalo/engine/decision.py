@@ -1,8 +1,8 @@
 """Reuse, sell or recycle: value each option in TND and CO2 and recommend one.
 
 The engine is rule-based on purpose. A workshop owner must be able to read why
-a piece should be sold rather than scrapped, and the pilot has no sales history
-to learn from yet. Every recommendation comes with the numbers behind it.
+a piece should be sold rather than scrapped, and there is no sales history to
+learn from yet. Every recommendation comes with the numbers behind it.
 
 Values
   reuse    the purchase of new material the workshop avoids, scaled by how easy

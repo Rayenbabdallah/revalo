@@ -78,7 +78,7 @@ function PasswordInput({
 export function SignInPage({ me }: { me: Me }) {
   const setup = me.setup_required
   const queryClient = useQueryClient()
-  const [workshop, setWorkshop] = useState(me.workshop.name === 'Pilot workshop' ? '' : me.workshop.name)
+  const [workshop, setWorkshop] = useState(me.workshop.name === 'My workshop' ? '' : me.workshop.name)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

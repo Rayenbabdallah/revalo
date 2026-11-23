@@ -40,13 +40,12 @@ def likely_answer(job: Job, now: datetime | None = None) -> str:
 
 
 def default_workshop(session: Session) -> Workshop:
-    """The pilot runs one workshop per deployment; accounts come later."""
-    # The pilot starts in Ben Arous (Market Playbook, section 4).
+    """The workshop this deployment serves, created on first use."""
     governorate = canonical(os.getenv("REVALO_WORKSHOP_GOVERNORATE", "Ben Arous"))
     shop = session.scalars(select(Workshop).order_by(Workshop.created_at)).first()
     if shop is None:
         shop = Workshop(
-            name=os.getenv("REVALO_WORKSHOP_NAME", "Pilot workshop"), governorate=governorate
+            name=os.getenv("REVALO_WORKSHOP_NAME", "My workshop"), governorate=governorate
         )
         session.add(shop)
         session.flush()

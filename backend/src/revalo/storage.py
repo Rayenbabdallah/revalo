@@ -1,8 +1,8 @@
 """Storage for original job files.
 
 Files are addressed by content hash, so uploading the same file twice stores it
-once. Local disk for the pilot; an object store can implement the same two
-methods later.
+once. Files are kept on local disk; an object store can implement the same
+two methods.
 """
 
 from __future__ import annotations
