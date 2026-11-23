@@ -255,6 +255,8 @@ class BuyerRequest(Base):
     pickup_note: Mapped[str | None] = mapped_column(Text)
     """Recyclers: pickup terms, such as days and truck size."""
     note: Mapped[str | None] = mapped_column(Text)
+    buys_lots: Mapped[bool] = mapped_column(default=False, server_default="0")
+    """Takes a whole group of similar offcuts in one deal."""
     active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -386,3 +388,50 @@ class PlannedJob(Base):
     created_by: Mapped[str] = mapped_column(String(120))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+def new_lot_code() -> str:
+    return "LT-" + "".join(secrets.choice(_CODE_ALPHABET) for _ in range(6))
+
+
+class Lot(Base):
+    """Similar offcuts sold together: one price, one buyer, one pickup."""
+
+    __tablename__ = "lots"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    code: Mapped[str] = mapped_column(String(12), unique=True, default=new_lot_code)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    material_code: Mapped[str] = mapped_column(String(40))
+    thickness_mm: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(20), default=ListingStatus.OPEN, index=True)
+    price_tnd: Mapped[float] = mapped_column(Float)
+    buyer_request_id: Mapped[str | None] = mapped_column(ForeignKey("buyer_requests.id"))
+    sold_price_tnd: Mapped[float | None] = mapped_column(Float)
+    fee_tnd: Mapped[float | None] = mapped_column(Float)
+    split_from_id: Mapped[str | None] = mapped_column(
+        ForeignKey("lots.id", name="fk_lots_split_from_id_lots")
+    )
+    """The lot this one was taken from, when a buyer took only part of it."""
+    created_by: Mapped[str] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    items: Mapped[list[LotItem]] = relationship(back_populates="lot", cascade="all, delete-orphan")
+    buyer: Mapped[BuyerRequest | None] = relationship()
+
+    @property
+    def pieces(self) -> list[Piece]:
+        return [item.piece for item in self.items]
+
+
+class LotItem(Base):
+    __tablename__ = "lot_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    lot_id: Mapped[str] = mapped_column(ForeignKey("lots.id"), index=True)
+    piece_id: Mapped[str] = mapped_column(ForeignKey("pieces.id"), index=True)
+
+    lot: Mapped[Lot] = relationship(back_populates="items")
+    piece: Mapped[Piece] = relationship()

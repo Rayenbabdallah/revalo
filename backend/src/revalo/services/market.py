@@ -72,6 +72,7 @@ class RequestInput:
     min_lot_kg: float | None = None
     pickup_note: str | None = None
     note: str | None = None
+    buys_lots: bool = False
 
 
 def create_request(session: Session, data: RequestInput) -> BuyerRequest:
@@ -105,6 +106,7 @@ def create_request(session: Session, data: RequestInput) -> BuyerRequest:
         min_lot_kg=data.min_lot_kg,
         pickup_note=(data.pickup_note or "").strip() or None,
         note=(data.note or "").strip() or None,
+        buys_lots=data.buys_lots,
     )
     session.add(request)
     session.commit()
@@ -129,6 +131,7 @@ def request_to_dict(request: BuyerRequest) -> dict[str, Any]:
         "min_lot_kg": request.min_lot_kg,
         "pickup_note": request.pickup_note,
         "note": request.note,
+        "buys_lots": request.buys_lots,
         "active": request.active,
         "created_at": request.created_at.isoformat(),
     }

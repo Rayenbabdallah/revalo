@@ -11,7 +11,16 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from revalo.db.models import Job, Listing, ListingStatus, Pickup, PickupStatus, Piece, PieceEvent
+from revalo.db.models import (
+    Job,
+    Listing,
+    ListingStatus,
+    Lot,
+    Pickup,
+    PickupStatus,
+    Piece,
+    PieceEvent,
+)
 from revalo.engine.materials import materials
 from revalo.services.decisions import decide_piece
 from revalo.services.pieces import stock_summary
@@ -78,9 +87,19 @@ def monthly_report(
         for lst in session.scalars(select(Listing).where(Listing.status == ListingStatus.SOLD))
         if in_month(lst.closed_at)
     ]
-    sales_tnd = sum(lst.sold_price_tnd or 0 for lst in sold)
-    fees_tnd = sum(lst.fee_tnd or 0 for lst in sold)
-    sold_kg = sum(lst.piece.weight_kg or 0 for lst in sold)
+    sold_lots = [
+        lot
+        for lot in session.scalars(select(Lot).where(Lot.status == ListingStatus.SOLD))
+        if in_month(lot.closed_at)
+    ]
+    lot_pieces = [p for lot in sold_lots for p in lot.pieces]
+    sales_tnd = sum(lst.sold_price_tnd or 0 for lst in sold) + sum(
+        lot.sold_price_tnd or 0 for lot in sold_lots
+    )
+    fees_tnd = sum(lst.fee_tnd or 0 for lst in sold) + sum(lot.fee_tnd or 0 for lot in sold_lots)
+    sold_kg = sum(lst.piece.weight_kg or 0 for lst in sold) + sum(
+        p.weight_kg or 0 for p in lot_pieces
+    )
 
     pickups = [
         pk
@@ -92,6 +111,7 @@ def monthly_report(
 
     co2 = sum(_co2(p.material_code, p.weight_kg or 0, False) for p in reused)
     co2 += sum(_co2(lst.piece.material_code, lst.piece.weight_kg or 0, False) for lst in sold)
+    co2 += sum(_co2(p.material_code, p.weight_kg or 0, False) for p in lot_pieces)
     for pk in pickups:
         share = (pk.weighed_kg or 0) / pk.estimated_kg if pk.estimated_kg else 1.0
         co2 += sum(
@@ -120,7 +140,7 @@ def monthly_report(
                 "tnd": round(reused_tnd, 2),
             },
             "sold": {
-                "pieces": len(sold),
+                "pieces": len(sold) + len(lot_pieces),
                 "kg": round(sold_kg, 1),
                 "tnd": round(sales_tnd, 2),
                 "fees_tnd": round(fees_tnd, 2),

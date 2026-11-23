@@ -15,10 +15,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from revalo.api.deps import ManagerUser, manager_only
-from revalo.db.models import BuyerRequest, Listing, ListingStatus, Piece
+from revalo.db.models import BuyerRequest, Listing, ListingStatus, Lot, Piece
 from revalo.db.session import get_session
 from revalo.engine.geo import GOVERNORATES
 from revalo.services.jobs import default_workshop
+from revalo.services.lots import lot_to_dict
 from revalo.services.market import (
     MarketError,
     RequestInput,
@@ -64,6 +65,7 @@ class BuyerRequestCreate(BaseModel):
     min_lot_kg: float | None = Field(None, gt=0, le=1_000_000)
     pickup_note: str | None = Field(None, max_length=300)
     note: str | None = Field(None, max_length=500)
+    buys_lots: bool = False
 
 
 class RequestToggle(BaseModel):
@@ -92,7 +94,13 @@ def public_market(session: DbSession) -> dict[str, Any]:
         .where(Listing.status == ListingStatus.OPEN)
         .order_by(Listing.created_at.desc())
     )
-    return {"listings": [listing_to_dict(lst, public=True) for lst in listings]}
+    lots = session.scalars(
+        select(Lot).where(Lot.status == ListingStatus.OPEN).order_by(Lot.created_at.desc())
+    )
+    return {
+        "listings": [listing_to_dict(lst, public=True) for lst in listings],
+        "lots": [lot_to_dict(session, lot, public=True) for lot in lots],
+    }
 
 
 @router.post("/v1/buyer-requests", status_code=201)
