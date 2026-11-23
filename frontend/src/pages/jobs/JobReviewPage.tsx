@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, Box, CheckCheck, Printer, Scan } from 'lucide-react'
+import { ArrowLeft, Box, CheckCheck, Printer, Repeat, Scan } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'wouter'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
-import { approveJob, getJob, type JobDetail, type SheetAnalysis } from '../../lib/api'
+import { approveJob, copyCorrections, getJob, type JobDetail, type SheetAnalysis } from '../../lib/api'
 import { useCan } from '../../lib/auth'
 import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel, processLabel } from '../../lib/format'
 import { PieceCard } from './PieceCard'
@@ -16,9 +16,9 @@ import { t } from '../../lib/i18n'
 const SheetViewer = lazy(() => import('../../components/viewer/SheetViewer'))
 
 /** The viewer shows what the manager decided: corrected sizes and weights, not the raw engine output. */
-function sheetWithRecords(job: JobDetail, index: number): SheetAnalysis {
+function sheetWithRecords(job: JobDetail, index: number, run: number): SheetAnalysis {
   const sheet = job.analysis.sheets[index]
-  const byLabel = new Map(job.pieces.map((p) => [p.label, p]))
+  const byLabel = new Map(job.pieces.filter((p) => p.run_index === run).map((p) => [p.label, p]))
   return {
     ...sheet,
     remnants: sheet.remnants.map((r) => {
@@ -35,8 +35,16 @@ export function JobReviewPage({ id }: { id: string }) {
   const job = useQuery({ queryKey: ['job', id], queryFn: () => getJob(id) })
   const canApprove = useCan('manager')
   const [sheetIndex, setSheetIndex] = useState(0)
+  const [run, setRun] = useState(0)
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const [mode, setMode] = useState<ViewMode>('3d')
+
+  const copy = useMutation({
+    mutationFn: () => copyCorrections(id),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['job', id], updated)
+    },
+  })
 
   const approve = useMutation({
     mutationFn: () => approveJob(id),
@@ -48,17 +56,21 @@ export function JobReviewPage({ id }: { id: string }) {
   })
 
   const data = job.data
-  const sheet = useMemo(() => (data ? sheetWithRecords(data, Math.min(sheetIndex, data.sheet_count - 1)) : null), [data, sheetIndex])
+  const sheet = useMemo(
+    () => (data ? sheetWithRecords(data, Math.min(sheetIndex, data.analysis.sheets.length - 1), run) : null),
+    [data, sheetIndex, run],
+  )
   const rejected = useMemo(
-    () => new Set(data?.pieces.filter((p) => p.status === 'rejected').map((p) => p.label) ?? []),
-    [data],
+    () =>
+      new Set(data?.pieces.filter((p) => p.status === 'rejected' && p.run_index === run).map((p) => p.label) ?? []),
+    [data, run],
   )
 
   if (job.isPending) return <p className="px-10 py-16 font-mono text-sm text-ink-500">{t('Loading job…')}</p>
   if (job.isError || !data || !sheet)
     return <p className="px-10 py-16 text-sm text-alarm-400">{job.error?.message ?? t('Job not found.')}</p>
 
-  const sheetPieces = data.pieces.filter((p) => p.sheet_index === sheet.index)
+  const sheetPieces = data.pieces.filter((p) => p.sheet_index === sheet.index && p.run_index === run)
   const drafts = data.pieces.filter((p) => p.status === 'draft')
   const keptWeight = data.pieces
     .filter((p) => p.kind === 'remnant' && p.status !== 'rejected')
@@ -130,7 +142,7 @@ export function JobReviewPage({ id }: { id: string }) {
                 </button>
               ))}
             </div>
-            {data.sheet_count > 1 && (
+            {data.analysis.sheets.length > 1 && (
               <div className="pointer-events-auto flex flex-wrap justify-end gap-1 rounded-xl border border-ink-700 bg-ink-950/80 p-1 backdrop-blur-md">
                 {data.analysis.sheets.map((s) => (
                   <button
@@ -142,7 +154,7 @@ export function JobReviewPage({ id }: { id: string }) {
                       s.index === sheet.index ? 'bg-ink-700 text-ink-50' : 'text-ink-400 hover:text-ink-100',
                     )}
                   >
-                    Sheet {s.index + 1}
+                    {t('Sheet {n}', { n: s.index + 1 })}
                   </button>
                 ))}
               </div>
@@ -151,12 +163,59 @@ export function JobReviewPage({ id }: { id: string }) {
         </section>
 
         <div className="flex flex-col gap-3 lg:col-span-5">
+          {data.repeat_of_id && (
+            <div className="rounded-xl border border-brand-500/40 bg-brand-500/[0.06] px-4 py-3 text-[13.5px] text-ink-200">
+              <p className="flex items-center gap-2 font-semibold text-ink-50">
+                <Repeat className="size-4 text-brand-500" /> {t('Repeat run of a program already recorded')}
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <Link href={`/jobs/${data.repeat_of_id}`} className="text-brand-500 hover:underline">
+                  {t('Open the earlier run')}
+                </Link>
+                {!approved && canApprove && (
+                  <button
+                    type="button"
+                    disabled={copy.isPending}
+                    onClick={() => copy.mutate()}
+                    className="rounded-lg bg-brand-500 px-3 py-1.5 text-[13px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-60"
+                  >
+                    {t("Copy last run's corrections")}
+                  </button>
+                )}
+              </div>
+              {copy.isSuccess && (
+                <p className="mt-2 text-reclaim-300">
+                  {t('{count} piece updated.|{count} pieces updated.', { count: copy.data.copied })}
+                </p>
+              )}
+              {copy.isError && <p className="mt-2 text-alarm-400">{copy.error.message}</p>}
+            </div>
+          )}
+          {data.runs > 1 && (
+            <div className="flex flex-wrap items-center gap-1 rounded-xl border border-ink-700 bg-ink-900 p-1">
+              <span className="px-2 text-[12.5px] text-ink-400">{t('{count} sheets cut', { count: data.runs })}</span>
+              {Array.from({ length: data.runs }, (_, r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRun(r)}
+                  aria-pressed={run === r}
+                  className={clsx(
+                    'rounded-lg px-3 py-1.5 font-mono text-[12px] transition',
+                    run === r ? 'bg-brand-500 text-ink-950' : 'text-ink-400 hover:text-ink-100',
+                  )}
+                >
+                  {t('Run {n}', { n: r + 1 })}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="rounded-xl border border-ink-800 bg-ink-900/60 px-4 py-3 text-[13px] leading-relaxed text-ink-300">
             {approved ? (
               <>
                 {t('Approved by')} <strong className="text-ink-100">{data.approved_by}</strong>
-                {data.approved_at && ` on ${fmtDateTime(data.approved_at)}`}. Records are locked; location can still be
-                updated from stock.
+                {data.approved_at && ` ${t('on {date}', { date: fmtDateTime(data.approved_at) })}`}.{' '}
+                {t('Records are locked; location can still be updated from stock.')}
               </>
             ) : (
               <>

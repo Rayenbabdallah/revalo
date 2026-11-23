@@ -549,4 +549,27 @@ export const fr: Dictionary = {
     "La valeur réemployée compte la matière neuve au barème de l'atelier ; les ventes sont nettes des 5 % de frais de la place de marché ; le recyclage compte ce que les recycleurs ont payé à l'enlèvement. Le CO₂ utilise des facteurs publiés quand le barème en a (worldsteel pour l'acier, ICE pour le MDF).",
   'Operators record jobs and pieces; managers approve, sell and price; owners also manage the team. Every record keeps the name of who made it.':
     "Les opérateurs enregistrent travaux et pièces ; les responsables approuvent, vendent et fixent les prix ; les propriétaires gèrent aussi l'équipe. Chaque fiche garde le nom de son auteur.",
+
+  // Repeat runs
+  "Yes, a new run": "Oui, une nouvelle passe",
+  "No, same cut: open it": "Non, même découpe : l'ouvrir",
+  "{file} was recorded on {date} by {name} ({status}).": "{file} a été enregistré le {date} par {name} ({status}).",
+  "someone": "quelqu'un",
+  "{count} run already recorded.|{count} runs already recorded.": "{count} passe déjà enregistrée.|{count} passes déjà enregistrées.",
+  "It arrived minutes ago and is still in review: probably sent twice.": "Il est arrivé il y a quelques minutes et attend encore la vérification : sans doute envoyé deux fois.",
+  "The earlier run is already done: probably cut again.": "La passe précédente est déjà terminée : sans doute découpé à nouveau.",
+  "Sheet {n}": "Feuille {n}",
+  "Repeat run of a program already recorded": "Nouvelle passe d'un programme déjà enregistré",
+  "Open the earlier run": "Ouvrir la passe précédente",
+  "Copy last run's corrections": "Reprendre les corrections de la passe précédente",
+  "{count} piece updated.|{count} pieces updated.": "{count} pièce mise à jour.|{count} pièces mises à jour.",
+  "{count} sheets cut": "{count} feuilles découpées",
+  "Run {n}": "Passe {n}",
+  "on {date}": "le {date}",
+  "Records are locked; location can still be updated from stock.": "Les fiches sont verrouillées ; l'emplacement peut encore être modifié depuis le stock.",
+  "No machine is set up yet.": "Aucune machine n'est encore configurée.",
+  "so uploads need no typing. You can still send a file: Revalo reads what it can from it.": "pour envoyer sans rien saisir. Vous pouvez quand même envoyer un fichier : Revalo y lit ce qu'il peut.",
+  "Sheets cut with this program": "Feuilles découpées avec ce programme",
+  "One sheet less": "Une feuille de moins",
+  "One sheet more": "Une feuille de plus",
 }

@@ -6,9 +6,12 @@ const BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  /** Structured detail some errors carry (e.g. a repeat run question). */
+  detail?: unknown
+  constructor(status: number, message: string, detail?: unknown) {
     super(message)
     this.status = status
+    this.detail = detail
   }
 }
 
@@ -21,14 +24,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!response.ok) {
     let message = response.statusText
+    let detail: unknown
     try {
       const body = await response.json()
+      detail = body.detail
       if (typeof body.detail === 'string') message = body.detail
       else if (Array.isArray(body.detail)) message = body.detail.map((d: { msg: string }) => d.msg).join('; ')
+      else if (body.detail && typeof body.detail.message === 'string') message = body.detail.message
     } catch {
       /* keep status text */
     }
-    throw new ApiError(response.status, message)
+    throw new ApiError(response.status, message, detail)
   }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
@@ -207,6 +213,7 @@ export interface Piece {
   status: PieceStatus
   label: string
   sheet_index: number
+  run_index: number
   material_code: string | null
   thickness_mm: number | null
   x_mm: number | null
@@ -257,6 +264,9 @@ export interface JobSummary {
   created_at: string
   approved_at: string | null
   approved_by: string | null
+  created_by: string | null
+  runs: number
+  repeat_of_id: string | null
 }
 
 export interface JobDetail extends JobSummary {
@@ -268,10 +278,13 @@ export function createJob(
   file: File,
   options: AnalysisOptions = {},
   machineId?: string,
+  run: { runs?: number; repeat?: 'new' } = {},
 ): Promise<JobDetail> {
   const form = new FormData()
   form.append('file', file)
   if (machineId) form.append('machine_id', machineId)
+  if (run.runs && run.runs > 1) form.append('runs', String(run.runs))
+  if (run.repeat) form.append('repeat', run.repeat)
   for (const [key, value] of Object.entries(options)) {
     if (value !== undefined && value !== '' && !Number.isNaN(value)) form.append(key, String(value))
   }
@@ -279,6 +292,22 @@ export function createJob(
 }
 
 export const listJobs = () => request<{ jobs: JobSummary[] }>('/v1/jobs')
+
+/** What the server answers when a known file is sent again. */
+export interface RepeatRunQuestion {
+  code: 'repeat_run'
+  message: string
+  suggest: 'same' | 'new'
+  jobs: { id: string; file_name: string; status: 'draft' | 'approved'; created_at: string; created_by: string | null; runs: number }[]
+}
+
+export const repeatRunQuestion = (error: unknown): RepeatRunQuestion | null =>
+  error instanceof ApiError && error.status === 409 && (error.detail as RepeatRunQuestion | undefined)?.code === 'repeat_run'
+    ? (error.detail as RepeatRunQuestion)
+    : null
+
+export const copyCorrections = (jobId: string) =>
+  request<JobDetail & { copied: number }>(`/v1/jobs/${encodeURIComponent(jobId)}/copy-corrections`, { method: 'POST' })
 export const getJob = (id: string) => request<JobDetail>(`/v1/jobs/${encodeURIComponent(id)}`)
 
 export interface PiecePatch {

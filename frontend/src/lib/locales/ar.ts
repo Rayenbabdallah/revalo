@@ -670,4 +670,27 @@ export const ar: Dictionary = {
     'قيمة إعادة الاستعمال تحسب المادة الجديدة بدفتر أسعار الورشة؛ المبيعات صافية بعد عمولة السوق 5%؛ إعادة التدوير تحسب ما دفعه مُعيدو التدوير عند الاستلام. يستعمل CO₂ معاملات منشورة حين يتضمنها دفتر الأسعار (worldsteel للفولاذ، ICE لـMDF).',
   'Operators record jobs and pieces; managers approve, sell and price; owners also manage the team. Every record keeps the name of who made it.':
     'المشغّلون يسجّلون الأعمال والقطع؛ المسؤولون يوافقون ويبيعون ويحددون الأسعار؛ والمالكون يديرون الفريق أيضًا. كل سجل يحتفظ باسم من أنشأه.',
+
+  // Repeat runs
+  "Yes, a new run": "نعم، تشغيل جديد",
+  "No, same cut: open it": "لا، نفس القطع: افتحه",
+  "{file} was recorded on {date} by {name} ({status}).": "سُجّل {file} في {date} بواسطة {name} ({status}).",
+  "someone": "شخص ما",
+  "{count} run already recorded.|{count} runs already recorded.": { one: "تشغيل واحد مسجّل مسبقًا.", two: "تشغيلان مسجّلان مسبقًا.", few: "{count} تشغيلات مسجّلة مسبقًا.", many: "{count} تشغيلًا مسجّلًا مسبقًا.", other: "{count} تشغيل مسجّل مسبقًا." },
+  "It arrived minutes ago and is still in review: probably sent twice.": "وصل قبل دقائق وما زال في المراجعة: على الأرجح أُرسل مرتين.",
+  "The earlier run is already done: probably cut again.": "التشغيل السابق انتهى: على الأرجح قُطع مرة أخرى.",
+  "Sheet {n}": "الصفيحة {n}",
+  "Repeat run of a program already recorded": "تكرار لبرنامج مسجّل مسبقًا",
+  "Open the earlier run": "فتح التشغيل السابق",
+  "Copy last run's corrections": "نسخ تصحيحات التشغيل السابق",
+  "{count} piece updated.|{count} pieces updated.": { zero: "لم تُحدَّث أي قطعة.", one: "حُدّثت قطعة واحدة.", two: "حُدّثت قطعتان.", few: "حُدّثت {count} قطع.", many: "حُدّثت {count} قطعة.", other: "حُدّثت {count} قطعة." },
+  "{count} sheets cut": { two: "صفيحتان مقطوعتان", few: "{count} صفائح مقطوعة", many: "{count} صفيحة مقطوعة", other: "{count} صفيحة مقطوعة" },
+  "Run {n}": "تشغيل {n}",
+  "on {date}": "في {date}",
+  "Records are locked; location can still be updated from stock.": "السجلات مقفلة؛ يمكن تحديث المكان من المخزون.",
+  "No machine is set up yet.": "لم تُضَف أي آلة بعد.",
+  "so uploads need no typing. You can still send a file: Revalo reads what it can from it.": "لكي لا تحتاج إلى كتابة شيء. يمكنك مع ذلك إرسال ملف: يقرأ منه Revalo ما يستطيع.",
+  "Sheets cut with this program": "الصفائح المقطوعة بهذا البرنامج",
+  "One sheet less": "صفيحة أقل",
+  "One sheet more": "صفيحة أكثر",
 }

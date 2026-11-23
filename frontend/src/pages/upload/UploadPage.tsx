@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { CheckCircle2, Cpu, FileUp, Loader2, RotateCcw } from 'lucide-react'
+import { CheckCircle2, Cpu, FileUp, Loader2, Minus, Plus, RotateCcw } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRef, useState } from 'react'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
-import { createJob, getMachines, type JobDetail, type Machine } from '../../lib/api'
+import { RepeatRunPrompt } from '../../components/jobs/RepeatRunPrompt'
+
+import { createJob, getMachines, repeatRunQuestion, type JobDetail, type Machine } from '../../lib/api'
 import { fmtKg, fmtTnd, materialLabel, processLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
 
@@ -42,10 +44,12 @@ export function UploadPage() {
   const queryClient = useQueryClient()
   const machines = useQuery({ queryKey: ['machines'], queryFn: () => getMachines() })
   const [machineId, setMachineId] = useState<string | null>(null)
+  const [runs, setRuns] = useState(1)
+  const [, navigate] = useLocation()
   const input = useRef<HTMLInputElement>(null)
   const upload = useMutation({
-    mutationFn: ({ file, machine }: { file: File; machine: string | null }) =>
-      createJob(file, {}, machine ?? undefined),
+    mutationFn: ({ file, machine, repeat }: { file: File; machine: string | null; repeat?: 'new' }) =>
+      createJob(file, {}, machine ?? undefined, { runs, repeat }),
     onSuccess: (job) => {
       queryClient.setQueryData(['job', job.id], job)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
@@ -54,6 +58,7 @@ export function UploadPage() {
   const list = machines.data?.machines ?? []
   const chosen = machineId ?? (list.length === 1 ? list[0].id : null)
   const done: JobDetail | undefined = upload.data
+  const question = repeatRunQuestion(upload.error)
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8 md:py-12">
@@ -91,7 +96,10 @@ export function UploadPage() {
             <div className="mt-6 flex justify-center gap-2">
               <button
                 type="button"
-                onClick={() => upload.reset()}
+                onClick={() => {
+                  upload.reset()
+                  setRuns(1)
+                }}
                 className="inline-flex items-center gap-2 rounded-xl bg-ink-950 px-5 py-3 text-[15px] font-semibold text-brand-500"
               >
                 <RotateCcw className="size-4" /> {t('Next job')}
@@ -109,11 +117,11 @@ export function UploadPage() {
                 <p className="font-mono text-sm text-ink-500">{t('Loading…')}</p>
               ) : list.length === 0 ? (
                 <div className="panel p-5 text-[14px] text-ink-300">
-                  No machine is set up yet.{' '}
+                  {t('No machine is set up yet.')}{' '}
                   <Link href="/settings" className="font-medium text-brand-500 hover:underline">
                     {t('Add your machines')}
                   </Link>{' '}
-                  so uploads need no typing. You can still send a file: Revalo reads what it can from it.
+                  {t('so uploads need no typing. You can still send a file: Revalo reads what it can from it.')}
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -126,6 +134,30 @@ export function UploadPage() {
 
             <section className="mt-8">
               <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-400">{t('2 · Job file')}</p>
+              <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-ink-700 bg-ink-900 px-4 py-3">
+                <span className="text-[14px] text-ink-200">{t('Sheets cut with this program')}</span>
+                <span className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRuns((r) => Math.max(1, r - 1))}
+                    aria-label={t('One sheet less')}
+                    className="grid size-10 place-items-center rounded-xl border border-ink-700 text-ink-200 hover:border-brand-500"
+                  >
+                    <Minus className="size-4" />
+                  </button>
+                  <span className="readout w-8 text-center text-[20px] text-ink-50" aria-live="polite">
+                    {runs}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setRuns((r) => Math.min(50, r + 1))}
+                    aria-label={t('One sheet more')}
+                    className="grid size-10 place-items-center rounded-xl border border-ink-700 text-ink-200 hover:border-brand-500"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </span>
+              </div>
               <button
                 type="button"
                 disabled={upload.isPending || (list.length > 0 && !chosen)}
@@ -149,7 +181,16 @@ export function UploadPage() {
                   e.target.value = ''
                 }}
               />
-              {upload.isError && <p className="mt-3 text-[14px] text-alarm-400">{upload.error.message}</p>}
+              {question && upload.variables ? (
+                <RepeatRunPrompt
+                  question={question}
+                  busy={upload.isPending}
+                  onRepeat={() => upload.mutate({ ...upload.variables!, repeat: 'new' })}
+                  onOpen={(jobId) => navigate(`/jobs/${jobId}`)}
+                />
+              ) : (
+                upload.isError && <p className="mt-3 text-[14px] text-alarm-400">{upload.error.message}</p>
+              )}
             </section>
           </motion.div>
         )}

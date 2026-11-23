@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useState } from 'react'
 import { useLocation } from 'wouter'
 
-import { analyzeFile, createJob, fetchSampleFile, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
+import { RepeatRunPrompt } from '../../components/jobs/RepeatRunPrompt'
+import { analyzeFile, createJob, fetchSampleFile, repeatRunQuestion, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
 import { formatLabel, processLabel, sourceLabel, materialLabel } from '../../lib/format'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
 import { visualThickness } from '../../components/viewer/thickness'
@@ -55,7 +56,7 @@ function Results({
   const [, navigate] = useLocation()
   const queryClient = useQueryClient()
   const save = useMutation({
-    mutationFn: () => createJob(file, options),
+    mutationFn: (repeat?: 'new') => createJob(file, options, undefined, { repeat }),
     onSuccess: (job) => {
       queryClient.setQueryData(['job', job.id], job)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
@@ -98,7 +99,7 @@ function Results({
           </button>
           <button
             type="button"
-            onClick={() => save.mutate()}
+            onClick={() => save.mutate(undefined)}
             disabled={save.isPending}
             className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
           >
@@ -106,7 +107,16 @@ function Results({
           </button>
         </div>
       </div>
-      {save.isError && <p className="mt-3 text-[13px] text-alarm-400">{t('Could not save the job: {error}', { error: save.error.message })}</p>}
+      {repeatRunQuestion(save.error) ? (
+        <RepeatRunPrompt
+          question={repeatRunQuestion(save.error)!}
+          busy={save.isPending}
+          onRepeat={() => save.mutate('new')}
+          onOpen={(jobId) => navigate(`/jobs/${jobId}`)}
+        />
+      ) : (
+        save.isError && <p className="mt-3 text-[13px] text-alarm-400">{t('Could not save the job: {error}', { error: save.error.message })}</p>
+      )}
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Chip
