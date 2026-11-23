@@ -1,5 +1,7 @@
 /** Typed client for the Revalo API. All calls go through the /api dev proxy. */
 
+import { getLocale, t } from './i18n'
+
 const BASE = import.meta.env.VITE_API_URL ?? '/api'
 
 export class ApiError extends Error {
@@ -13,9 +15,9 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`${BASE}${path}`, { credentials: 'include', ...init })
+    response = await fetch(`${BASE}${path}`, { credentials: 'include', ...init, headers: { 'Accept-Language': getLocale(), ...init?.headers } })
   } catch {
-    throw new ApiError(0, 'The Revalo server cannot be reached.')
+    throw new ApiError(0, t('The Revalo server cannot be reached.'))
   }
   if (!response.ok) {
     let message = response.statusText

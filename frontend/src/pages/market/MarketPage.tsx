@@ -19,20 +19,21 @@ import {
   type WorkshopListing,
 } from '../../lib/api'
 import { fmtDate, fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 function pieceLine(l: WorkshopListing) {
   const p = l.piece
-  const size = p.kind === 'remnant' ? `${fmtMm(p.width_mm ?? 0)} × ${fmtMm(p.height_mm ?? 0)} mm` : 'Scrap lot'
+  const size = p.kind === 'remnant' ? `${fmtMm(p.width_mm ?? 0)} × ${fmtMm(p.height_mm ?? 0)} mm` : t('Scrap lot')
   return `${size} · ${materialLabel(p.material_code)}${p.thickness_mm ? ` ${p.thickness_mm} mm` : ''}`
 }
 
 function needLine(r: BuyerRequest) {
   const parts = [
-    r.materials.length ? r.materials.map(materialLabel).join(', ') : 'Any material',
+    r.materials.length ? r.materials.map(materialLabel).join(', ') : t('Any material'),
     r.thickness_min_mm || r.thickness_max_mm
       ? `${r.thickness_min_mm ?? '…'}–${r.thickness_max_mm ?? '…'} mm`
       : null,
-    r.min_length_mm || r.min_width_mm ? `min ${r.min_length_mm ?? 0} × ${r.min_width_mm ?? 0} mm` : null,
+    r.min_length_mm || r.min_width_mm ? `${t('min')} ${r.min_length_mm ?? 0} × ${r.min_width_mm ?? 0} mm` : null,
     r.max_price_tnd_per_kg ? `≤ ${r.max_price_tnd_per_kg} TND/kg` : null,
   ]
   return parts.filter(Boolean).join(' · ')
@@ -76,7 +77,7 @@ function MatchRow({ match, onReserve, busy }: { match: BuyerMatch; onReserve: ()
           onClick={onReserve}
           className="rounded-lg border border-ink-700 px-3 py-2 text-[13px] font-medium text-ink-200 transition hover:border-brand-500 hover:text-brand-500 disabled:opacity-60"
         >
-          Reserve
+          {t('Reserve')}
         </button>
       </div>
     </div>
@@ -126,7 +127,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
                     act.mutate({ action: 'reprice', price_tnd: priceValue })
                 }}
                 inputMode="decimal"
-                aria-label="Asking price"
+                aria-label={t('Asking price')}
                 className="readout w-24 rounded-lg border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-end text-[18px] text-ink-50 focus:border-brand-500 focus:outline-none"
               />
               <span className="text-[13px] text-ink-400">TND</span>
@@ -135,7 +136,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
             <p className="readout text-[20px] text-ink-50">{fmtTnd(listing.sold_price_tnd ?? listing.price_tnd)}</p>
           )}
           {listing.status === 'sold' && listing.fee_tnd !== null && (
-            <p className="mt-1 text-[11.5px] text-ink-400">Revalo fee {fmtTnd(listing.fee_tnd, 2)}</p>
+            <p className="mt-1 text-[11.5px] text-ink-400">{t('Revalo fee {amount}', { amount: fmtTnd(listing.fee_tnd, 2) })}</p>
           )}
         </div>
       </header>
@@ -143,7 +144,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
       {reserved && listing.buyer && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand-500/8 p-3">
           <p className="text-[13.5px] text-ink-100">
-            Reserved for <strong>{listing.buyer.name}</strong>
+            {t('Reserved for')} <strong>{listing.buyer.name}</strong>
             {listing.buyer.organization && ` (${listing.buyer.organization})`} · {listing.buyer.governorate}
           </p>
           <div className="flex gap-2">
@@ -159,7 +160,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
               onClick={() => act.mutate({ action: 'reopen' })}
               className="rounded-lg border border-ink-700 px-3 py-2 text-[13px] text-ink-300 hover:border-ink-500"
             >
-              Reopen
+              {t('Reopen')}
             </button>
           </div>
         </div>
@@ -169,8 +170,8 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
         <div className="mt-4 space-y-2">
           <p className="text-[12.5px] font-medium text-ink-300">
             {listing.match_count
-              ? `${listing.match_count} buyer${listing.match_count === 1 ? '' : 's'} match this piece`
-              : 'No buyer matches yet. Share the public page in your WhatsApp groups.'}
+              ? t('{count} buyer matches this piece|{count} buyers match this piece', { count: listing.match_count })
+              : t('No buyer matches yet. Share the public page in your WhatsApp groups.')}
           </p>
           {listing.top_matches?.map((m) => (
             <MatchRow
@@ -190,7 +191,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
             onClick={() => act.mutate({ action: 'withdraw' })}
             className="inline-flex items-center gap-1 text-[12.5px] text-ink-400 hover:text-alarm-400"
           >
-            <X className="size-3.5" /> Withdraw from sale
+            <X className="size-3.5" /> {t('Withdraw from sale')}
           </button>
         </div>
       )}
@@ -220,7 +221,7 @@ function BuyersTab() {
           onClick={() => setAdding((a) => !a)}
           className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[13.5px] font-medium text-ink-100 hover:border-brand-500"
         >
-          <UserPlus className="size-4" /> Add a buyer you know
+          <UserPlus className="size-4" /> {t('Add a buyer you know')}
         </button>
       </div>
       <AnimatePresence>
@@ -242,9 +243,9 @@ function BuyersTab() {
       {rows.length === 0 ? (
         <div className="panel flex flex-col items-center gap-2 px-6 py-12 text-center">
           <Users className="size-8 text-ink-500" strokeWidth={1.5} />
-          <p className="font-display text-lg font-semibold">No buyers yet</p>
+          <p className="font-display text-lg font-semibold">{t('No buyers yet')}</p>
           <p className="max-w-sm text-[14px] text-ink-400">
-            Add the artisans and scrap dealers you already work with, or share the public page so they post their needs.
+            {t('Add the artisans and scrap dealers you already work with, or share the public page so they post their needs.')}
           </p>
         </div>
       ) : (
@@ -259,13 +260,13 @@ function BuyersTab() {
                 </span>
               </p>
               <p className="mt-0.5 text-[12.5px] text-ink-400">
-                {r.governorate} · {needLine(r)} · since {fmtDate(r.created_at)}
+                {r.governorate} · {needLine(r)} · {t('since {date}', { date: fmtDate(r.created_at) })}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {r.active && (
                 <span className="readout text-[12.5px] text-ink-300">
-                  {r.match_count} match{r.match_count === 1 ? '' : 'es'}
+                  {t('{count} match|{count} matches', { count: r.match_count ?? 0 })}
                 </span>
               )}
               <a
@@ -281,7 +282,7 @@ function BuyersTab() {
                 onClick={() => toggle.mutate({ id: r.id, active: !r.active })}
                 className="rounded-lg border border-ink-700 px-2.5 py-1 text-[12px] text-ink-300 hover:border-ink-500"
               >
-                {r.active ? 'Pause' : 'Resume'}
+                {r.active ? t('Pause') : t('Resume')}
               </button>
             </div>
           </div>
@@ -314,11 +315,10 @@ export function MarketPage() {
     <div className="mx-auto max-w-[1180px] px-4 py-8 md:px-10 md:py-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Marketplace</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Sell what you will not reuse</h1>
+          <p className="eyebrow">{t('Marketplace')}</p>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">{t('Sell what you will not reuse')}</h1>
           <p className="mt-2 max-w-xl text-[15px] text-ink-400">
-            Each listing is matched with buyers by material, size, price and distance. Contact them on WhatsApp in one
-            tap.
+            {t('Each listing is matched with buyers by material, size, price and distance. Contact them on WhatsApp in one tap.')}
           </p>
         </div>
         <a
@@ -327,38 +327,38 @@ export function MarketPage() {
           rel="noreferrer"
           className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[13.5px] font-medium text-ink-100 hover:border-brand-500"
         >
-          <ExternalLink className="size-4" /> Public page for buyers
+          <ExternalLink className="size-4" /> {t('Public page for buyers')}
         </a>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="panel-brand p-5">
-          <p className="eyebrow !text-[10px] !text-ink-950/75">On sale</p>
+          <p className="eyebrow !text-[10px] !text-ink-950/75">{t('On sale')}</p>
           <p className="readout mt-2 text-[30px] leading-none text-reclaim-400">{fmtTnd(summary?.open_value_tnd ?? 0)}</p>
-          <p className="mt-2 text-[12px] text-ink-950/80">{summary?.open ?? 0} open listings</p>
+          <p className="mt-2 text-[12px] text-ink-950/80">{t('{count} open listing|{count} open listings', { count: summary?.open ?? 0 })}</p>
         </div>
         <div className="panel p-5">
-          <p className="eyebrow !text-[10px]">Reserved</p>
+          <p className="eyebrow !text-[10px]">{t('Reserved')}</p>
           <p className="readout mt-2 text-[30px] leading-none text-ink-50">{summary?.reserved ?? 0}</p>
-          <p className="mt-2 text-[12px] text-ink-500">Waiting for pickup</p>
+          <p className="mt-2 text-[12px] text-ink-500">{t('Waiting for pickup')}</p>
         </div>
         <div className="panel p-5">
-          <p className="eyebrow !text-[10px]">Sold</p>
+          <p className="eyebrow !text-[10px]">{t('Sold')}</p>
           <p className="readout mt-2 text-[30px] leading-none text-ink-50">{fmtTnd(summary?.sales_tnd ?? 0)}</p>
-          <p className="mt-2 text-[12px] text-ink-500">{summary?.sold ?? 0} deals · fees {fmtTnd(summary?.fees_tnd ?? 0, 2)}</p>
+          <p className="mt-2 text-[12px] text-ink-500">{t('{count} deal|{count} deals', { count: summary?.sold ?? 0 })} · {t('fees {amount}', { amount: fmtTnd(summary?.fees_tnd ?? 0, 2) })}</p>
         </div>
         <div className="panel p-5">
-          <p className="eyebrow !text-[10px]">Buyers looking</p>
+          <p className="eyebrow !text-[10px]">{t('Buyers looking')}</p>
           <p className="readout mt-2 text-[30px] leading-none text-ink-50">{summary?.active_requests ?? 0}</p>
-          <p className="mt-2 text-[12px] text-ink-500">Active requests</p>
+          <p className="mt-2 text-[12px] text-ink-500">{t('Active requests')}</p>
         </div>
       </div>
 
       <div className="mt-8 flex w-fit rounded-xl border border-ink-700 bg-ink-900 p-1">
         {([
           ['listings', `Listings${active.length ? ` · ${active.length}` : ''}`],
-          ['buyers', 'Buyers'],
-          ['recycling', 'Recycling'],
+          ['buyers', t('Buyers')],
+          ['recycling', t('Recycling')],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -382,12 +382,12 @@ export function MarketPage() {
         ) : active.length === 0 && closed.length === 0 ? (
           <div className="panel flex flex-col items-center gap-2 px-6 py-14 text-center">
             <PackageOpen className="size-8 text-ink-500" strokeWidth={1.5} />
-            <p className="font-display text-lg font-semibold">Nothing on sale yet</p>
+            <p className="font-display text-lg font-semibold">{t('Nothing on sale yet')}</p>
             <p className="max-w-sm text-[14px] text-ink-400">
-              From stock or a job review, use “List for sale” on a piece. The asking price starts at its sale value.
+              {t('From stock or a job review, use “List for sale” on a piece. The asking price starts at its sale value.')}
             </p>
             <Link href="/stock" className="mt-1 text-[14px] font-medium text-brand-500 hover:underline">
-              Go to stock
+              {t('Go to stock')}
             </Link>
           </div>
         ) : (

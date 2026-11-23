@@ -11,6 +11,7 @@ import { approveJob, getJob, type JobDetail, type SheetAnalysis } from '../../li
 import { useCan } from '../../lib/auth'
 import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel, processLabel } from '../../lib/format'
 import { PieceCard } from './PieceCard'
+import { t } from '../../lib/i18n'
 
 const SheetViewer = lazy(() => import('../../components/viewer/SheetViewer'))
 
@@ -53,9 +54,9 @@ export function JobReviewPage({ id }: { id: string }) {
     [data],
   )
 
-  if (job.isPending) return <p className="px-10 py-16 font-mono text-sm text-ink-500">Loading job…</p>
+  if (job.isPending) return <p className="px-10 py-16 font-mono text-sm text-ink-500">{t('Loading job…')}</p>
   if (job.isError || !data || !sheet)
-    return <p className="px-10 py-16 text-sm text-alarm-400">{job.error?.message ?? 'Job not found.'}</p>
+    return <p className="px-10 py-16 text-sm text-alarm-400">{job.error?.message ?? t('Job not found.')}</p>
 
   const sheetPieces = data.pieces.filter((p) => p.sheet_index === sheet.index)
   const drafts = data.pieces.filter((p) => p.status === 'draft')
@@ -67,7 +68,7 @@ export function JobReviewPage({ id }: { id: string }) {
   return (
     <div className="mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-10">
       <Link href="/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 transition hover:text-ink-100">
-        <ArrowLeft className="size-4 rtl:-scale-x-100" /> All jobs
+        <ArrowLeft className="size-4 rtl:-scale-x-100" /> {t('All jobs')}
       </Link>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -75,7 +76,7 @@ export function JobReviewPage({ id }: { id: string }) {
           <div className="flex items-center gap-3">
             <StatusBadge status={data.status} />
             <span className="font-mono text-[11px] text-ink-500">
-              {formatLabel(data.file_format)} · saved {fmtDateTime(data.created_at)}
+              {formatLabel(data.file_format)} · {t('saved {date}', { date: fmtDateTime(data.created_at) })}
             </span>
           </div>
           <h1 className="mt-2 truncate font-display text-3xl font-semibold tracking-tight md:text-4xl">{data.file_name}</h1>
@@ -90,7 +91,7 @@ export function JobReviewPage({ id }: { id: string }) {
               href={`/jobs/${id}/labels`}
               className="inline-flex items-center gap-2 rounded-xl bg-reclaim-400 px-4 py-2.5 text-sm font-semibold text-ink-50 transition hover:bg-reclaim-300"
             >
-              <Printer className="size-4" /> Print labels
+              <Printer className="size-4" /> {t('Print labels')}
             </Link>
           )}
         </div>
@@ -98,7 +99,7 @@ export function JobReviewPage({ id }: { id: string }) {
 
       <div className="mt-6 grid gap-5 lg:grid-cols-12">
         <section className="stage relative h-[420px] overflow-hidden md:h-[600px] lg:sticky lg:top-6 lg:col-span-7">
-          <Suspense fallback={<div className="grid h-full place-items-center font-mono text-sm text-ink-500">Loading 3D view…</div>}>
+          <Suspense fallback={<div className="grid h-full place-items-center font-mono text-sm text-ink-500">{t('Loading 3D view…')}</div>}>
             <SheetViewer
               key={`${id}-${sheet.index}`}
               sheet={sheet}
@@ -114,7 +115,7 @@ export function JobReviewPage({ id }: { id: string }) {
             <div className="pointer-events-auto flex rounded-xl border border-ink-700 bg-ink-950/80 p-1 backdrop-blur-md">
               {([
                 ['3d', '3D', Box],
-                ['top', 'Top', Scan],
+                ['top', t('Top'), Scan],
               ] as const).map(([value, label, Icon]) => (
                 <button
                   key={value}
@@ -153,14 +154,13 @@ export function JobReviewPage({ id }: { id: string }) {
           <div className="rounded-xl border border-ink-800 bg-ink-900/60 px-4 py-3 text-[13px] leading-relaxed text-ink-300">
             {approved ? (
               <>
-                Approved by <strong className="text-ink-100">{data.approved_by}</strong>
+                {t('Approved by')} <strong className="text-ink-100">{data.approved_by}</strong>
                 {data.approved_at && ` on ${fmtDateTime(data.approved_at)}`}. Records are locked; location can still be
                 updated from stock.
               </>
             ) : (
               <>
-                The file shows what <em>should</em> remain. Check each piece against the real sheet: trim a damaged
-                edge, enter a weighed value, or reject what cannot be used.
+                {t('The file shows what should remain. Check each piece against the real sheet: trim a damaged edge, enter a weighed value, or reject what cannot be used.')}
               </>
             )}
           </div>
@@ -191,7 +191,7 @@ export function JobReviewPage({ id }: { id: string }) {
                     </span>
                   </p>
                   <p className="text-[12px] text-ink-400">
-                    {drafts.length} record{drafts.length === 1 ? '' : 's'} go to stock
+                    {t('{count} record goes to stock|{count} records go to stock', { count: drafts.length })}
                   </p>
                 </div>
                 {canApprove ? (
@@ -201,11 +201,11 @@ export function JobReviewPage({ id }: { id: string }) {
                     onClick={() => approve.mutate()}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
                   >
-                    <CheckCheck className="size-4" /> {approve.isPending ? 'Approving…' : 'Approve batch'}
+                    <CheckCheck className="size-4" /> {approve.isPending ? t('Approving…') : t('Approve batch')}
                   </button>
                 ) : (
                   <p className="max-w-[180px] text-end text-[12.5px] leading-snug text-ink-400">
-                    A manager approves this batch before it goes to stock.
+                    {t('A manager approves this batch before it goes to stock.')}
                   </p>
                 )}
               </motion.div>

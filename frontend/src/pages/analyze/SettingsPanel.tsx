@@ -4,7 +4,8 @@ import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { getMachines, getMaterials, type AnalysisOptions } from '../../lib/api'
-import { processLabel } from '../../lib/format'
+import { processLabel, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 interface SettingsPanelProps {
   value: AnalysisOptions
@@ -53,19 +54,18 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
     <section className={clsx('panel p-6', className)}>
       <header className="flex items-center gap-2.5">
         <SlidersHorizontal className="size-4 text-brand-400" />
-        <h2 className="font-display text-lg font-semibold">Machine settings</h2>
+        <h2 className="font-display text-lg font-semibold">{t('Machine settings')}</h2>
       </header>
       <p className="mt-1.5 text-[13px] leading-relaxed text-ink-400">
-        Leave on auto: Revalo reads material, thickness and sheet size from the file. Set them here
-        when the file does not say.
+        {t('Leave on auto: Revalo reads material, thickness and sheet size from the file. Set them here when the file does not say.')}
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-4">
         {!!machines.data?.machines.length && (
           <div className="col-span-2">
-            <Field label="Machine preset">
+            <Field label={t('Machine preset')}>
               <select className={fieldClass} defaultValue="" onChange={(e) => applyMachine(e.target.value)}>
-                <option value="">None</option>
+                <option value="">{t('None')}</option>
                 {machines.data.machines.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name}
@@ -76,20 +76,20 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
           </div>
         )}
         <div className="col-span-2">
-          <Field label="Material">
+          <Field label={t('Material')}>
             <select
               className={fieldClass}
               value={value.material ?? ''}
               onChange={(e) => set({ material: e.target.value || undefined })}
             >
-              <option value="">Auto-detect</option>
+              <option value="">{t('Auto-detect')}</option>
               {families.map((family) => (
                 <optgroup key={family} label={family[0].toUpperCase() + family.slice(1)}>
                   {catalog.data?.materials
                     .filter((m) => m.family === family)
                     .map((m) => (
                       <option key={m.code} value={m.code}>
-                        {m.name.en}
+                        {materialLabel(m.code)}
                       </option>
                     ))}
                 </optgroup>
@@ -97,22 +97,22 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
             </select>
           </Field>
         </div>
-        <Field label="Thickness" hint="mm">
+        <Field label={t('Thickness')} hint={t('mm')}>
           <input
             className={fieldClass}
             inputMode="decimal"
-            placeholder="auto"
+            placeholder={t('auto')}
             value={value.thickness_mm ?? ''}
             onChange={(e) => set({ thickness_mm: num(e.target.value) })}
           />
         </Field>
-        <Field label="Process">
+        <Field label={t('Process')}>
           <select
             className={fieldClass}
             value={value.process ?? ''}
             onChange={(e) => set({ process: e.target.value || undefined })}
           >
-            <option value="">Auto</option>
+            <option value="">{t('Auto')}</option>
             {catalog.data?.processes.map((p) => (
               <option key={p.code} value={p.code}>
                 {processLabel(p.code)}
@@ -120,38 +120,38 @@ export function SettingsPanel({ value, onChange, footer, className }: SettingsPa
             ))}
           </select>
         </Field>
-        <Field label="Sheet width" hint="mm">
+        <Field label={t('Sheet width')} hint={t('mm')}>
           <input
             className={fieldClass}
             inputMode="numeric"
-            placeholder="auto"
+            placeholder={t('auto')}
             value={value.sheet_width_mm ?? ''}
             onChange={(e) => set({ sheet_width_mm: num(e.target.value) })}
           />
         </Field>
-        <Field label="Sheet height" hint="mm">
+        <Field label={t('Sheet height')} hint={t('mm')}>
           <input
             className={fieldClass}
             inputMode="numeric"
-            placeholder="auto"
+            placeholder={t('auto')}
             value={value.sheet_height_mm ?? ''}
             onChange={(e) => set({ sheet_height_mm: num(e.target.value) })}
           />
         </Field>
-        <Field label="Cut width" hint="mm">
+        <Field label={t('Cut width')} hint={t('mm')}>
           <input
             className={fieldClass}
             inputMode="decimal"
-            placeholder="auto"
+            placeholder={t('auto')}
             value={value.kerf_mm ?? ''}
             onChange={(e) => set({ kerf_mm: num(e.target.value) })}
           />
         </Field>
-        <Field label="Smallest useful side" hint="mm">
+        <Field label={t('Smallest useful side')} hint={t('mm')}>
           <input
             className={fieldClass}
             inputMode="numeric"
-            placeholder="auto"
+            placeholder={t('auto')}
             value={value.min_side_mm ?? ''}
             onChange={(e) => set({ min_side_mm: num(e.target.value) })}
           />

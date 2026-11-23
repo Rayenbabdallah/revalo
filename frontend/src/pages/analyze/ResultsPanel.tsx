@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 
 import type { Analysis, SheetAnalysis } from '../../lib/api'
 import { fmtKg, fmtM2, fmtMm, fmtPct } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 interface ResultsPanelProps {
   analysis: Analysis
@@ -36,7 +37,7 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
           aria-hidden
           className="pointer-events-none absolute -end-16 -top-20 size-56 rounded-full bg-reclaim-400/25 blur-3xl"
         />
-        <p className="eyebrow !text-ink-950/75">Reusable on this sheet</p>
+        <p className="eyebrow !text-ink-950/75">{t('Reusable on this sheet')}</p>
         <motion.p
           key={`${analysis.source.name}-${sheet.index}`}
           initial={{ opacity: 0, y: 8 }}
@@ -48,15 +49,15 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
           <span className="ms-2 text-xl text-reclaim-400/80">{weighed ? 'kg' : 'm²'}</span>
         </motion.p>
         <p className="mt-2 text-[13px] text-ink-950/80">
-          {sheet.remnants.length} clean remnant{sheet.remnants.length === 1 ? '' : 's'} · {fmtM2(remnantArea)} m²
+          {t('{count} clean remnant|{count} clean remnants', { count: sheet.remnants.length })} · {fmtM2(remnantArea)} m²
           {weighed ? '' : ' · set the thickness to get weights'}
         </p>
 
         <div className="mt-5 grid grid-cols-3 gap-2.5">
-          <Readout label="Parts" value={String(sheet.part_count)} />
-          <Readout label="Used" value={fmtPct(sheet.utilization)} unit="%" />
+          <Readout label={t('Parts')} value={String(sheet.part_count)} />
+          <Readout label={t('Used')} value={fmtPct(sheet.utilization)} unit="%" />
           <Readout
-            label="Scrap"
+            label={t('Scrap')}
             value={sheet.scrap_weight_kg !== null ? fmtKg(sheet.scrap_weight_kg) : fmtM2(sheet.scrap_area_m2)}
             unit={sheet.scrap_weight_kg !== null ? 'kg' : 'm²'}
           />
@@ -65,12 +66,12 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
 
       <section className="panel overflow-hidden">
         <header className="flex items-center justify-between border-b border-ink-800 px-5 py-3.5">
-          <h3 className="font-display text-[15px] font-semibold">Remnants</h3>
-          <span className="font-mono text-[11px] text-ink-500">shorter side ≥ {fmtMm(analysis.min_side_mm)} mm</span>
+          <h3 className="font-display text-[15px] font-semibold">{t('Remnants')}</h3>
+          <span className="font-mono text-[11px] text-ink-500">{t('shorter side ≥ {size} mm', { size: fmtMm(analysis.min_side_mm) })}</span>
         </header>
         {sheet.remnants.length === 0 ? (
           <p className="px-5 py-6 text-[14px] text-ink-400">
-            No piece on this sheet is big enough to reuse. Everything left over is scrap.
+            {t('No piece on this sheet is big enough to reuse. Everything left over is scrap.')}
           </p>
         ) : (
           <ul className="max-h-[300px] divide-y divide-ink-800/80 overflow-y-auto">
@@ -94,7 +95,7 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
                 </span>
                 <span className="readout text-[15px] text-ink-100">
                   {fmtMm(r.width)} <span className="text-ink-500">×</span> {fmtMm(r.height)}
-                  <span className="ms-1 text-[11px] text-ink-500">mm</span>
+                  <span className="ms-1 text-[11px] text-ink-500">{t('mm')}</span>
                 </span>
                 <span className="readout text-end text-[13px] text-ink-300">
                   {r.weight_kg !== null ? `${fmtKg(r.weight_kg)} kg` : `${fmtM2(r.area_m2, 3)} m²`}
@@ -108,7 +109,7 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
       {analysis.warnings.length > 0 && (
         <section className="rounded-2xl border border-brand-500/25 bg-brand-500/[0.05] p-5">
           <h3 className="flex items-center gap-2 text-[13px] font-semibold text-brand-300">
-            <AlertTriangle className="size-4" /> Check before approving
+            <AlertTriangle className="size-4" /> {t('Check before approving')}
           </h3>
           <ul className="mt-2.5 space-y-1.5 text-[13px] leading-relaxed text-ink-300">
             {analysis.warnings.map((w) => (

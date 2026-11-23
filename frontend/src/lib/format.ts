@@ -1,5 +1,7 @@
+import { intlLocale, t } from './i18n'
+
 const nf = (digits: number) =>
-  new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
+  new Intl.NumberFormat(intlLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits })
 
 export const fmtMm = (v: number) => nf(0).format(v)
 export const fmtKg = (v: number | null | undefined, digits = 1) =>
@@ -14,33 +16,33 @@ export function fmtBytes(size: number) {
 }
 
 const SOURCE_LABEL: Record<string, string> = {
-  given: 'set by you',
-  file_name: 'from file name',
-  file_content: 'from file',
-  file_type: 'from file type',
-  unknown: 'not found',
+  given: t('set by you'),
+  file_name: t('from file name'),
+  file_content: t('from file'),
+  file_type: t('from file type'),
+  unknown: t('not found'),
 }
 export const sourceLabel = (source: string) => SOURCE_LABEL[source] ?? source
 
 const PROCESS_LABEL: Record<string, string> = {
-  fiber_laser: 'Fibre laser',
-  co2_laser: 'CO₂ laser',
-  plasma: 'Plasma',
-  waterjet: 'Waterjet',
-  router: 'CNC router',
-  panel_saw: 'Panel saw',
+  fiber_laser: t('Fibre laser'),
+  co2_laser: t('CO₂ laser'),
+  plasma: t('Plasma'),
+  waterjet: t('Waterjet'),
+  router: t('CNC router'),
+  panel_saw: t('Panel saw'),
 }
-export const processLabel = (code: string | null) => (code ? (PROCESS_LABEL[code] ?? code) : 'Unknown')
+export const processLabel = (code: string | null) => (code ? (PROCESS_LABEL[code] ?? code) : t('Unknown'))
 
-const FORMAT_LABEL = { dxf: 'DXF nest', gcode: 'G-code', cutlist: 'Cut list' } as const
+const FORMAT_LABEL = { dxf: t('DXF nest'), gcode: 'G-code', cutlist: t('Cut list') } as const
 export const formatLabel = (f: keyof typeof FORMAT_LABEL) => FORMAT_LABEL[f]
 
 export function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(intlLocale(), { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso))
 }
 
 export function fmtDateTime(iso: string) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(intlLocale(), {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -49,45 +51,45 @@ export function fmtDateTime(iso: string) {
 }
 
 const MATERIAL_LABEL: Record<string, string> = {
-  steel_mild: 'Mild steel',
-  steel_galvanized: 'Galvanized steel',
-  stainless_304: 'Stainless 304',
-  stainless_316: 'Stainless 316',
-  aluminium: 'Aluminium',
-  copper: 'Copper',
-  brass: 'Brass',
-  mdf: 'MDF',
-  hdf: 'HDF',
-  plywood: 'Plywood',
-  particleboard: 'Particleboard',
-  melamine_board: 'Melamine board',
-  osb: 'OSB',
-  solid_pine: 'Solid pine',
-  solid_beech: 'Solid beech',
-  pmma: 'Acrylic',
+  steel_mild: t('Mild steel'),
+  steel_galvanized: t('Galvanized steel'),
+  stainless_304: t('Stainless 304'),
+  stainless_316: t('Stainless 316'),
+  aluminium: t('Aluminium'),
+  copper: t('Copper'),
+  brass: t('Brass'),
+  mdf: t('MDF'),
+  hdf: t('HDF'),
+  plywood: t('Plywood'),
+  particleboard: t('Particleboard'),
+  melamine_board: t('Melamine board'),
+  osb: t('OSB'),
+  solid_pine: t('Solid pine'),
+  solid_beech: t('Solid beech'),
+  pmma: t('Acrylic'),
 }
-export const materialLabel = (code: string | null) => (code ? (MATERIAL_LABEL[code] ?? code) : 'Unknown material')
+export const materialLabel = (code: string | null) => (code ? (MATERIAL_LABEL[code] ?? code) : t('Unknown material'))
 
 const STATUS_LABEL: Record<string, string> = {
-  draft: 'To review',
-  rejected: 'Rejected',
-  in_stock: 'In stock',
-  reserved: 'Reserved',
-  reused: 'Reused',
-  sold: 'Sold',
-  recycled: 'Recycled',
-  approved: 'Approved',
-  open: 'On sale',
-  withdrawn: 'Withdrawn',
-  requested: 'Requested',
-  scheduled: 'Scheduled',
-  collected: 'Collected',
-  cancelled: 'Cancelled',
+  draft: t('To review'),
+  rejected: t('Rejected'),
+  in_stock: t('In stock'),
+  reserved: t('Reserved'),
+  reused: t('Reused'),
+  sold: t('Sold'),
+  recycled: t('Recycled'),
+  approved: t('Approved'),
+  open: t('On sale'),
+  withdrawn: t('Withdrawn'),
+  requested: t('Requested'),
+  scheduled: t('Scheduled'),
+  collected: t('Collected'),
+  cancelled: t('Cancelled'),
 }
 export const statusLabel = (status: string) => STATUS_LABEL[status] ?? status
 
 export const fmtTnd = (v: number | null | undefined, digits = 0) =>
   v === null || v === undefined ? '—' : `${nf(digits).format(v)} TND`
 
-const ACTION_LABEL = { reuse: 'Reuse', sell: 'Sell', recycle: 'Recycle' } as const
+const ACTION_LABEL = { reuse: t('Reuse'), sell: t('Sell'), recycle: t('Recycle') } as const
 export const actionLabel = (a: keyof typeof ACTION_LABEL) => ACTION_LABEL[a]

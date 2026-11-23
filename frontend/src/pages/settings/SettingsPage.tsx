@@ -7,12 +7,13 @@ import { PricesPage } from '../prices/PricesPage'
 import { AccountPanel } from './AccountPanel'
 import { MachinesPanel } from './MachinesPanel'
 import { TeamPanel } from './TeamPanel'
+import { t } from '../../lib/i18n'
 
 const TABS = [
-  { id: 'machines', label: 'Machines', min: 'manager' },
-  { id: 'prices', label: 'Price book', min: 'manager' },
-  { id: 'team', label: 'Team', min: 'owner' },
-  { id: 'account', label: 'Account', min: 'operator' },
+  { id: 'machines', label: t('Machines'), min: 'manager' },
+  { id: 'prices', label: t('Price book'), min: 'manager' },
+  { id: 'team', label: t('Team'), min: 'owner' },
+  { id: 'account', label: t('Account'), min: 'operator' },
 ] as const satisfies readonly { id: string; label: string; min: Role }[]
 
 type Tab = (typeof TABS)[number]['id']
@@ -28,8 +29,8 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-12">
-      <p className="eyebrow">Settings</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Your workshop</h1>
+      <p className="eyebrow">{t('Settings')}</p>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">{t('Your workshop')}</h1>
       {tabs.length > 1 && (
         <div className="mt-6 flex w-fit rounded-xl border border-ink-700 bg-ink-900 p-1">
           {tabs.map(({ id, label }) => (

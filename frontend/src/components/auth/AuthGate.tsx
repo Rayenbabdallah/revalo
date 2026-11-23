@@ -5,6 +5,7 @@ import { getMe } from '../../lib/api'
 import { UserContext } from '../../lib/auth'
 import { SignInPage } from '../../pages/auth/SignInPage'
 import { LogoMark } from '../brand/Logo'
+import { t } from '../../lib/i18n'
 
 /** Shows the sign-in screen until someone is signed in, then the app as them. */
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -28,7 +29,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
             onClick={() => me.refetch()}
             className="mt-4 rounded-xl border border-ink-700 px-4 py-2 text-[14px] font-medium text-ink-100 hover:border-brand-500"
           >
-            Try again
+            {t('Try again')}
           </button>
         </div>
       </div>

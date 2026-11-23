@@ -7,6 +7,7 @@ import { getHealth } from '../../lib/api'
 import { LogoMark, Wordmark } from '../brand/Logo'
 import { AlertsBell } from './AlertsBell'
 import { UserMenu } from './UserMenu'
+import { t } from '../../lib/i18n'
 
 export interface NavItem {
   id: string
@@ -24,7 +25,7 @@ interface AppShellProps {
 function ServerStatus({ compact = false }: { compact?: boolean }) {
   const health = useQuery({ queryKey: ['health'], queryFn: getHealth, refetchInterval: 15_000 })
   const online = health.isSuccess
-  const label = health.isPending ? 'Connecting' : online ? 'Engine online' : 'Engine offline'
+  const label = health.isPending ? t('Connecting') : online ? t('Engine online') : t('Engine offline')
   return (
     <div className="flex items-center gap-2" title={label}>
       <span className="relative flex size-2">

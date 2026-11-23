@@ -5,7 +5,7 @@
      IBM Plex Sans Arabic for Arabic. IBM Plex Mono for measurements, same family. */
   --font-display: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Sans Arabic', ui-monospace, 'SFMono-Regular', monospace;
 
   /* Ink: from the page (950, brand cream #f7f4ee) to the darkest text (50, brand black #121212).
      The ramp runs from paper to ink, so higher numbers are lighter. */
@@ -113,6 +113,23 @@
   .eyebrow {
     @apply font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400;
   }
+}
+
+/* Arabic: Plex Sans Arabic everywhere (Montserrat has no Arabic letters), and no
+   letter-spacing or capitals, which break the joined script. */
+:root[lang='ar'] {
+  --font-display: 'IBM Plex Sans Arabic', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans Arabic', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[lang='ar'] body *:not(.readout):not(code) {
+  letter-spacing: 0 !important;
+}
+
+:root[lang='ar'] .eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  text-transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

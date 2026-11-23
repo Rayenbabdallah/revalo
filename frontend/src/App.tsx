@@ -6,6 +6,7 @@ import { RequireRole } from './components/auth/RequireRole'
 import { AppShell, type NavItem } from './components/shell/AppShell'
 import type { Role } from './lib/api'
 import { atLeast, useUser } from './lib/auth'
+import { t } from './lib/i18n'
 import { AnalyzePage } from './pages/analyze/AnalyzePage'
 import { BuyPage } from './pages/buy/BuyPage'
 import { JobReviewPage } from './pages/jobs/JobReviewPage'
@@ -20,13 +21,13 @@ import { StockPage } from './pages/stock/StockPage'
 import { UploadPage } from './pages/upload/UploadPage'
 
 const NAV: (NavItem & { min: Role })[] = [
-  { id: '/upload', label: 'Upload', icon: Upload, min: 'operator' },
-  { id: '/analyze', label: 'Analyze', icon: ScanLine, min: 'operator' },
-  { id: '/jobs', label: 'Jobs', icon: Layers, min: 'operator' },
-  { id: '/stock', label: 'Stock', icon: Warehouse, min: 'operator' },
-  { id: '/market', label: 'Market', icon: Store, min: 'manager' },
-  { id: '/report', label: 'Report', icon: FileBarChart, min: 'manager' },
-  { id: '/settings', label: 'Settings', icon: Settings, min: 'operator' },
+  { id: '/upload', label: t('Upload'), icon: Upload, min: 'operator' },
+  { id: '/analyze', label: t('Analyze'), icon: ScanLine, min: 'operator' },
+  { id: '/jobs', label: t('Jobs'), icon: Layers, min: 'operator' },
+  { id: '/stock', label: t('Stock'), icon: Warehouse, min: 'operator' },
+  { id: '/market', label: t('Market'), icon: Store, min: 'manager' },
+  { id: '/report', label: t('Report'), icon: FileBarChart, min: 'manager' },
+  { id: '/settings', label: t('Settings'), icon: Settings, min: 'operator' },
 ]
 
 /** The signed-in app: navigation and pages follow the person's role. */

@@ -8,6 +8,7 @@ import { ListButton } from '../../components/market/ListButton'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { patchPiece, type JobDetail, type Piece, type PiecePatch } from '../../lib/api'
 import { fmtKg, fmtM2, fmtMm } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 interface PieceCardProps {
   piece: Piece
@@ -78,7 +79,7 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
   const editable = piece.status === 'draft' && !locked
   const rejected = piece.status === 'rejected'
   const isRemnant = piece.kind === 'remnant'
-  const short = isRemnant ? piece.label.split('-').pop() : 'Lot'
+  const short = isRemnant ? piece.label.split('-').pop() : t('Lot')
 
   return (
     <article
@@ -104,11 +105,11 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
             {isRemnant ? (
               <>
                 {fmtMm(piece.width_mm ?? 0)} <span className="text-ink-500">×</span> {fmtMm(piece.height_mm ?? 0)}
-                <span className="ms-1 text-[11px] text-ink-500">mm</span>
+                <span className="ms-1 text-[11px] text-ink-500">{t('mm')}</span>
               </>
             ) : (
               <>
-                Scrap skeleton <span className="text-[12px] text-ink-500">· sheet {piece.sheet_index + 1}</span>
+                {t('Scrap skeleton')} <span className="text-[12px] text-ink-500">· {t('sheet {n}', { n: piece.sheet_index + 1 })}</span>
               </>
             )}
           </p>
@@ -129,13 +130,13 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
         {isRemnant && (
           <>
             <NumberField
-              label="Width mm"
+              label={t('Width mm')}
               value={piece.width_mm}
               disabled={!editable}
               onCommit={(v) => v !== null && save.mutate({ width_mm: v })}
             />
             <NumberField
-              label="Height mm"
+              label={t('Height mm')}
               value={piece.height_mm}
               disabled={!editable}
               onCommit={(v) => v !== null && save.mutate({ height_mm: v })}
@@ -143,7 +144,7 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
           </>
         )}
         <NumberField
-          label="Weighed kg"
+          label={t('Weighed kg')}
           value={piece.weight_actual_kg}
           placeholder={piece.weight_est_kg !== null ? fmtKg(piece.weight_est_kg) : 'kg'}
           disabled={!editable}
@@ -153,10 +154,10 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
 
       <div className="mt-3 flex items-end gap-2">
         <label className="block flex-1">
-          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">Condition</span>
+          <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{t('Condition')}</span>
           <input
             className={inputClass + ' font-sans'}
-            placeholder="Scratched corner, bent edge…"
+            placeholder={t('Scratched corner, bent edge…')}
             value={noteDraft ?? piece.condition_note ?? ''}
             onChange={(e) => setNoteDraft(e.target.value)}
             onBlur={() => {
@@ -178,7 +179,7 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
             )}
           >
             {rejected ? <RotateCcw className="size-3.5" /> : <Ban className="size-3.5" />}
-            {rejected ? 'Restore' : 'Reject'}
+            {rejected ? t('Restore') : t('Reject')}
           </button>
         )}
       </div>

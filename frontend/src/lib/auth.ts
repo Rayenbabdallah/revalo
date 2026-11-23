@@ -1,19 +1,20 @@
 import { createContext, useContext } from 'react'
 
 import type { Role, User } from './api'
+import { t } from './i18n'
 
 const RANK: Record<Role, number> = { operator: 1, manager: 2, owner: 3 }
 
 export const ROLE_LABEL: Record<Role, string> = {
-  operator: 'Operator',
-  manager: 'Manager',
-  owner: 'Owner',
+  operator: t('Operator'),
+  manager: t('Manager'),
+  owner: t('Owner'),
 }
 
 export const ROLE_HINT: Record<Role, string> = {
-  operator: 'Uploads jobs, measures and moves pieces, takes remnants for new jobs.',
-  manager: 'Also approves records, sells, books pickups, sets prices and machines.',
-  owner: 'Everything, plus who has an account.',
+  operator: t('Uploads jobs, measures and moves pieces, takes remnants for new jobs.'),
+  manager: t('Also approves records, sells, books pickups, sets prices and machines.'),
+  owner: t('Everything, plus who has an account.'),
 }
 
 /** The signed-in person. Set by AuthGate, so every page inside the app has one. */

@@ -6,13 +6,14 @@ import { lazy, Suspense, useState } from 'react'
 import { useLocation } from 'wouter'
 
 import { analyzeFile, createJob, fetchSampleFile, type Analysis, type AnalysisOptions, type Sample } from '../../lib/api'
-import { formatLabel, processLabel, sourceLabel } from '../../lib/format'
+import { formatLabel, processLabel, sourceLabel, materialLabel } from '../../lib/format'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
 import { visualThickness } from '../../components/viewer/thickness'
 import { DropZone } from './DropZone'
 import { ResultsPanel } from './ResultsPanel'
 import { SampleGallery } from './SampleGallery'
 import { SettingsPanel } from './SettingsPanel'
+import { t } from '../../lib/i18n'
 
 const SheetViewer = lazy(() => import('../../components/viewer/SheetViewer'))
 
@@ -71,7 +72,7 @@ function Results({
         <div className="min-w-0">
           <p className="eyebrow flex items-center gap-2">
             <FileText className="size-3.5" /> {formatLabel(analysis.source.format)}
-            {analysis.source.layout_estimated && <span className="text-brand-400">· layout estimated</span>}
+            {analysis.source.layout_estimated && <span className="text-brand-400">{t('· layout estimated')}</span>}
           </p>
           <h1 className="mt-2 truncate font-display text-3xl font-semibold tracking-tight md:text-4xl">{file.name}</h1>
         </div>
@@ -86,14 +87,14 @@ function Results({
                 : 'border-ink-700 text-ink-200 hover:border-ink-500',
             )}
           >
-            <SlidersHorizontal className="size-4" /> Adjust
+            <SlidersHorizontal className="size-4" /> {t('Adjust')}
           </button>
           <button
             type="button"
             onClick={onReset}
             className="inline-flex items-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-medium text-ink-200 transition hover:border-ink-500"
           >
-            <RotateCcw className="size-4" /> New job
+            <RotateCcw className="size-4" /> {t('New job')}
           </button>
           <button
             type="button"
@@ -101,26 +102,26 @@ function Results({
             disabled={save.isPending}
             className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
           >
-            <Save className="size-4" /> {save.isPending ? 'Saving…' : 'Save & review'}
+            <Save className="size-4" /> {save.isPending ? t('Saving…') : t('Save & review')}
           </button>
         </div>
       </div>
-      {save.isError && <p className="mt-3 text-[13px] text-alarm-400">Could not save the job: {save.error.message}</p>}
+      {save.isError && <p className="mt-3 text-[13px] text-alarm-400">{t('Could not save the job: {error}', { error: save.error.message })}</p>}
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Chip
-          label="Material"
-          value={analysis.material?.name.en ?? 'Unknown'}
+          label={t('Material')}
+          value={analysis.material ? materialLabel(analysis.material.code) : t('Unknown')}
           source={analysis.material ? sourceLabel(analysis.material.source) : undefined}
         />
         <Chip
-          label="Thickness"
-          value={analysis.thickness_mm ? `${analysis.thickness_mm} mm` : 'Unknown'}
+          label={t('Thickness')}
+          value={analysis.thickness_mm ? `${analysis.thickness_mm} mm` : t('Unknown')}
           source={analysis.thickness_mm ? sourceLabel(analysis.thickness_source) : undefined}
         />
-        <Chip label="Process" value={processLabel(analysis.process)} source={analysis.process ? sourceLabel(analysis.process_source) : undefined} />
-        <Chip label="Cut width" value={`${analysis.kerf_mm} mm`} />
-        <Chip label="Sheet" value={`${Math.round(sheet.width)} × ${Math.round(sheet.height)} mm`} source={sheet.sheet_detected ? 'from file' : 'assumed'} />
+        <Chip label={t('Process')} value={processLabel(analysis.process)} source={analysis.process ? sourceLabel(analysis.process_source) : undefined} />
+        <Chip label={t('Cut width')} value={`${analysis.kerf_mm} mm`} />
+        <Chip label={t('Sheet')} value={`${Math.round(sheet.width)} × ${Math.round(sheet.height)} mm`} source={sheet.sheet_detected ? 'from file' : 'assumed'} />
       </div>
 
       <AnimatePresence>
@@ -143,7 +144,7 @@ function Results({
                   onClick={onRerun}
                   className="w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-ink-950 transition hover:bg-brand-400 disabled:opacity-60"
                 >
-                  {busy ? 'Analyzing…' : 'Run again with these settings'}
+                  {busy ? t('Analyzing…') : t('Run again with these settings')}
                 </button>
               }
             />
@@ -154,7 +155,7 @@ function Results({
       <div className="mt-6 grid gap-5 lg:grid-cols-12">
         <section className="stage relative h-[440px] overflow-hidden md:h-[620px] lg:col-span-8">
           <Suspense
-            fallback={<div className="grid h-full place-items-center font-mono text-sm text-ink-500">Loading 3D view…</div>}
+            fallback={<div className="grid h-full place-items-center font-mono text-sm text-ink-500">{t('Loading 3D view…')}</div>}
           >
             <SheetViewer
               key={`${analysis.source.name}-${sheet.index}`}
@@ -172,7 +173,7 @@ function Results({
             <div className="pointer-events-auto flex rounded-xl border border-ink-700 bg-ink-950/80 p-1 backdrop-blur-md">
               {([
                 ['3d', '3D', Box],
-                ['top', 'Top', Scan],
+                ['top', t('Top'), Scan],
               ] as const).map(([value, label, Icon]) => (
                 <button
                   key={value}
@@ -209,13 +210,13 @@ function Results({
           <div className="pointer-events-none absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-wrap gap-3 rounded-xl border border-ink-800 bg-ink-950/70 px-3.5 py-2 font-mono text-[11px] text-ink-300 backdrop-blur-md">
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-reclaim-400" /> Remnant
+                <span className="size-2.5 rounded-sm bg-reclaim-400" /> {t('Remnant')}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-ink-500" /> Part
+                <span className="size-2.5 rounded-sm bg-ink-500" /> {t('Part')}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm bg-ink-300" /> Scrap skeleton
+                <span className="size-2.5 rounded-sm bg-ink-300" /> {t('Scrap skeleton')}
               </span>
             </div>
             {exaggeration > 1.5 && (
@@ -268,20 +269,19 @@ export function AnalyzePage() {
       ) : (
         <>
           <motion.header initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }}>
-            <p className="eyebrow">Leftover engine</p>
+            <p className="eyebrow">{t('Leftover engine')}</p>
             <h1 className="mt-4 max-w-3xl font-display text-[40px] font-semibold leading-[1.02] tracking-[-0.03em] text-ink-50 md:text-[64px]">
-              Every sheet leaves{' '}
+              {t('Every sheet leaves')}{' '}
               <span className="relative whitespace-nowrap text-reclaim-600">
-                money
+                {t('money')}
                 <svg aria-hidden viewBox="0 0 200 12" className="absolute -bottom-2 start-0 w-full text-reclaim-400" preserveAspectRatio="none">
                   <path d="M2 9 Q 60 2 120 6 T 198 4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>{' '}
-              behind.
+              {t('behind.')}
             </h1>
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-ink-300">
-              Upload a nest, a G-code program or a cut list. Revalo shows you every reusable remnant
-              with its size and weight, and what is only fit for the scrap bin.
+              {t('Upload a nest, a G-code program or a cut list. Revalo shows you every reusable remnant with its size and weight, and what is only fit for the scrap bin.')}
             </p>
           </motion.header>
 
@@ -306,10 +306,10 @@ export function AnalyzePage() {
                 className="mt-5 flex items-start justify-between gap-4 rounded-xl border border-alarm-400/40 bg-alarm-400/10 px-5 py-4 text-[14px] text-ink-100"
               >
                 <span>
-                  <strong className="font-semibold text-alarm-400">Could not analyze {file?.name ?? 'the file'}.</strong>{' '}
+                  <strong className="font-semibold text-alarm-400">{t('Could not analyze {file}.', { file: file?.name ?? t('the file') })}</strong>{' '}
                   {error.message}
                 </span>
-                <button type="button" onClick={() => { run.reset(); sample.reset() }} aria-label="Dismiss">
+                <button type="button" onClick={() => { run.reset(); sample.reset() }} aria-label={t('Dismiss')}>
                   <X className="size-4 text-ink-400" />
                 </button>
               </motion.div>

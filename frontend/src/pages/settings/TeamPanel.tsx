@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { addUser, listUsers, updateUser, type Role, type User } from '../../lib/api'
 import { ROLE_HINT, ROLE_LABEL, useUser } from '../../lib/auth'
 import { fmtDateTime } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const ROLES: Role[] = ['operator', 'manager', 'owner']
 
@@ -43,11 +44,11 @@ function AddPerson({ onDone }: { onDone: () => void }) {
       }}
     >
       <label className="text-[13px] font-medium text-ink-200">
-        Name
+        {t('Name')}
         <input required value={name} onChange={(e) => setName(e.target.value)} className={clsx(INPUT, 'mt-1.5')} />
       </label>
       <label className="text-[13px] font-medium text-ink-200">
-        Email
+        {t('Email')}
         <input
           required
           type="email"
@@ -57,7 +58,7 @@ function AddPerson({ onDone }: { onDone: () => void }) {
         />
       </label>
       <label className="text-[13px] font-medium text-ink-200">
-        Role
+        {t('Role')}
         <select value={role} onChange={(e) => setRole(e.target.value as Role)} className={clsx(INPUT, 'mt-1.5')}>
           {ROLES.map((r) => (
             <option key={r} value={r}>
@@ -68,7 +69,7 @@ function AddPerson({ onDone }: { onDone: () => void }) {
         <span className="mt-1 block text-[12px] font-normal text-ink-500">{ROLE_HINT[role]}</span>
       </label>
       <label className="text-[13px] font-medium text-ink-200">
-        Temporary password
+        {t('Temporary password')}
         <span className="mt-1.5 flex gap-2">
           <input
             required
@@ -80,14 +81,14 @@ function AddPerson({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             onClick={() => setPassword(temporaryPassword())}
-            aria-label="New temporary password"
+            aria-label={t('New temporary password')}
             className="grid w-10 shrink-0 place-items-center rounded-xl border border-ink-700 text-ink-300 hover:border-brand-500"
           >
             <RefreshCw className="size-4" />
           </button>
         </span>
         <span className="mt-1 block text-[12px] font-normal text-ink-500">
-          Give it to them in person. They can change it under Account.
+          {t('Give it to them in person. They can change it under Account.')}
         </span>
       </label>
       {add.isError && <p className="text-[13px] text-alarm-400 md:col-span-2">{add.error.message}</p>}
@@ -97,10 +98,10 @@ function AddPerson({ onDone }: { onDone: () => void }) {
           disabled={add.isPending}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-60"
         >
-          <UserPlus className="size-4" /> Add to the team
+          <UserPlus className="size-4" /> {t('Add to the team')}
         </button>
         <button type="button" onClick={onDone} className="rounded-xl px-4 py-2.5 text-[14px] text-ink-400 hover:text-ink-100">
-          Cancel
+          {t('Cancel')}
         </button>
       </div>
     </form>
@@ -124,7 +125,7 @@ function PersonRow({ person, isMe }: { person: User; isMe: boolean }) {
       <div className="min-w-0">
         <p className="truncate text-[14.5px] font-semibold text-ink-50">
           {person.name}
-          {isMe && <span className="ms-2 text-[12px] font-normal text-ink-400">(you)</span>}
+          {isMe && <span className="ms-2 text-[12px] font-normal text-ink-400">{t('(you)')}</span>}
         </p>
         <p className="truncate text-[12.5px] text-ink-400">{person.email}</p>
       </div>
@@ -144,16 +145,16 @@ function PersonRow({ person, isMe }: { person: User; isMe: boolean }) {
       <p className="text-[12.5px] text-ink-400">
         {person.active
           ? person.last_login_at
-            ? `Last sign-in ${fmtDateTime(person.last_login_at)}`
-            : 'Has not signed in yet'
-          : 'No access'}
+            ? t('Last sign-in {date}', { date: fmtDateTime(person.last_login_at) })
+            : t('Has not signed in yet')
+          : t('No access')}
       </p>
       <div className="flex gap-1.5 md:justify-end">
         {person.active && (
           <button
             type="button"
             onClick={() => change.mutate({ password: temporaryPassword() })}
-            title="Reset password"
+            title={t('Reset password')}
             aria-label={`Reset the password of ${person.name}`}
             className="grid size-9 place-items-center rounded-xl border border-ink-700 text-ink-300 hover:border-brand-500"
           >
@@ -173,18 +174,18 @@ function PersonRow({ person, isMe }: { person: User; isMe: boolean }) {
           >
             {person.active ? (
               <>
-                <UserMinus className="size-4" /> Remove
+                <UserMinus className="size-4" /> {t('Remove')}
               </>
             ) : (
-              'Restore'
+              t('Restore')
             )}
           </button>
         )}
       </div>
       {newPassword && (
         <p className="rounded-xl bg-reclaim-400/12 px-3 py-2 text-[13px] text-ink-100 md:col-span-4">
-          New password for {person.name}: <span className="readout font-semibold">{newPassword}</span>. They are signed
-          out everywhere until they use it.
+          {t('New password for {name}:', { name: person.name })} <span className="readout font-semibold">{newPassword}</span>.{' '}
+          {t('They are signed out everywhere until they use it.')}
         </p>
       )}
       {change.isError && <p className="text-[13px] text-alarm-400 md:col-span-4">{change.error.message}</p>}
@@ -202,8 +203,7 @@ export function TeamPanel() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="max-w-2xl text-[14.5px] text-ink-400">
-          Operators record jobs and pieces; managers approve, sell and price; owners also manage the team. Every
-          record keeps the name of who made it.
+          {t('Operators record jobs and pieces; managers approve, sell and price; owners also manage the team. Every record keeps the name of who made it.')}
         </p>
         {!adding && (
           <button
@@ -211,13 +211,13 @@ export function TeamPanel() {
             onClick={() => setAdding(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400"
           >
-            <Plus className="size-4" /> Add a person
+            <Plus className="size-4" /> {t('Add a person')}
           </button>
         )}
       </div>
       {adding && <AddPerson onDone={() => setAdding(false)} />}
       {users.isPending ? (
-        <p className="font-mono text-sm text-ink-500">Loading the team…</p>
+        <p className="font-mono text-sm text-ink-500">{t('Loading the team…')}</p>
       ) : users.isError ? (
         <p className="text-sm text-alarm-400">{users.error.message}</p>
       ) : (

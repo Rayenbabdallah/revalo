@@ -4,7 +4,8 @@ import { Pencil, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { getMaterials, getPrices, putPrice, resetPrice, type PriceRow } from '../../lib/api'
-import { fmtDate } from '../../lib/format'
+import { fmtDate, fmtTnd, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const PANEL_M3 = 2.44 * 1.22 * 0.018
 
@@ -13,9 +14,9 @@ function tradeHint(row: PriceRow, density: number | undefined) {
   if (row.new_tnd_per_kg === null) return null
   if (row.family === 'wood' && density) {
     const panel = row.new_tnd_per_kg * PANEL_M3 * density
-    return `≈ ${panel.toFixed(0)} TND per 2440×1220×18 panel`
+    return `≈ ${t('{amount} TND per 2440×1220×18 panel', { amount: panel.toFixed(0) })}`
   }
-  return `≈ ${(row.new_tnd_per_kg * 1000).toLocaleString('en-US', { maximumFractionDigits: 0 })} TND per tonne`
+  return `≈ ${t('{amount} TND per tonne', { amount: fmtTnd(row.new_tnd_per_kg * 1000).replace(' TND', '') })}`
 }
 
 const inputClass =
@@ -53,22 +54,22 @@ function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
       className="grid gap-3 border-t border-ink-800 bg-ink-950/40 px-6 py-4 md:grid-cols-[repeat(3,minmax(0,140px))_1fr_auto]"
     >
       <label className="block">
-        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">New TND/kg</span>
+        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{t('New TND/kg')}</span>
         <input className={inputClass} inputMode="decimal" required value={newPrice} onChange={(e) => setNewPrice(e.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">Scrap TND/kg</span>
+        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{t('Scrap TND/kg')}</span>
         <input className={inputClass} inputMode="decimal" required value={scrap} onChange={(e) => setScrap(e.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">Resale %</span>
+        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{t('Resale %')}</span>
         <input className={inputClass} inputMode="numeric" required value={resale} onChange={(e) => setResale(e.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">Source</span>
+        <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-500">{t('Source')}</span>
         <input
           className={inputClass + ' font-sans'}
-          placeholder="Supplier quote, scrap dealer, date…"
+          placeholder={t('Supplier quote, scrap dealer, date…')}
           value={source}
           onChange={(e) => setSource(e.target.value)}
         />
@@ -79,9 +80,9 @@ function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
           disabled={save.isPending}
           className="h-[38px] rounded-lg bg-brand-500 px-4 text-[13px] font-semibold text-ink-950 transition hover:bg-brand-400 disabled:opacity-60"
         >
-          Save
+          {t('Save')}
         </button>
-        <button type="button" onClick={onClose} aria-label="Cancel" className="grid h-[38px] w-[38px] place-items-center rounded-lg border border-ink-700 text-ink-400 hover:text-ink-100">
+        <button type="button" onClick={onClose} aria-label={t('Cancel')} className="grid h-[38px] w-[38px] place-items-center rounded-lg border border-ink-700 text-ink-400 hover:text-ink-100">
           <X className="size-4" />
         </button>
       </div>
@@ -111,41 +112,41 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
     <div className={embedded ? '' : 'mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-12'}>
       {!embedded && (
         <>
-          <p className="eyebrow">Price book</p>
+          <p className="eyebrow">{t('Price book')}</p>
           <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
-            The numbers behind every decision
+            {t('The numbers behind every decision')}
           </h1>
         </>
       )}
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-400">
-        Revalo compares reusing, selling and recycling each piece with these prices. Defaults come from published
-        sources; replace them with your own supplier and scrap-dealer quotes.
-        {missing > 0 && ` ${missing} materials have no price yet: their pieces are kept for reuse until you add one.`}
+        {t('Revalo compares reusing, selling and recycling each piece with these prices. Defaults come from published sources; replace them with your own supplier and scrap-dealer quotes.')}
+        {missing > 0 &&
+          ` ${t('{count} material has no price yet: its pieces are kept for reuse until you add one.|{count} materials have no price yet: their pieces are kept for reuse until you add one.', { count: missing })}`}
       </p>
 
       <section className="panel mt-8 overflow-hidden">
         <div className="hidden grid-cols-[1.3fr_0.8fr_0.8fr_0.6fr_0.8fr_1.6fr_auto] gap-4 border-b border-ink-800 px-6 py-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-500 lg:grid">
-          <span>Material</span>
-          <span className="text-end">New</span>
-          <span className="text-end">Scrap</span>
-          <span className="text-end">Resale</span>
-          <span className="text-end">CO₂ / kg</span>
-          <span>Source</span>
+          <span>{t('Material')}</span>
+          <span className="text-end">{t('New')}</span>
+          <span className="text-end">{t('Scrap')}</span>
+          <span className="text-end">{t('Resale')}</span>
+          <span className="text-end">{t('CO₂ / kg')}</span>
+          <span>{t('Source')}</span>
           <span className="w-[76px]" />
         </div>
         {rows.map((row) => (
           <div key={row.material_code} className="border-b border-ink-800/70 last:border-0">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-6 py-4 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.6fr_0.8fr_1.6fr_auto] lg:items-center">
               <div className="col-span-2 lg:col-span-1">
-                <p className="font-medium text-ink-100">{row.name.en}</p>
+                <p className="font-medium text-ink-100">{materialLabel(row.material_code)}</p>
                 <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-500">
                   {row.family}
                   {row.custom ? (
-                    <span className="ms-2 text-reclaim-300">your price</span>
+                    <span className="ms-2 text-reclaim-300">{t('your price')}</span>
                   ) : row.new_tnd_per_kg === null ? (
-                    <span className="ms-2 text-brand-300">no price</span>
+                    <span className="ms-2 text-brand-300">{t('no price')}</span>
                   ) : (
-                    <span className="ms-2">default</span>
+                    <span className="ms-2">{t('default')}</span>
                   )}
                 </p>
               </div>
@@ -159,7 +160,7 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
               <div className="readout text-[14px] text-ink-300 lg:text-end">
                 {row.resale_factor !== null ? `${Math.round(row.resale_factor * 100)}%` : '—'}
               </div>
-              <div className="readout text-[14px] text-ink-300 lg:text-end" title={row.co2_source ?? 'No published factor yet'}>
+              <div className="readout text-[14px] text-ink-300 lg:text-end" title={row.co2_source ?? t('No published factor yet')}>
                 {row.co2_primary_kg_per_kg !== null ? `${row.co2_primary_kg_per_kg} kg` : '—'}
               </div>
               <p className="col-span-2 text-[12px] leading-snug text-ink-500 lg:col-span-1">
@@ -181,13 +182,13 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
                       : 'border-ink-700 text-ink-300 hover:border-ink-500',
                   )}
                 >
-                  <Pencil className="size-3.5" /> {row.new_tnd_per_kg === null ? 'Add' : 'Edit'}
+                  <Pencil className="size-3.5" /> {row.new_tnd_per_kg === null ? t('Add') : t('Edit')}
                 </button>
                 {row.custom && (
                   <button
                     type="button"
                     onClick={() => reset.mutate(row.material_code)}
-                    title="Back to the default price"
+                    title={t('Back to the default price')}
                     className="grid size-8 place-items-center rounded-lg border border-ink-700 text-ink-400 transition hover:text-ink-100"
                   >
                     <RotateCcw className="size-3.5" />

@@ -7,6 +7,8 @@ import { Link } from 'wouter'
 
 import { signOut, type Me } from '../../lib/api'
 import { ROLE_LABEL, useUser } from '../../lib/auth'
+import { t } from '../../lib/i18n'
+import { LanguagePicker } from './LanguagePicker'
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/)
@@ -72,17 +74,18 @@ export function UserMenu({ placement = 'rail' }: { placement?: 'rail' | 'header'
                 {ROLE_LABEL[user.role]}
               </span>
             </div>
+            <LanguagePicker className="border-t border-ink-800 px-2 py-2" />
             <div className="border-t border-ink-800 pt-1">
               <Link href="/settings?tab=account" onClick={() => setOpen(false)} className={item}>
-                <KeyRound className="size-4 text-ink-400" /> Account and password
+                <KeyRound className="size-4 text-ink-400" /> {t('Account and password')}
               </Link>
               {user.role === 'owner' && (
                 <Link href="/settings?tab=team" onClick={() => setOpen(false)} className={item}>
-                  <Users className="size-4 text-ink-400" /> Team
+                  <Users className="size-4 text-ink-400" /> {t('Team')}
                 </Link>
               )}
               <button type="button" onClick={leave} className={clsx(item, 'w-full')}>
-                <LogOut className="size-4 text-ink-400" /> Sign out
+                <LogOut className="size-4 text-ink-400" /> {t('Sign out')}
               </button>
             </div>
           </motion.div>

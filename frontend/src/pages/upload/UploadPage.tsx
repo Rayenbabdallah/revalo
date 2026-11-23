@@ -7,6 +7,7 @@ import { Link } from 'wouter'
 
 import { createJob, getMachines, type JobDetail, type Machine } from '../../lib/api'
 import { fmtKg, fmtTnd, materialLabel, processLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const ACCEPT = '.dxf,.nc,.gcode,.ngc,.tap,.cnc,.gc,.csv,.tsv,.txt'
 
@@ -56,9 +57,9 @@ export function UploadPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8 md:py-12">
-      <p className="eyebrow">At the machine</p>
-      <h1 className="mt-3 font-display text-[34px] font-semibold leading-tight tracking-tight">Send a finished job</h1>
-      <p className="mt-2 text-[15px] text-ink-400">Pick your machine, then the file it just cut. The manager checks the rest.</p>
+      <p className="eyebrow">{t('At the machine')}</p>
+      <h1 className="mt-3 font-display text-[34px] font-semibold leading-tight tracking-tight">{t('Send a finished job')}</h1>
+      <p className="mt-2 text-[15px] text-ink-400">{t('Pick your machine, then the file it just cut. The manager checks the rest.')}</p>
 
       <AnimatePresence mode="wait">
         {done ? (
@@ -70,18 +71,18 @@ export function UploadPage() {
             className="panel-brand mt-8 p-7 text-center"
           >
             <CheckCircle2 className="mx-auto size-12 text-reclaim-400" />
-            <p className="mt-3 font-display text-2xl font-semibold">Sent for review</p>
+            <p className="mt-3 font-display text-2xl font-semibold">{t('Sent for review')}</p>
             <p className="mt-1 text-[14.5px] text-ink-950/85">{done.file_name}</p>
             <div className="mt-5 grid grid-cols-2 gap-3 text-start">
               <div className="rounded-xl bg-white/10 px-4 py-3">
-                <p className="eyebrow !text-[10px] !text-ink-950/75">Remnants</p>
+                <p className="eyebrow !text-[10px] !text-ink-950/75">{t('Remnants')}</p>
                 <p className="readout mt-1 text-2xl text-reclaim-400">
                   {done.remnant_count}
                   <span className="ms-1 text-sm text-ink-950/75">· {fmtKg(done.remnant_weight_kg)} kg</span>
                 </p>
               </div>
               <div className="rounded-xl bg-white/10 px-4 py-3">
-                <p className="eyebrow !text-[10px] !text-ink-950/75">Worth about</p>
+                <p className="eyebrow !text-[10px] !text-ink-950/75">{t('Worth about')}</p>
                 <p className="readout mt-1 text-2xl text-reclaim-400">
                   {done.recovered.priced_pieces ? fmtTnd(done.recovered.value_tnd) : '—'}
                 </p>
@@ -93,24 +94,24 @@ export function UploadPage() {
                 onClick={() => upload.reset()}
                 className="inline-flex items-center gap-2 rounded-xl bg-ink-950 px-5 py-3 text-[15px] font-semibold text-brand-500"
               >
-                <RotateCcw className="size-4" /> Next job
+                <RotateCcw className="size-4" /> {t('Next job')}
               </button>
               <Link href={`/jobs/${done.id}`} className="rounded-xl border border-white/30 px-5 py-3 text-[15px] font-medium">
-                Open review
+                {t('Open review')}
               </Link>
             </div>
           </motion.section>
         ) : (
           <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <section className="mt-8">
-              <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-400">1 · Machine</p>
+              <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-400">{t('1 · Machine')}</p>
               {machines.isPending ? (
-                <p className="font-mono text-sm text-ink-500">Loading…</p>
+                <p className="font-mono text-sm text-ink-500">{t('Loading…')}</p>
               ) : list.length === 0 ? (
                 <div className="panel p-5 text-[14px] text-ink-300">
                   No machine is set up yet.{' '}
                   <Link href="/settings" className="font-medium text-brand-500 hover:underline">
-                    Add your machines
+                    {t('Add your machines')}
                   </Link>{' '}
                   so uploads need no typing. You can still send a file: Revalo reads what it can from it.
                 </div>
@@ -124,7 +125,7 @@ export function UploadPage() {
             </section>
 
             <section className="mt-8">
-              <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-400">2 · Job file</p>
+              <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-ink-400">{t('2 · Job file')}</p>
               <button
                 type="button"
                 disabled={upload.isPending || (list.length > 0 && !chosen)}
@@ -133,9 +134,9 @@ export function UploadPage() {
               >
                 {upload.isPending ? <Loader2 className="size-9 animate-spin" /> : <FileUp className="size-9" />}
                 <span className="font-display text-lg font-semibold">
-                  {upload.isPending ? 'Reading the cut…' : 'Choose the file'}
+                  {upload.isPending ? t('Reading the cut…') : t('Choose the file')}
                 </span>
-                <span className="text-[13px] text-ink-400">DXF nest, G-code program or CSV cut list</span>
+                <span className="text-[13px] text-ink-400">{t('DXF nest, G-code program or CSV cut list')}</span>
               </button>
               <input
                 ref={input}

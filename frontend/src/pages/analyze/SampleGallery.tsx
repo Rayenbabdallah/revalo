@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 
 import { getSamples, type Sample } from '../../lib/api'
 import { fmtBytes, processLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 function iconFor(name: string) {
   if (name.endsWith('.csv')) return FileSpreadsheet
@@ -19,11 +20,11 @@ export function SampleGallery({ disabled, onPick }: { disabled: boolean; onPick:
     <section className="mt-14">
       <div className="flex items-end justify-between gap-6">
         <div>
-          <p className="eyebrow">No file at hand?</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold">Try a real job</h2>
+          <p className="eyebrow">{t('No file at hand?')}</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold">{t('Try a real job')}</h2>
         </div>
         <p className="hidden max-w-sm text-end text-[13px] text-ink-400 md:block">
-          Workshop-style samples, plus real files from open-source projects with their licences.
+          {t('Workshop-style samples, plus real files from open-source projects with their licences.')}
         </p>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -46,7 +47,7 @@ export function SampleGallery({ disabled, onPick }: { disabled: boolean; onPick:
               </div>
               <p className="text-[14px] font-medium leading-snug text-ink-100">{sample.title}</p>
               <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10.5px] text-ink-500">
-                <span>{sample.process ? processLabel(sample.process) : 'Drawing'}</span>
+                <span>{sample.process ? processLabel(sample.process) : t('Drawing')}</span>
                 <span>·</span>
                 <span>{fmtBytes(sample.size)}</span>
                 {sample.licence && (

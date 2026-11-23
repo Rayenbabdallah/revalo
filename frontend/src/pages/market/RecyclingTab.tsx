@@ -12,7 +12,8 @@ import {
   type Pickup,
   type RecycleGroup,
 } from '../../lib/api'
-import { fmtDate, fmtKg, fmtMm, fmtTnd } from '../../lib/format'
+import { fmtDate, fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const field =
   'rounded-lg border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-[13px] text-ink-50 focus:border-brand-500 focus:outline-none'
@@ -41,9 +42,9 @@ function GroupCard({ group }: { group: RecycleGroup }) {
   return (
     <article className="panel p-5">
       <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display text-[17px] font-semibold">{group.material_name?.en ?? 'Unknown material'}</h3>
+        <h3 className="font-display text-[17px] font-semibold">{materialLabel(group.material_code)}</h3>
         <p className="readout text-[13px] text-ink-400">
-          {selected.length} of {group.pieces.length} pieces · {fmtKg(kg)} kg
+          {t('{selected} of {count} pieces', { selected: selected.length, count: group.pieces.length })} · {fmtKg(kg)} kg
         </p>
       </header>
       <ul className="mt-3 divide-y divide-ink-800 rounded-xl border border-ink-800">
@@ -60,7 +61,7 @@ function GroupCard({ group }: { group: RecycleGroup }) {
               />
               <span className="readout w-24 text-ink-400">{p.code}</span>
               <span className="flex-1 text-ink-100">
-                {p.kind === 'scrap' ? 'Scrap lot' : `${fmtMm(p.width_mm ?? 0)} × ${fmtMm(p.height_mm ?? 0)} mm`}
+                {p.kind === 'scrap' ? t('Scrap lot') : `${fmtMm(p.width_mm ?? 0)} × ${fmtMm(p.height_mm ?? 0)} mm`}
               </span>
               <span className="readout text-ink-300">{fmtKg(p.weight_kg)} kg</span>
             </label>
@@ -68,10 +69,10 @@ function GroupCard({ group }: { group: RecycleGroup }) {
         ))}
       </ul>
 
-      <p className="mt-4 text-[12.5px] font-medium text-ink-300">Recyclers who take it</p>
+      <p className="mt-4 text-[12.5px] font-medium text-ink-300">{t('Recyclers who take it')}</p>
       {group.recyclers.length === 0 ? (
         <p className="mt-1 text-[13px] text-ink-400">
-          No recycler for this material yet. Add one in the Buyers tab or share the public page.
+          {t('No recycler for this material yet. Add one in the Buyers tab or share the public page.')}
         </p>
       ) : (
         <div className="mt-2 space-y-2">
@@ -117,7 +118,7 @@ function GroupCard({ group }: { group: RecycleGroup }) {
           onClick={() => create.mutate()}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-50"
         >
-          <Truck className="size-4" /> Request pickup on WhatsApp
+          <Truck className="size-4" /> {t('Request pickup on WhatsApp')}
         </button>
       </div>
       {create.isError && <p className="mt-2 text-[13px] text-alarm-400">{create.error.message}</p>}
@@ -143,7 +144,7 @@ function PickupRow({ pickup }: { pickup: Pickup }) {
           <span className="text-[14px] font-medium text-ink-50">{pickup.recycler.name}</span>
         </div>
         <p className="mt-1 text-[12.5px] text-ink-400">
-          {pickup.pieces.length} pieces · {fmtKg(pickup.weighed_kg ?? pickup.estimated_kg)} kg
+          {t('{count} piece|{count} pieces', { count: pickup.pieces.length })} · {fmtKg(pickup.weighed_kg ?? pickup.estimated_kg)} kg
           {pickup.weighed_kg !== null ? ' weighed' : ' estimated'}
           {pickup.scheduled_for && ` · pickup ${fmtDate(pickup.scheduled_for)}`}
           {pickup.paid_tnd !== null && ` · paid ${fmtTnd(pickup.paid_tnd, 2)}`}
@@ -152,18 +153,18 @@ function PickupRow({ pickup }: { pickup: Pickup }) {
       {open && (
         <div className="flex flex-wrap items-center gap-2">
           <a href={pickup.whatsapp_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-reclaim-300">
-            <MessageCircle className="size-3.5" /> Message
+            <MessageCircle className="size-3.5" /> {t('Message')}
           </a>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={field} aria-label="Pickup date" />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={field} aria-label={t('Pickup date')} />
           <button type="button" disabled={!date} onClick={() => act.mutate({ action: 'schedule', scheduled_for: date })} className="rounded-lg border border-ink-700 px-3 py-1.5 text-[12.5px] text-ink-200 hover:border-brand-500 disabled:opacity-50">
-            Schedule
+            {t('Schedule')}
           </button>
-          <input value={kg} onChange={(e) => setKg(e.target.value)} inputMode="decimal" placeholder="kg on ticket" className={clsx(field, 'w-28')} aria-label="Weighed kg" />
+          <input value={kg} onChange={(e) => setKg(e.target.value)} inputMode="decimal" placeholder={t('kg on ticket')} className={clsx(field, 'w-28')} aria-label={t('Weighed kg')} />
           <button type="button" disabled={!kg} onClick={() => act.mutate({ action: 'collect', weighed_kg: Number(kg.replace(',', '.')) })} className="rounded-lg bg-brand-500 px-3 py-1.5 text-[12.5px] font-semibold text-ink-950 disabled:opacity-50">
-            Collected
+            {t('Collected')}
           </button>
           <button type="button" onClick={() => act.mutate({ action: 'cancel' })} className="text-[12.5px] text-ink-400 hover:text-alarm-400">
-            Cancel
+            {t('Cancel')}
           </button>
         </div>
       )}
@@ -182,13 +183,12 @@ export function RecyclingTab() {
     <div className="space-y-6">
       <section className="space-y-3">
         <p className="max-w-2xl text-[14px] leading-relaxed text-ink-400">
-          Scrap lots, and remnants that were not reused or sold in time, wait here. Send them to the recycler who pays
-          the most for the material, nearby, as one sorted lot.
+          {t('Scrap lots, and remnants that were not reused or sold in time, wait here. Send them to the recycler who pays the most for the material, nearby, as one sorted lot.')}
         </p>
         {groups.length === 0 ? (
           <div className="panel flex flex-col items-center gap-2 px-6 py-10 text-center">
             <Recycle className="size-8 text-ink-500" strokeWidth={1.5} />
-            <p className="text-[14px] text-ink-400">Nothing to recycle right now.</p>
+            <p className="text-[14px] text-ink-400">{t('Nothing to recycle right now.')}</p>
           </div>
         ) : (
           groups.map((g) => <GroupCard key={g.material_code ?? 'unknown'} group={g} />)
@@ -196,7 +196,7 @@ export function RecyclingTab() {
       </section>
       {list.length > 0 && (
         <section className="space-y-2">
-          <h3 className="font-display text-lg font-semibold">Pickups</h3>
+          <h3 className="font-display text-lg font-semibold">{t('Pickups')}</h3>
           {list.map((p) => (
             <PickupRow key={p.id} pickup={p} />
           ))}

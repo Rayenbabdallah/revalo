@@ -2,7 +2,9 @@ import '@fontsource/montserrat/600.css'
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/500.css'
 import '@fontsource/ibm-plex-sans/600.css'
+import '@fontsource/ibm-plex-sans-arabic/400.css'
 import '@fontsource/ibm-plex-sans-arabic/500.css'
+import '@fontsource/ibm-plex-sans-arabic/600.css'
 import '@fontsource/ibm-plex-mono/400.css'
 import '@fontsource/ibm-plex-mono/500.css'
 import './index.css'
@@ -13,6 +15,7 @@ import { createRoot } from 'react-dom/client'
 
 import App from './App.tsx'
 import { ApiError } from './lib/api'
+import { applyDocumentLocale } from './lib/i18n'
 
 // A 401 means the sign-in ended (expired, or removed by the owner): ask again.
 const onError = (error: Error) => {
@@ -32,6 +35,8 @@ const queryClient: QueryClient = new QueryClient({
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['alerts'] }),
   }),
 })
+
+applyDocumentLocale()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

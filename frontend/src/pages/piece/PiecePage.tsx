@@ -9,11 +9,12 @@ import { OptionGrid } from '../../components/decision/Decision'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { getPieceByCode } from '../../lib/api'
 import { fmtDate, fmtDateTime, fmtKg, fmtM2, fmtMm, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const ACTION_LABEL: Record<string, string> = {
-  created: 'Recorded from the cut file',
-  corrected: 'Corrected',
-  approved: 'Approved into stock',
+  created: t('Recorded from the cut file'),
+  corrected: t('Corrected'),
+  approved: t('Approved into stock'),
 }
 
 function Fact({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
@@ -37,15 +38,15 @@ export function PiecePage({ code }: { code: string }) {
     <div className="mx-auto min-h-full max-w-xl px-4 py-6">
       <header className="flex items-center justify-between">
         <Wordmark />
-        <span className="font-mono text-[11px] text-ink-500">leftover record</span>
+        <span className="font-mono text-[11px] text-ink-500">{t('leftover record')}</span>
       </header>
 
       {piece.isPending ? (
-        <p className="mt-16 text-center font-mono text-sm text-ink-500">Looking up {code}…</p>
+        <p className="mt-16 text-center font-mono text-sm text-ink-500">{t('Looking up {code}…', { code })}</p>
       ) : piece.isError || !p ? (
         <div className="panel mt-10 p-8 text-center">
-          <p className="font-display text-xl font-semibold">No piece with code {code}</p>
-          <p className="mt-2 text-[14px] text-ink-400">Check the label, or the piece may have been removed.</p>
+          <p className="font-display text-xl font-semibold">{t('No piece with code {code}', { code })}</p>
+          <p className="mt-2 text-[14px] text-ink-400">{t('Check the label, or the piece may have been removed.')}</p>
         </div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -59,10 +60,10 @@ export function PiecePage({ code }: { code: string }) {
               {p.kind === 'remnant' ? (
                 <span className="readout">
                   {fmtMm(p.width_mm ?? 0)} <span className="text-ink-950/60">×</span> {fmtMm(p.height_mm ?? 0)}
-                  <span className="ms-1.5 text-lg text-ink-950/70">mm</span>
+                  <span className="ms-1.5 text-lg text-ink-950/70">{t('mm')}</span>
                 </span>
               ) : (
-                'Scrap lot'
+                t('Scrap lot')
               )}
             </p>
             <p className="mt-1 text-[15px] text-ink-950/85">
@@ -72,16 +73,16 @@ export function PiecePage({ code }: { code: string }) {
           </section>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Fact icon={<Scale className="size-4" />} label={p.weight_actual_kg !== null ? 'Weighed' : 'Estimated weight'}>
-              {p.weight_kg !== null ? `${fmtKg(p.weight_kg)} kg` : 'Not known'}
+            <Fact icon={<Scale className="size-4" />} label={p.weight_actual_kg !== null ? t('Weighed') : t('Estimated weight')}>
+              {p.weight_kg !== null ? `${fmtKg(p.weight_kg)} kg` : t('Not known')}
             </Fact>
-            <Fact icon={<Ruler className="size-4" />} label="Area">
+            <Fact icon={<Ruler className="size-4" />} label={t('Area')}>
               {fmtM2(p.area_m2, 3)} m²
             </Fact>
-            <Fact icon={<MapPin className="size-4" />} label="Location">
-              {p.location ?? 'Not set'}
+            <Fact icon={<MapPin className="size-4" />} label={t('Location')}>
+              {p.location ?? t('Not set')}
             </Fact>
-            <Fact icon={<CalendarClock className="size-4" />} label="Review date">
+            <Fact icon={<CalendarClock className="size-4" />} label={t('Review date')}>
               {p.review_date ? fmtDate(p.review_date) : '—'}
             </Fact>
           </div>
@@ -93,7 +94,7 @@ export function PiecePage({ code }: { code: string }) {
 
           {p.decision.recommended && (
             <section className="mt-6">
-              <p className="eyebrow">What to do with it</p>
+              <p className="eyebrow">{t('What to do with it')}</p>
               <div className="mt-3">
                 <OptionGrid decision={p.decision} />
               </div>
@@ -106,7 +107,7 @@ export function PiecePage({ code }: { code: string }) {
           )}
 
           <section className="mt-6">
-            <p className="eyebrow">History</p>
+            <p className="eyebrow">{t('History')}</p>
             <ol className="mt-3 border-s border-ink-700 ps-5">
               {p.events.map((e, i) => (
                 <li key={i} className="relative pb-4 last:pb-0">
@@ -124,7 +125,7 @@ export function PiecePage({ code }: { code: string }) {
             href={`/jobs/${p.job.id}`}
             className="mt-8 flex items-center gap-2 rounded-xl border border-ink-800 px-4 py-3 text-[13px] text-ink-300 transition hover:border-ink-600"
           >
-            <FileText className="size-4 text-ink-500" /> From job <span className="truncate text-ink-100">{p.job.file_name}</span>
+            <FileText className="size-4 text-ink-500" /> {t('From job')} <span className="truncate text-ink-100">{p.job.file_name}</span>
           </Link>
         </motion.div>
       )}

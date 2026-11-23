@@ -4,12 +4,14 @@ import { motion } from 'motion/react'
 import { useId, useState, type ReactNode } from 'react'
 
 import { Wordmark } from '../../components/brand/Logo'
+import { LanguagePicker } from '../../components/shell/LanguagePicker'
 import { setupWorkshop, signIn, type Me } from '../../lib/api'
+import { t } from '../../lib/i18n'
 
 const PROOF = [
-  { icon: ScanLine, text: 'Remnants and scrap found in your CNC files, weighed and priced.' },
-  { icon: QrCode, text: 'Every offcut labelled, approved and traceable on the rack.' },
-  { icon: Recycle, text: 'Reuse, sell or recycle: the best outcome in TND and CO₂.' },
+  { icon: ScanLine, text: t('Remnants and scrap found in your CNC files, weighed and priced.') },
+  { icon: QrCode, text: t('Every offcut labelled, approved and traceable on the rack.') },
+  { icon: Recycle, text: t('Reuse, sell or recycle: the best outcome in TND and CO₂.') },
 ]
 
 function Field({
@@ -63,7 +65,7 @@ function PasswordInput({
       <button
         type="button"
         onClick={() => setShown((s) => !s)}
-        aria-label={shown ? 'Hide password' : 'Show password'}
+        aria-label={shown ? t('Hide password') : t('Show password')}
         className="absolute inset-y-0 end-0 grid w-11 place-items-center text-ink-400 hover:text-ink-100"
       >
         {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -114,9 +116,9 @@ export function SignInPage({ me }: { me: Me }) {
         <Wordmark tone="white" className="relative h-9 self-start" />
         <div className="relative mt-auto max-w-lg">
           <h1 className="font-display text-[44px] font-semibold leading-[1.05] tracking-tight text-ink-950">
-            Every offcut,
+            {t('Every offcut,')}
             <br />
-            <span className="text-reclaim-400">on the record.</span>
+            <span className="text-reclaim-400">{t('on the record.')}</span>
           </h1>
           <ul className="mt-8 space-y-4">
             {PROOF.map(({ icon: Icon, text }, i) => (
@@ -137,7 +139,8 @@ export function SignInPage({ me }: { me: Me }) {
         </div>
       </aside>
 
-      <main className="flex items-center justify-center px-5 py-12">
+      <main className="relative flex items-center justify-center px-5 py-16">
+        <LanguagePicker className="absolute end-5 top-5" />
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,14 +148,14 @@ export function SignInPage({ me }: { me: Me }) {
           className="w-full max-w-[400px]"
         >
           <Wordmark className="mb-10 h-8 lg:hidden" />
-          <p className="eyebrow">{setup ? 'First start' : me.workshop.name}</p>
+          <p className="eyebrow">{setup ? t('First start') : me.workshop.name}</p>
           <h2 className="mt-2 font-display text-[30px] font-semibold tracking-tight text-ink-50">
-            {setup ? 'Set up your workshop' : 'Sign in'}
+            {setup ? t('Set up your workshop') : t('Sign in')}
           </h2>
           <p className="mt-2 text-[14.5px] text-ink-400">
             {setup
-              ? 'You will be the owner. Add your managers and operators after.'
-              : 'Use the email and password your workshop owner gave you.'}
+              ? t('You will be the owner. Add your managers and operators after.')
+              : t('Use the email and password your workshop owner gave you.')}
           </p>
 
           <form
@@ -164,19 +167,19 @@ export function SignInPage({ me }: { me: Me }) {
           >
             {setup && (
               <>
-                <Field label="Workshop name">
+                <Field label={t('Workshop name')}>
                   {(id) => (
                     <input
                       id={id}
                       value={workshop}
                       onChange={(e) => setWorkshop(e.target.value)}
-                      placeholder="Atelier Ben Arous"
+                      placeholder={t('Atelier Ben Arous')}
                       autoComplete="organization"
                       className={INPUT}
                     />
                   )}
                 </Field>
-                <Field label="Your name">
+                <Field label={t('Your name')}>
                   {(id) => (
                     <input
                       id={id}
@@ -190,7 +193,7 @@ export function SignInPage({ me }: { me: Me }) {
                 </Field>
               </>
             )}
-            <Field label="Email">
+            <Field label={t('Email')}>
               {(id) => (
                 <input
                   id={id}
@@ -203,7 +206,7 @@ export function SignInPage({ me }: { me: Me }) {
                 />
               )}
             </Field>
-            <Field label="Password" hint={setup ? 'At least 8 characters.' : undefined}>
+            <Field label={t('Password')} hint={setup ? t('At least 8 characters.') : undefined}>
               {(id) => (
                 <PasswordInput
                   id={id}
@@ -225,12 +228,12 @@ export function SignInPage({ me }: { me: Me }) {
               disabled={submit.isPending}
               className="group mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-[15px] font-semibold text-ink-950 shadow-[0_12px_30px_-12px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
             >
-              {submit.isPending ? 'One moment…' : setup ? 'Create workshop' : 'Sign in'}
+              {submit.isPending ? t('One moment…') : setup ? t('Create workshop') : t('Sign in')}
               <ArrowRight className="size-4 transition group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
             </button>
           </form>
           {!setup && (
-            <p className="mt-6 text-[12.5px] text-ink-500">Forgot your password? Ask your workshop owner to reset it.</p>
+            <p className="mt-6 text-[12.5px] text-ink-500">{t('Forgot your password? Ask your workshop owner to reset it.')}</p>
           )}
         </motion.div>
       </main>

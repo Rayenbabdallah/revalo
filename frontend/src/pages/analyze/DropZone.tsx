@@ -2,9 +2,10 @@ import clsx from 'clsx'
 import { FileUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { t } from '../../lib/i18n'
 
 const ACCEPT = '.dxf,.nc,.gcode,.ngc,.tap,.cnc,.gc,.csv,.tsv,.txt'
-const STAGES = ['Reading contours', 'Finding the sheet', 'Measuring remnants', 'Weighing scrap']
+const STAGES = [t('Reading contours'), t('Finding the sheet'), t('Measuring remnants'), t('Weighing scrap')]
 
 function Ruler({ vertical = false }: { vertical?: boolean }) {
   // Millimetre ticks with a longer tick every 10, like a machine bed ruler.
@@ -107,32 +108,31 @@ export function DropZone({ busy, onFile }: DropZoneProps) {
             exit={{ opacity: 0 }}
             className="mt-6"
           >
-            <p className="font-display text-2xl font-semibold text-ink-50">Analyzing the job</p>
+            <p className="font-display text-2xl font-semibold text-ink-50">{t('Analyzing the job')}</p>
             <BusyStages />
           </motion.div>
         ) : (
           <motion.div key="idle" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-6">
             <p className="font-display text-2xl font-semibold text-ink-50 md:text-[28px]">
-              Drop the file your machine already makes
+              {t('Drop the file your machine already makes')}
             </p>
             <p className="mx-auto mt-2 max-w-md text-[15px] text-ink-300">
-              Revalo reads the cut, finds every reusable remnant, and weighs the scrap. No measuring
-              tape, no typing.
+              {t('Revalo reads the cut, finds every reusable remnant, and weighs the scrap. No measuring tape, no typing.')}
             </p>
             <button
               type="button"
               onClick={() => input.current?.click()}
               className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-[15px] font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 active:translate-y-px"
             >
-              Choose a file
+              {t('Choose a file')}
             </button>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              {['DXF nest', 'G-code', 'CSV cut list'].map((label) => (
+              {[t('DXF nest'), 'G-code', t('CSV cut list')].map((label) => (
                 <span key={label} className="rounded-full border border-ink-700 px-3 py-1 font-mono text-[11px] text-ink-300">
                   {label}
                 </span>
               ))}
-              <span className="font-mono text-[11px] text-ink-500">up to 25 MB</span>
+              <span className="font-mono text-[11px] text-ink-500">{t('up to 25 MB')}</span>
             </div>
           </motion.div>
         )}

@@ -5,7 +5,8 @@ import { useRef, useState } from 'react'
 import { Link } from 'wouter'
 
 import { checkFit, getMaterials, reuseRemnants, type FitPlan, type FitUse } from '../../lib/api'
-import { fmtKg, fmtMm, fmtTnd } from '../../lib/format'
+import { fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 interface Row {
   length: string
@@ -21,7 +22,7 @@ function RemnantDrawing({ use }: { use: FitUse }) {
   const { width_mm: w, height_mm: h } = use.piece
   const pad = Math.max(w, h) * 0.02
   return (
-    <svg viewBox={`${-pad} ${-pad} ${w + 2 * pad} ${h + 2 * pad}`} className="max-h-56 w-full" role="img" aria-label={`Remnant ${use.piece.code} with ${use.placements.length} parts`}>
+    <svg viewBox={`${-pad} ${-pad} ${w + 2 * pad} ${h + 2 * pad}`} className="max-h-56 w-full" role="img" aria-label={t('Remnant {code} with {count} parts', { code: use.piece.code, count: use.placements.length })}>
       <rect x={0} y={0} width={w} height={h} rx={Math.max(w, h) * 0.006} fill="#e9e4da" stroke="#bdb5a7" strokeWidth={Math.max(w, h) * 0.003} />
       {use.placements.map((p, i) => (
         <g key={i}>
@@ -62,7 +63,7 @@ export function FitPage() {
     mutationFn: (plan: FitPlan) =>
       reuseRemnants(
         plan.uses.map((u) => u.piece.id),
-        jobName.trim() || file?.name || 'Next job',
+        jobName.trim() || file?.name || t('Next job'),
       ),
     onSuccess: () => {
       for (const key of ['stock', 'listings', 'job', 'jobs']) queryClient.invalidateQueries({ queryKey: [key] })
@@ -73,13 +74,12 @@ export function FitPage() {
   return (
     <div className="mx-auto max-w-[1180px] px-4 py-8 md:px-10 md:py-12">
       <Link href="/stock" className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 hover:text-ink-100">
-        <ArrowLeft className="size-4 rtl:-scale-x-100" /> Stock
+        <ArrowLeft className="size-4 rtl:-scale-x-100" /> {t('Stock')}
       </Link>
-      <p className="eyebrow mt-4">Before you cut</p>
-      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Can the racks cut it?</h1>
+      <p className="eyebrow mt-4">{t('Before you cut')}</p>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">{t('Can the racks cut it?')}</h1>
       <p className="mt-2 max-w-2xl text-[15px] text-ink-400">
-        Give Revalo the next job. It places the parts on remnants you already have, so you open a new sheet only for
-        what does not fit.
+        {t('Give Revalo the next job. It places the parts on remnants you already have, so you open a new sheet only for what does not fit.')}
       </p>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-[380px_1fr]">
@@ -91,8 +91,8 @@ export function FitPage() {
           >
             <FileUp className="size-6 shrink-0" />
             <span className="min-w-0">
-              <span className="block truncate text-[14.5px] font-semibold">{file ? file.name : 'Next job file'}</span>
-              <span className="block text-[12px] text-ink-400">Parts drawing (DXF), G-code or cut list</span>
+              <span className="block truncate text-[14.5px] font-semibold">{file ? file.name : t('Next job file')}</span>
+              <span className="block text-[12px] text-ink-400">{t('Parts drawing (DXF), G-code or cut list')}</span>
             </span>
           </button>
           <input
@@ -105,24 +105,24 @@ export function FitPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">Material</span>
+              <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">{t('Material')}</span>
               <select value={material} onChange={(e) => setMaterial(e.target.value)} className={field}>
-                <option value="">From file name</option>
+                <option value="">{t('From file name')}</option>
                 {catalog.data?.materials.map((m) => (
                   <option key={m.code} value={m.code}>
-                    {m.name.en}
+                    {materialLabel(m.code)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">Thickness (mm)</span>
-              <input value={thickness} onChange={(e) => setThickness(e.target.value)} inputMode="decimal" placeholder="auto" className={field} />
+              <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">{t('Thickness (mm)')}</span>
+              <input value={thickness} onChange={(e) => setThickness(e.target.value)} inputMode="decimal" placeholder={t('auto')} className={field} />
             </label>
           </div>
 
           <div>
-            <p className="mb-1.5 text-[12.5px] font-medium text-ink-300">Or type part sizes (mm)</p>
+            <p className="mb-1.5 text-[12.5px] font-medium text-ink-300">{t('Or type part sizes (mm)')}</p>
             {rows.map((r, i) => (
               <div key={i} className="mb-2 grid grid-cols-[1fr_1fr_64px_32px] gap-2">
                 {(['length', 'width', 'qty'] as const).map((k) => (
@@ -135,13 +135,13 @@ export function FitPage() {
                     className={field}
                   />
                 ))}
-                <button type="button" aria-label="Remove" onClick={() => setRows((all) => all.filter((_, j) => j !== i))} className="grid place-items-center text-ink-500 hover:text-alarm-400">
+                <button type="button" aria-label={t('Remove')} onClick={() => setRows((all) => all.filter((_, j) => j !== i))} className="grid place-items-center text-ink-500 hover:text-alarm-400">
                   <Trash2 className="size-4" />
                 </button>
               </div>
             ))}
             <button type="button" onClick={() => setRows((all) => [...all, { length: '', width: '', qty: '1' }])} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand-500">
-              <Plus className="size-4" /> Add a part size
+              <Plus className="size-4" /> {t('Add a part size')}
             </button>
           </div>
 
@@ -151,7 +151,7 @@ export function FitPage() {
             disabled={run.isPending || (!file && rows.length === 0)}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-3 text-[15px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-50"
           >
-            <Scissors className="size-4" /> {run.isPending ? 'Checking the racks…' : 'Check the stock'}
+            <Scissors className="size-4" /> {run.isPending ? t('Checking the racks…') : t('Check the stock')}
           </button>
           {run.isError && <p className="text-[13px] text-alarm-400">{run.error.message}</p>}
         </section>
@@ -159,24 +159,26 @@ export function FitPage() {
         <section>
           {!plan ? (
             <div className="panel grid min-h-72 place-items-center p-8 text-center text-[14px] text-ink-400">
-              The plan appears here: each remnant drawn to scale with the parts it can hold.
+              {t('The plan appears here: each remnant drawn to scale with the parts it can hold.')}
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
               <div className="panel-brand p-6">
                 <p className="eyebrow !text-ink-950/75">
-                  {plan.material_name.en} · {plan.thickness_mm} mm · {plan.candidates} remnants in stock
+                  {materialLabel(plan.material_code)} · {plan.thickness_mm} mm · {t('{count} remnant in stock|{count} remnants in stock', { count: plan.candidates })}
                 </p>
                 <p className="mt-3 font-display text-[28px] font-semibold leading-tight">
                   <span className="text-reclaim-400">
-                    {plan.placed_count} of {plan.part_count}
+                    {t('{placed} of {count}', { placed: plan.placed_count, count: plan.part_count })}
                   </span>{' '}
-                  parts fit on {plan.uses.length} remnant{plan.uses.length === 1 ? '' : 's'}
+                  {t('parts fit on {count} remnant|parts fit on {count} remnants', { count: plan.uses.length })}
                 </p>
                 <p className="mt-2 text-[14px] text-ink-950/85">
-                  Saves {fmtKg(plan.saved_kg)} kg of new material
-                  {plan.saved_tnd !== null && <>, about {fmtTnd(plan.saved_tnd)}</>}.
-                  {plan.unplaced.length > 0 && ` ${plan.unplaced.length} part${plan.unplaced.length === 1 ? '' : 's'} still need a new sheet.`}
+                  {plan.saved_tnd !== null
+                    ? t('Saves {kg} kg of new material, about {amount}.', { kg: fmtKg(plan.saved_kg), amount: fmtTnd(plan.saved_tnd) })
+                    : t('Saves {kg} kg of new material.', { kg: fmtKg(plan.saved_kg) })}
+                  {plan.unplaced.length > 0 &&
+                    ` ${t('{count} part still needs a new sheet.|{count} parts still need a new sheet.', { count: plan.unplaced.length })}`}
                 </p>
               </div>
 
@@ -189,9 +191,9 @@ export function FitPage() {
                       {fmtMm(use.piece.width_mm)} × {fmtMm(use.piece.height_mm)} mm
                     </p>
                     <p className="mt-1 text-[13px] text-ink-400">
-                      {use.placements.length} part{use.placements.length === 1 ? '' : 's'} · {Math.round(use.fill * 100)}% used
+                      {t('{count} part|{count} parts', { count: use.placements.length })} · {t('{pct}% used', { pct: Math.round(use.fill * 100) })}
                     </p>
-                    <p className="mt-1 text-[13px] text-ink-400">Rack: {use.piece.location ?? 'not set'}</p>
+                    <p className="mt-1 text-[13px] text-ink-400">{t('Rack: {location}', { location: use.piece.location ?? t('not set') })}</p>
                   </div>
                 </div>
               ))}
@@ -205,8 +207,8 @@ export function FitPage() {
                 ) : (
                   <div className="panel flex flex-wrap items-end gap-3 p-5">
                     <label className="block min-w-56 flex-1">
-                      <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">Job or order name</span>
-                      <input value={jobName} onChange={(e) => setJobName(e.target.value)} placeholder={file?.name ?? 'Order 2026-131'} className={field} />
+                      <span className="mb-1.5 block text-[12.5px] font-medium text-ink-300">{t('Job or order name')}</span>
+                      <input value={jobName} onChange={(e) => setJobName(e.target.value)} placeholder={file?.name ?? t('Order 2026-131')} className={field} />
                     </label>
                     <button
                       type="button"

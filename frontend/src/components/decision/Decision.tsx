@@ -6,11 +6,12 @@ import { useState } from 'react'
 import type { Decision } from '../../lib/api'
 import { actionLabel, fmtKg, fmtTnd } from '../../lib/format'
 import { ACTION_ICON } from './icons'
+import { t } from '../../lib/i18n'
 
 const STAGE_LABEL = {
   new: null,
-  review: 'Review date passed',
-  overdue: 'Overdue',
+  review: t('Review date passed'),
+  overdue: t('Overdue'),
 } as const
 
 /** One row per record: what to do and what it is worth, with the reasons one click away. */
@@ -98,7 +99,7 @@ export function OptionGrid({ decision, compact = false }: { decision: Decision; 
               {o.available ? (o.value_tnd !== null ? fmtTnd(o.value_tnd) : '—') : 'n/a'}
             </p>
             <p className="readout text-[11px] text-ink-500">
-              {o.available && o.co2_kg !== null ? `${fmtKg(o.co2_kg, 0)} kg CO₂` : o.available ? 'CO₂ not known' : ''}
+              {o.available && o.co2_kg !== null ? `${fmtKg(o.co2_kg, 0)} kg CO₂` : o.available ? t('CO₂ not known') : ''}
             </p>
             {!compact && <p className="mt-1.5 text-[11.5px] leading-snug text-ink-400">{o.note}</p>}
           </div>

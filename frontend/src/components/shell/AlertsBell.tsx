@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'wouter'
 
 import { getAlerts } from '../../lib/api'
+import { t } from '../../lib/i18n'
 
 /** The manager's to-do list, worked out by the server from the current state. */
 export function AlertsBell({ placement = 'rail' }: { placement?: 'rail' | 'header' }) {
@@ -51,9 +52,9 @@ export function AlertsBell({ placement = 'rail' }: { placement?: 'rail' | 'heade
               placement === 'rail' ? 'bottom-0 start-12' : 'end-0 top-12',
             )}
           >
-            <p className="px-3 pb-1 pt-2 text-[13px] font-semibold text-ink-100">Needs your attention</p>
+            <p className="px-3 pb-1 pt-2 text-[13px] font-semibold text-ink-100">{t('Needs your attention')}</p>
             {list.length === 0 ? (
-              <p className="px-3 py-4 text-[13px] text-ink-400">All clear.</p>
+              <p className="px-3 py-4 text-[13px] text-ink-400">{t('All clear.')}</p>
             ) : (
               <ul className="max-h-96 overflow-y-auto">
                 {list.map((a, i) => (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { changePassword } from '../../lib/api'
 import { ROLE_HINT, ROLE_LABEL, useUser } from '../../lib/auth'
+import { t } from '../../lib/i18n'
 
 const INPUT =
   'mt-1.5 w-full rounded-xl border border-ink-700 bg-ink-950 px-3 py-2 text-[14px] text-ink-50 focus:border-brand-500 focus:outline-none'
@@ -27,13 +28,13 @@ export function AccountPanel() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <section className="panel p-6">
-        <p className="eyebrow">Signed in as</p>
+        <p className="eyebrow">{t('Signed in as')}</p>
         <p className="mt-3 font-display text-2xl font-semibold text-ink-50">{user.name}</p>
         <p className="text-[14px] text-ink-400">{user.email}</p>
         <p className="mt-4 text-[14px] text-ink-200">
           <span className="font-semibold">{ROLE_LABEL[user.role]}.</span> {ROLE_HINT[user.role]}
         </p>
-        <p className="mt-2 text-[12.5px] text-ink-500">Your name goes on every record you approve or change.</p>
+        <p className="mt-2 text-[12.5px] text-ink-500">{t('Your name goes on every record you approve or change.')}</p>
       </section>
 
       <form
@@ -43,9 +44,9 @@ export function AccountPanel() {
           if (!mismatch) save.mutate()
         }}
       >
-        <p className="text-[15px] font-semibold text-ink-100">Change your password</p>
+        <p className="text-[15px] font-semibold text-ink-100">{t('Change your password')}</p>
         <label className="block text-[13px] font-medium text-ink-200">
-          Current password
+          {t('Current password')}
           <input
             type="password"
             required
@@ -56,7 +57,7 @@ export function AccountPanel() {
           />
         </label>
         <label className="block text-[13px] font-medium text-ink-200">
-          New password
+          {t('New password')}
           <input
             type="password"
             required
@@ -68,7 +69,7 @@ export function AccountPanel() {
           />
         </label>
         <label className="block text-[13px] font-medium text-ink-200">
-          New password again
+          {t('New password again')}
           <input
             type="password"
             required
@@ -79,11 +80,11 @@ export function AccountPanel() {
             className={INPUT}
           />
         </label>
-        {mismatch && <p className="text-[13px] text-alarm-400">The two new passwords differ.</p>}
+        {mismatch && <p className="text-[13px] text-alarm-400">{t('The two new passwords differ.')}</p>}
         {save.isError && <p className="text-[13px] text-alarm-400">{save.error.message}</p>}
         {save.isSuccess && (
           <p className="inline-flex items-center gap-1.5 text-[13px] text-reclaim-300">
-            <Check className="size-4" /> Password changed.
+            <Check className="size-4" /> {t('Password changed.')}
           </p>
         )}
         <button
@@ -91,7 +92,7 @@ export function AccountPanel() {
           disabled={save.isPending || mismatch}
           className="block rounded-xl bg-brand-500 px-4 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-60"
         >
-          Save password
+          {t('Save password')}
         </button>
       </form>
     </div>

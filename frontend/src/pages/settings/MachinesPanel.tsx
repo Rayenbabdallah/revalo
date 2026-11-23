@@ -4,6 +4,7 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 
 import { getMachines, getMaterials, saveMachine, type Machine, type MachineInput } from '../../lib/api'
 import { materialLabel, processLabel } from '../../lib/format'
+import { t } from '../../lib/i18n'
 
 const field =
   'w-full rounded-xl border border-ink-700 bg-ink-900 px-3 py-2.5 text-[14px] text-ink-50 focus:border-brand-500 focus:outline-none'
@@ -50,11 +51,11 @@ function MachineForm({ machine, onDone }: { machine?: Machine; onDone: () => voi
   return (
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-4">
       <div className="sm:col-span-2">
-        <Label text="Name">
-          <input name="name" required defaultValue={machine?.name} placeholder="Fibre laser 3 kW" className={field} />
+        <Label text={t('Name')}>
+          <input name="name" required defaultValue={machine?.name} placeholder={t('Fibre laser 3 kW')} className={field} />
         </Label>
       </div>
-      <Label text="Process">
+      <Label text={t('Process')}>
         <select name="process" required defaultValue={machine?.process ?? 'fiber_laser'} className={field}>
           {catalog.data?.processes.map((p) => (
             <option key={p.code} value={p.code}>
@@ -63,37 +64,37 @@ function MachineForm({ machine, onDone }: { machine?: Machine; onDone: () => voi
           ))}
         </select>
       </Label>
-      <Label text="Usual material">
+      <Label text={t('Usual material')}>
         <select name="material" defaultValue={machine?.material_code ?? ''} className={field}>
-          <option value="">Varies</option>
+          <option value="">{t('Varies')}</option>
           {catalog.data?.materials.map((m) => (
             <option key={m.code} value={m.code}>
-              {m.name.en}
+              {materialLabel(m.code)}
             </option>
           ))}
         </select>
       </Label>
-      <Label text="Usual thickness (mm)">
+      <Label text={t('Usual thickness (mm)')}>
         <input name="thickness" inputMode="decimal" defaultValue={machine?.thickness_mm ?? ''} className={field} />
       </Label>
-      <Label text="Cut width (mm)">
-        <input name="kerf" inputMode="decimal" defaultValue={machine?.kerf_mm ?? ''} placeholder="from process" className={field} />
+      <Label text={t('Cut width (mm)')}>
+        <input name="kerf" inputMode="decimal" defaultValue={machine?.kerf_mm ?? ''} placeholder={t('from process')} className={field} />
       </Label>
-      <Label text="Sheet width (mm)">
+      <Label text={t('Sheet width (mm)')}>
         <input name="sw" inputMode="numeric" defaultValue={machine?.sheet_width_mm ?? ''} className={field} />
       </Label>
-      <Label text="Sheet height (mm)">
+      <Label text={t('Sheet height (mm)')}>
         <input name="sh" inputMode="numeric" defaultValue={machine?.sheet_height_mm ?? ''} className={field} />
       </Label>
-      <Label text="Smallest useful side (mm)">
-        <input name="min" inputMode="numeric" defaultValue={machine?.min_side_mm ?? ''} placeholder="auto" className={field} />
+      <Label text={t('Smallest useful side (mm)')}>
+        <input name="min" inputMode="numeric" defaultValue={machine?.min_side_mm ?? ''} placeholder={t('auto')} className={field} />
       </Label>
       <div className="flex items-end gap-2 sm:col-span-3">
         <button type="submit" disabled={save.isPending} className="rounded-xl bg-brand-500 px-5 py-2.5 text-[14px] font-semibold text-ink-950 hover:bg-brand-400 disabled:opacity-60">
-          Save machine
+          {t('Save machine')}
         </button>
         <button type="button" onClick={onDone} className="rounded-xl border border-ink-700 px-4 py-2.5 text-[14px] text-ink-300">
-          Cancel
+          {t('Cancel')}
         </button>
         {save.isError && <span className="text-[13px] text-alarm-400">{save.error.message}</span>}
       </div>
@@ -114,8 +115,7 @@ export function MachinesPanel() {
   return (
     <div className="space-y-3">
       <p className="max-w-2xl text-[14.5px] leading-relaxed text-ink-400">
-        Save each machine's usual settings once. Operators then pick the machine and the file, and nothing needs typing.
-        Anything the file says itself still wins.
+        {t("Save each machine's usual settings once. Operators then pick the machine and the file, and nothing needs typing. Anything the file says itself still wins.")}
       </p>
       {list.map((m) => (
         <div key={m.id} className="panel p-5">
@@ -129,7 +129,7 @@ export function MachinesPanel() {
                 </span>
                 <div>
                   <p className="font-display text-[16px] font-semibold text-ink-50">
-                    {m.name} {!m.active && <span className="text-[12px] font-normal text-ink-500">· retired</span>}
+                    {m.name} {!m.active && <span className="text-[12px] font-normal text-ink-500">{t('· retired')}</span>}
                   </p>
                   <p className="text-[13px] text-ink-400">
                     {processLabel(m.process)}
@@ -142,10 +142,10 @@ export function MachinesPanel() {
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setEditing(m.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-700 px-3 py-1.5 text-[13px] text-ink-200 hover:border-brand-500">
-                  <Pencil className="size-3.5" /> Edit
+                  <Pencil className="size-3.5" /> {t('Edit')}
                 </button>
                 <button type="button" onClick={() => retire.mutate(m)} className="rounded-lg border border-ink-700 px-3 py-1.5 text-[13px] text-ink-400 hover:border-ink-500">
-                  {m.active ? 'Retire' : 'Restore'}
+                  {m.active ? t('Retire') : t('Restore')}
                 </button>
               </div>
             </div>
@@ -162,7 +162,7 @@ export function MachinesPanel() {
           onClick={() => setEditing('new')}
           className="flex w-full items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-ink-700 py-5 text-[14px] font-medium text-ink-300 hover:border-brand-500 hover:text-brand-500"
         >
-          <Plus className="size-4" /> Add a machine
+          <Plus className="size-4" /> {t('Add a machine')}
         </button>
       )}
     </div>
