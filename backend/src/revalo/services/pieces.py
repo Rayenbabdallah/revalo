@@ -9,7 +9,16 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from revalo.db.models import Job, JobStatus, Piece, PieceEvent, PieceKind, PieceStatus, utcnow
+from revalo.db.models import (
+    Job,
+    JobStatus,
+    ListingStatus,
+    Piece,
+    PieceEvent,
+    PieceKind,
+    PieceStatus,
+    utcnow,
+)
 from revalo.engine.decision import Action
 from revalo.engine.materials import materials
 from revalo.services.decisions import decide_piece
@@ -17,6 +26,7 @@ from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
 
 EDITABLE_STATUSES = {PieceStatus.DRAFT, PieceStatus.REJECTED}
+WEIGHABLE_IN_STOCK = {PieceStatus.IN_STOCK, PieceStatus.RESERVED}
 SIZE_TOLERANCE_MM = 0.5
 
 
@@ -44,18 +54,14 @@ def _estimate_weight(piece: Piece) -> float | None:
 
 def update_piece(session: Session, piece: Piece, changes: PieceChanges, actor: str) -> Piece:
     diff: dict[str, Any] = {}
-    reviewing = (
-        any(
-            v is not None
-            for v in (
-                changes.weight_actual_kg,
-                changes.width_mm,
-                changes.height_mm,
-                changes.rejected,
-            )
-        )
-        or changes.clear_weight
+    # Weighing on the rack later is a fact, not a review: allowed while the piece is kept.
+    weighing_in_stock = (
+        piece.status in WEIGHABLE_IN_STOCK and piece.job.status == JobStatus.APPROVED
     )
+    weight_change = changes.weight_actual_kg is not None or changes.clear_weight
+    reviewing = any(
+        v is not None for v in (changes.width_mm, changes.height_mm, changes.rejected)
+    ) or (weight_change and not weighing_in_stock)
     if reviewing and (
         piece.status not in EDITABLE_STATUSES or piece.job.status == JobStatus.APPROVED
     ):
@@ -99,7 +105,12 @@ def update_piece(session: Session, piece: Piece, changes: PieceChanges, actor: s
             piece.status = status
 
     if diff:
-        piece.events.append(PieceEvent(actor=actor, action="corrected", data=diff))
+        action = "corrected"
+        if set(diff) == {"location"}:
+            action = "moved"
+        elif set(diff) == {"weight_actual_kg"} and weighing_in_stock:
+            action = "weighed"
+        piece.events.append(PieceEvent(actor=actor, action=action, data=diff))
     session.commit()
     return piece
 
@@ -250,3 +261,21 @@ def copy_corrections(session: Session, job: Job, actor: str) -> int:
             continue
         changed += 1
     return changed
+
+
+def scrap_piece(session: Session, piece: Piece, reason: str, actor: str) -> Piece:
+    """A damaged remnant goes to the scrap side: sold by weight to a recycler."""
+    if piece.kind != PieceKind.REMNANT or piece.status != PieceStatus.IN_STOCK:
+        raise ReviewError("Only a remnant in stock can be sent to scrap.")
+    reason = reason.strip()
+    if not reason:
+        raise ReviewError("Say why the piece cannot be used.")
+    listing = piece.listing
+    if listing is not None and listing.status in (ListingStatus.OPEN, ListingStatus.RESERVED):
+        listing.status = ListingStatus.WITHDRAWN
+        listing.closed_at = utcnow()
+    piece.kind = PieceKind.SCRAP
+    piece.condition_note = reason[:500]
+    piece.events.append(PieceEvent(actor=actor, action="scrapped", data={"reason": reason[:500]}))
+    session.commit()
+    return piece

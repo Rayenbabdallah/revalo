@@ -68,11 +68,12 @@ def test_approval_moves_drafts_to_stock_and_skips_rejected(client, job):
     assert review == date.today() + timedelta(days=30)
     assert others[0]["due_for_review"] is False
 
-    # Approved records are locked, and a job is approved only once.
-    assert (
-        client.patch(f"/v1/pieces/{others[0]['id']}", json={"weight_actual_kg": 1}).status_code
-        == 409
-    )
+    # Approved records are locked (a weighing on the rack is still welcome),
+    # and a job is approved only once.
+    piece_url = f"/v1/pieces/{others[0]['id']}"
+    assert client.patch(piece_url, json={"rejected": True}).status_code == 409
+    weighed = client.patch(piece_url, json={"weight_actual_kg": 1})
+    assert weighed.status_code == 200 and weighed.json()["events"][-1]["action"] == "weighed"
     assert client.post(f"/v1/jobs/{job['id']}/approve", json={}).status_code == 409
     # A piece rejected before approval stays rejected.
     restore = client.patch(f"/v1/pieces/{first['id']}", json={"rejected": False})

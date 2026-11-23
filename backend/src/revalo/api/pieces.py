@@ -17,6 +17,7 @@ from revalo.services.pieces import (
     PieceChanges,
     ReviewError,
     approve_job,
+    scrap_piece,
     stock_pieces,
     stock_summary,
     update_piece,
@@ -25,6 +26,10 @@ from revalo.services.prices import price_book
 
 router = APIRouter(tags=["pieces"], dependencies=[signed_in])
 DbSession = Annotated[Session, Depends(get_session)]
+
+
+class ScrapBody(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
 
 
 class PiecePatch(BaseModel):
@@ -57,6 +62,20 @@ def patch_piece(
     changes = PieceChanges(**body.model_dump())
     try:
         update_piece(session, piece, changes, user.name)
+    except ReviewError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return _piece_with_history(piece, session)
+
+
+@router.post("/v1/pieces/{piece_id}/scrap")
+def send_to_scrap(
+    piece_id: str, body: ScrapBody, user: SignedIn, session: DbSession
+) -> dict[str, Any]:
+    piece = session.get(Piece, piece_id)
+    if piece is None:
+        raise HTTPException(404, "Piece not found.")
+    try:
+        scrap_piece(session, piece, body.reason, user.name)
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
     return _piece_with_history(piece, session)
