@@ -1,0 +1,23 @@
+name: docker
+
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", "frontend/**", "samples/**", "compose.yaml", ".github/workflows/docker.yml"]
+  pull_request:
+    paths: ["backend/**", "frontend/**", "samples/**", "compose.yaml", ".github/workflows/docker.yml"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
+      - run: docker compose up -d --wait
+      - run: curl --fail --retry 10 --retry-connrefused --retry-delay 3 http://localhost/api/health
+      - run: curl --fail http://localhost/ | grep -q '<div id="root">'
+      - if: failure()
+        run: docker compose logs
+      - run: docker compose down -v
