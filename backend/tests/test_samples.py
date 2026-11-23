@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from revalo.engine.audit import audit, compare_expected
+from revalo.engine.audit import summarize as summarize_result
 from revalo.engine.pipeline import analyze
 
 ROOT = Path(__file__).resolve().parents[2] / "samples"
@@ -31,24 +33,7 @@ SAMPLES = sorted(
 
 
 def summarize(path: Path) -> dict:
-    result = analyze(path.read_bytes(), path.name)
-    data = result.to_dict(include_geometry=False)
-    return {
-        "format": data["source"]["format"],
-        "material": data["material"]["code"] if data["material"] else None,
-        "thickness_mm": data["thickness_mm"],
-        "process": data["process"],
-        "kerf_mm": data["kerf_mm"],
-        "sheets": [
-            {
-                "size": [s["width"], s["height"]],
-                "sheet_detected": s["sheet_detected"],
-                "part_count": s["part_count"],
-                "remnants": [[r["width"], r["height"]] for r in s["remnants"]],
-            }
-            for s in data["sheets"]
-        ],
-    }
+    return summarize_result(analyze(path.read_bytes(), path.name))
 
 
 @pytest.mark.parametrize("path", SAMPLES, ids=lambda p: f"{p.parent.name}/{p.name}")
@@ -75,3 +60,18 @@ def test_sample_matches_expected(path: Path):
         assert len(got["remnants"]) == len(want["remnants"])
         for (gw, gh), (ww, wh) in zip(got["remnants"], want["remnants"], strict=True):
             assert abs(gw - ww) <= DIM_TOLERANCE_MM and abs(gh - wh) <= DIM_TOLERANCE_MM
+
+
+@pytest.mark.parametrize("path", SAMPLES, ids=lambda p: f"{p.parent.name}/{p.name}")
+def test_sample_holds_together_physically(path: Path):
+    """No overlaps, nothing outside the sheet, areas and weights consistent."""
+    report = audit(analyze(path.read_bytes(), path.name))
+    assert report.ok, [f"sheet {f.sheet} {f.check}: {f.message}" for f in report.findings]
+
+
+def test_comparison_names_each_difference():
+    base = summarize(SAMPLES[0])
+    changed = json.loads(json.dumps(base))
+    changed["sheets"][0]["part_count"] += 1
+    assert compare_expected(base, base) == []
+    assert any("parts" in d for d in compare_expected(changed, base))

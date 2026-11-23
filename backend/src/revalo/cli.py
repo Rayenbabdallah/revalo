@@ -95,11 +95,65 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--name", required=True)
     add.add_argument("--role", choices=["operator", "manager", "owner"], default="operator")
 
+    acc = sub.add_parser(
+        "accuracy",
+        help="check the engine on job files: physical checks, plus reviewed baselines if any",
+    )
+    acc.add_argument("paths", nargs="*", type=Path, help="files or folders (default: samples)")
+    acc.add_argument("--expected", type=Path, help="folder of reviewed baselines")
+
     sub.add_parser(
         "demo",
         help="fill an empty database with a demo workshop (password: REVALO_DEMO_PASSWORD)",
     )
     return parser
+
+
+JOB_SUFFIXES = {".dxf", ".nc", ".gcode", ".ngc", ".tap", ".cnc", ".csv"}
+
+
+def _accuracy(args: argparse.Namespace) -> int:
+    """One line per file: what was found, the physical checks, drift from the baseline."""
+    from revalo.api.samples import samples_dir
+    from revalo.engine.audit import audit, compare_expected, summarize
+
+    root = samples_dir()
+    paths = args.paths or [root / "synthetic", root / "public"]
+    expected_dir = args.expected or (root / "expected" if not args.paths else None)
+    files = sorted(
+        f
+        for p in paths
+        for f in ([p] if p.is_file() else (p.iterdir() if p.is_dir() else []))
+        if f.suffix.lower() in JOB_SUFFIXES
+    )
+    if not files:
+        print("error: no job files found", file=sys.stderr)
+        return 1
+
+    failed = 0
+    print(f"{'file':<44} {'sheets':>6} {'parts':>6} {'rem.':>5}  result")
+    for f in files:
+        try:
+            result = analyze(f.read_bytes(), f.name)
+        except JobImportError as exc:
+            failed += 1
+            print(f"{f.name:<44} {'-':>6} {'-':>6} {'-':>5}  cannot read: {exc}")
+            continue
+        report = audit(result)
+        problems = [f"sheet {x.sheet} {x.check}: {x.message}" for x in report.findings]
+        baseline = expected_dir / f"{f.name}.json" if expected_dir else None
+        if baseline and baseline.is_file():
+            problems += compare_expected(summarize(result), json.loads(baseline.read_text("utf-8")))
+            status = "ok, matches baseline" if not problems else "CHECK"
+        else:
+            status = "ok, no baseline" if not problems else "CHECK"
+        failed += bool(problems)
+        print(f"{f.name:<44} {report.sheets:>6} {report.parts:>6} {report.remnants:>5}  {status}")
+        for problem in problems:
+            print(f"    - {problem}")
+    print()
+    print(f"{len(files) - failed} of {len(files)} files pass.")
+    return 1 if failed else 0
 
 
 def _demo() -> int:
@@ -165,6 +219,8 @@ def main(argv: list[str] | None = None) -> int:
         return _users(args)
     if args.command == "demo":
         return _demo()
+    if args.command == "accuracy":
+        return _accuracy(args)
     if args.command == "materials":
         for m in materials().values():
             print(f"{m.code:<18} {m.family:<8} {m.density_kg_m3:>6.0f} kg/m3  {m.name_en}")
