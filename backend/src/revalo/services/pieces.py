@@ -199,11 +199,21 @@ def stock_summary(session: Session, book: dict[str, EffectivePrice]) -> dict[str
     return {"materials": rows, "totals": totals, "actions": actions}
 
 
+def _same_spot(a: Piece, b: Piece) -> bool:
+    """Same place on the same sheet: the same offcut of the same program."""
+    if a.kind != b.kind:
+        return False
+    if a.x_mm is None or b.x_mm is None:  # scrap lots have no position
+        return True
+    return abs(a.x_mm - b.x_mm) <= 1 and abs((a.y_mm or 0) - (b.y_mm or 0)) <= 1
+
+
 def copy_corrections(session: Session, job: Job, actor: str) -> int:
     """Apply the first run's review to a repeat run: same program, same offcuts.
 
     Copies rejections, trimmed sizes, weighed values and condition notes from
-    the matching piece (same sheet, same engine label) of the earlier job.
+    the piece of the earlier job at the same place on the same sheet. Pieces
+    that do not line up, or that the review rules refuse, are left as they are.
     Returns how many pieces were changed.
     """
     source = session.get(Job, job.repeat_of_id) if job.repeat_of_id else None
@@ -213,7 +223,7 @@ def copy_corrections(session: Session, job: Job, actor: str) -> int:
     changed = 0
     for piece in job.pieces:
         src = reviewed.get((piece.sheet_index, piece.label))
-        if src is None or piece.status not in EDITABLE_STATUSES:
+        if src is None or piece.status not in EDITABLE_STATUSES or not _same_spot(src, piece):
             continue
         changes = PieceChanges(
             rejected=True if src.status == PieceStatus.REJECTED else None,
@@ -221,14 +231,22 @@ def copy_corrections(session: Session, job: Job, actor: str) -> int:
             condition_note=src.condition_note,
         )
         if piece.kind == PieceKind.REMNANT and src.width_mm and src.height_mm:
-            trimmed = (
+            fits = (
+                src.width_mm <= piece.width_mm + SIZE_TOLERANCE_MM
+                and src.height_mm <= piece.height_mm + SIZE_TOLERANCE_MM
+            )
+            smaller = (
                 src.width_mm < piece.width_mm - SIZE_TOLERANCE_MM
                 or src.height_mm < piece.height_mm - SIZE_TOLERANCE_MM
             )
-            if trimmed:
+            if fits and smaller:
                 changes.width_mm, changes.height_mm = src.width_mm, src.height_mm
         if changes == PieceChanges():
             continue
-        update_piece(session, piece, changes, actor)
+        try:
+            update_piece(session, piece, changes, actor)
+        except ReviewError:
+            session.rollback()
+            continue
         changed += 1
     return changed

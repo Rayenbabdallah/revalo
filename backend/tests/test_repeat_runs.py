@@ -94,3 +94,13 @@ def test_old_drafts_count_as_repeats():
     stale = Job(status=JobStatus.DRAFT, created_at=now - timedelta(days=2))
     assert likely_answer(fresh, now) == "same"
     assert likely_answer(stale, now) == "new"
+
+
+def test_pieces_that_do_not_line_up_are_left_alone(client):
+    """Same label, different rectangle (other settings): never copied, never an error."""
+    first = upload(client).json()
+    remnant = remnants(first)[0]
+    client.patch(f"/v1/pieces/{remnant['id']}", json={"width_mm": remnant["width_mm"] - 20})
+    run2 = upload(client, repeat="new", min_side_mm="50").json()
+    copied = client.post(f"/v1/jobs/{run2['id']}/copy-corrections")
+    assert copied.status_code == 200, copied.text
