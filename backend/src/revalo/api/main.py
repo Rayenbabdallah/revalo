@@ -22,6 +22,7 @@ from revalo.api.jobs import router as jobs_router
 from revalo.api.lots import router as lots_router
 from revalo.api.machines import router as machines_router
 from revalo.api.market import router as market_router
+from revalo.api.offers import router as offers_router
 from revalo.api.pickups import router as pickups_router
 from revalo.api.pieces import router as pieces_router
 from revalo.api.planned import router as planned_router
@@ -89,6 +90,7 @@ app.include_router(jobs_router)
 app.include_router(pieces_router)
 app.include_router(prices_router)
 app.include_router(market_router)
+app.include_router(offers_router)
 app.include_router(lots_router)
 app.include_router(machines_router)
 app.include_router(intake_router)

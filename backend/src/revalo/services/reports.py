@@ -16,15 +16,18 @@ from revalo.db.models import (
     Listing,
     ListingStatus,
     Lot,
+    OfferStatus,
     Pickup,
     PickupStatus,
     Piece,
     PieceEvent,
+    SupplyOffer,
 )
 from revalo.engine.materials import materials
 from revalo.services.decisions import decide_piece
 from revalo.services.pieces import stock_summary
 from revalo.services.prices import EffectivePrice
+from revalo.services.sourcing import PURCHASE_FORMAT, offer_weight_kg
 
 # Standard monthly plan price; REVALO_PLAN_TND overrides it.
 DEFAULT_PLAN_TND = 120.0
@@ -64,7 +67,7 @@ def monthly_report(
     jobs = [
         j
         for j in session.scalars(select(Job))
-        if in_month(j.created_at) and j.file_format != "manual"
+        if in_month(j.created_at) and j.file_format not in ("manual", PURCHASE_FORMAT)
     ]
     pieces_from_jobs = [p for j in jobs for p in j.pieces if p.status != "rejected"]
     remnant_kg = sum(p.weight_kg or 0 for p in pieces_from_jobs if p.kind == "remnant")
@@ -73,7 +76,7 @@ def monthly_report(
     # Reused: new material the workshop did not have to buy.
     reused = []
     for event in session.scalars(select(PieceEvent).where(PieceEvent.action == "reused")):
-        if in_month(event.at):
+        if in_month(event.at) and event.piece.job.file_format != PURCHASE_FORMAT:
             reused.append(event.piece)
     reused_kg = sum(p.weight_kg or 0 for p in reused)
     reused_tnd = 0.0
@@ -118,7 +121,25 @@ def monthly_report(
             _co2(i.piece.material_code, (i.piece.weight_kg or 0) * share, True) for i in pk.items
         )
 
-    recovered = reused_tnd + (sales_tnd - fees_tnd) + recycled_tnd
+    bought = [
+        o
+        for o in session.scalars(
+            select(SupplyOffer).where(SupplyOffer.status == OfferStatus.BOUGHT)
+        )
+        if in_month(o.closed_at)
+    ]
+    bought_kg = sum(offer_weight_kg(o) for o in bought)
+    spent_tnd = sum(o.bought_price_tnd or 0 for o in bought)
+    bought_saved = 0.0
+    for o in bought:
+        entry = book.get(o.material_code)
+        if entry and entry.prices:
+            bought_saved += offer_weight_kg(o) * entry.prices.new_tnd_per_kg - (
+                o.bought_price_tnd or 0
+            )
+    co2 += sum(_co2(o.material_code, offer_weight_kg(o), False) for o in bought)
+
+    recovered = reused_tnd + (sales_tnd - fees_tnd) + recycled_tnd + bought_saved
     plan = float(os.getenv("REVALO_PLAN_TND", DEFAULT_PLAN_TND))
     stock = stock_summary(session, book)
 
@@ -149,6 +170,12 @@ def monthly_report(
                 "pickups": len(pickups),
                 "kg": round(recycled_kg, 1),
                 "tnd": round(recycled_tnd, 2),
+            },
+            "bought": {
+                "offers": len(bought),
+                "kg": round(bought_kg, 1),
+                "spent_tnd": round(spent_tnd, 2),
+                "tnd": round(bought_saved, 2),
             },
         },
         "recovered_tnd": round(recovered, 2),

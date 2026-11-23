@@ -24,6 +24,7 @@ from revalo.services.opportunities import (
     save_planned,
 )
 from revalo.services.prices import price_book
+from revalo.services.sourcing import with_offers
 
 router = APIRouter(prefix="/v1/planned-jobs", tags=["stock"], dependencies=[manager_only])
 DbSession = Annotated[Session, Depends(get_session)]
@@ -77,6 +78,7 @@ def keep_in_mind(
 def check_planned(planned_id: str, session: DbSession) -> dict[str, Any]:
     planned = _planned(session, planned_id)
     shop = default_workshop(session)
+    book = price_book(session, shop.id)
     try:
         result = check_stock(
             session,
@@ -84,11 +86,11 @@ def check_planned(planned_id: str, session: DbSession) -> dict[str, Any]:
             "",
             planned_parts(planned),
             FitRequest(planned.material_code, planned.thickness_mm, planned.kerf_mm),
-            price_book(session, shop.id),
+            book,
         )
     except FitError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return {**result, "planned": planned_to_dict(session, planned)}
+    return {**with_offers(session, result, book), "planned": planned_to_dict(session, planned)}
 
 
 @router.delete("/{planned_id}", status_code=204)

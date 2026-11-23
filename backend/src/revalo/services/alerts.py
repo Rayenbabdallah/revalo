@@ -28,6 +28,7 @@ from revalo.services.market import matches_for_listing
 from revalo.services.opportunities import planned_alerts
 from revalo.services.pickups import recycle_queue
 from revalo.services.prices import EffectivePrice
+from revalo.services.sourcing import open_offers, planned_fits
 
 NEW_REQUEST_DAYS = 7
 
@@ -134,6 +135,26 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
                 "link": f"/stock/fit?planned={fit['id']}",
             }
         )
+
+    for offer in open_offers(session):
+        fits = planned_fits(session, offer)
+        if fits:
+            alerts.append(
+                {
+                    "kind": "offer",
+                    "title": tr(
+                        "{seller} offers offcuts for {name}",
+                        seller=offer.organization or offer.seller_name,
+                        name=fits[0]["name"],
+                    ),
+                    "detail": trn(
+                        "They would hold {count} more part than your racks."
+                        "|They would hold {count} more parts than your racks.",
+                        fits[0]["extra_parts"],
+                    ),
+                    "link": "/market?tab=buying",
+                }
+            )
 
     since = datetime.now(UTC) - timedelta(days=NEW_REQUEST_DAYS)
     fresh = [

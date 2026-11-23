@@ -132,8 +132,15 @@ def _raw_weight(code: str, row: IntakeRow) -> float:
     return round(mat.weight_kg((row.width_mm or 0) * (row.height_mm or 0), row.thickness_mm), 3)
 
 
-def add_existing(session: Session, rows: list[IntakeRow], name: str | None, actor: str) -> Job:
-    """Record pieces already on the racks, straight into stock."""
+def add_existing(
+    session: Session,
+    rows: list[IntakeRow],
+    name: str | None,
+    actor: str,
+    file_format: str = INTAKE_FORMAT,
+    source: str = "existing stock",
+) -> Job:
+    """Record pieces already on the racks (or just bought), straight into stock."""
     checks = check_rows(session, rows)
     shop = default_workshop(session)
     today = date.today()
@@ -141,7 +148,7 @@ def add_existing(session: Session, rows: list[IntakeRow], name: str | None, acto
     job = Job(
         workshop_id=shop.id,
         file_name=(name or "").strip()[:200] or f"Existing stock {today.isoformat()}",
-        file_format=INTAKE_FORMAT,
+        file_format=file_format,
         # No file: a unique fingerprint so an intake is never taken for a repeat run.
         file_sha256=hashlib.sha256(stamp.encode()).hexdigest(),
         file_key="",
@@ -151,7 +158,7 @@ def add_existing(session: Session, rows: list[IntakeRow], name: str | None, acto
         kerf_mm=0,
         sheet_count=0,
         part_count=0,
-        analysis={"sheets": [], "source": {"format": INTAKE_FORMAT}},
+        analysis={"sheets": [], "source": {"format": file_format}},
         status=JobStatus.APPROVED,
         approved_at=utcnow(),
         approved_by=actor,
@@ -183,9 +190,7 @@ def add_existing(session: Session, rows: list[IntakeRow], name: str | None, acto
                 location=(row.location or "").strip()[:80] or None,
                 review_date=review,
             )
-            piece.events.append(
-                PieceEvent(actor=actor, action="created", data={"source": "existing stock"})
-            )
+            piece.events.append(PieceEvent(actor=actor, action="created", data={"source": source}))
             piece.events.append(
                 PieceEvent(actor=actor, action="approved", data={"review_date": review.isoformat()})
             )

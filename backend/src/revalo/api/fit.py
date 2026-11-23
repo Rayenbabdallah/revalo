@@ -16,6 +16,7 @@ from revalo.engine.pipeline import MAX_FILE_BYTES
 from revalo.services.fit import FitError, FitRequest, check_stock, mark_reused
 from revalo.services.jobs import default_workshop, piece_to_dict
 from revalo.services.prices import price_book
+from revalo.services.sourcing import with_offers
 
 router = APIRouter(prefix="/v1/stock/fit", tags=["stock"], dependencies=[signed_in])
 DbSession = Annotated[Session, Depends(get_session)]
@@ -58,17 +59,19 @@ def fit(
     if data is not None and len(data) > MAX_FILE_BYTES:
         raise HTTPException(413, "File is larger than 25 MB.")
     shop = default_workshop(session)
+    book = price_book(session, shop.id)
     try:
-        return check_stock(
+        result = check_stock(
             session,
             data,
             (file.filename if file else None) or "",
             _typed_parts(parts),
             FitRequest(material or None, thickness_mm, kerf_mm),
-            price_book(session, shop.id),
+            book,
         )
     except FitError as exc:
         raise HTTPException(422, str(exc)) from exc
+    return with_offers(session, result, book)
 
 
 @router.post("/reuse")

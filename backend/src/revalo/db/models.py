@@ -437,3 +437,40 @@ class LotItem(Base):
 
     lot: Mapped[Lot] = relationship(back_populates="items")
     piece: Mapped[Piece] = relationship()
+
+
+class OfferStatus(StrEnum):
+    OPEN = "open"
+    BOUGHT = "bought"
+    DECLINED = "declined"
+
+
+class SupplyOffer(Base):
+    """Offcuts someone offers to sell to the workshop, and the purchase that follows."""
+
+    __tablename__ = "supply_offers"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20), default=OfferStatus.OPEN, index=True)
+    source: Mapped[str] = mapped_column(String(20), default="public")
+    """"public" when the seller posted it, "workshop" when a manager entered it."""
+    seller_name: Mapped[str] = mapped_column(String(120))
+    organization: Mapped[str | None] = mapped_column(String(160))
+    phone: Mapped[str] = mapped_column(String(32))
+    governorate: Mapped[str] = mapped_column(String(40))
+    material_code: Mapped[str] = mapped_column(String(40))
+    thickness_mm: Mapped[float] = mapped_column(Float)
+    width_mm: Mapped[float] = mapped_column(Float)
+    height_mm: Mapped[float] = mapped_column(Float)
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+    """Identical pieces in the offer."""
+    price_tnd: Mapped[float] = mapped_column(Float)
+    """Asking price for the whole offer."""
+    note: Mapped[str | None] = mapped_column(Text)
+    bought_price_tnd: Mapped[float | None] = mapped_column(Float)
+    intake_job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id"))
+    """The stock record holding the bought pieces."""
+    closed_by: Mapped[str | None] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
