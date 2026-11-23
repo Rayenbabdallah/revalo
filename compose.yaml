@@ -1,0 +1,61 @@
+# Revalo on one server: PostgreSQL, the API and the web app behind Caddy (HTTPS).
+#   cp .env.example .env    # then set the values
+#   docker compose up -d --build
+#   docker compose exec api revalo users add --email you@example.tn --name You --role owner
+# Or open the site and create the owner account on the first screen.
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: revalo
+      POSTGRES_USER: revalo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revalo -d revalo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      REVALO_DATABASE_URL: postgresql+psycopg://revalo:${POSTGRES_PASSWORD}@db:5432/revalo
+      REVALO_PUBLIC_URL: ${REVALO_PUBLIC_URL:-http://localhost}
+      REVALO_CORS_ORIGINS: ${REVALO_PUBLIC_URL:-http://localhost}
+      REVALO_WORKSHOP_NAME: ${REVALO_WORKSHOP_NAME:-Pilot workshop}
+      REVALO_WORKSHOP_GOVERNORATE: ${REVALO_WORKSHOP_GOVERNORATE:-Ben Arous}
+      REVALO_WORKSHOP_PHONE: ${REVALO_WORKSHOP_PHONE:-}
+      REVALO_PLAN_TND: ${REVALO_PLAN_TND:-120}
+      REVALO_DEMO_PASSWORD: ${REVALO_DEMO_PASSWORD:-}
+    volumes:
+      - files:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: frontend
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  db:
+  files:
+  caddy_data:
+  caddy_config:
