@@ -8,8 +8,9 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 
 from revalo import __version__
@@ -29,6 +30,7 @@ from revalo.engine.materials import materials, processes
 from revalo.engine.model import JobImportError
 from revalo.engine.pipeline import MAX_FILE_BYTES, AnalysisOptions, analyze
 from revalo.engine.render import render_svg
+from revalo.i18n import parse_accept_language, reset_lang, set_lang, tr
 
 ANALYSIS_TIMEOUT_S = float(os.getenv("REVALO_ANALYSIS_TIMEOUT_S", "30"))
 
@@ -59,6 +61,25 @@ app.add_middleware(
     allow_credentials=True,
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def language(request: Request, call_next):
+    """Server-written text follows the reader's language (Accept-Language)."""
+    token = set_lang(parse_accept_language(request.headers.get("accept-language")))
+    try:
+        return await call_next(request)
+    finally:
+        reset_lang(token)
+
+
+@app.exception_handler(HTTPException)
+async def translated_errors(request: Request, exc: HTTPException):
+    if isinstance(exc.detail, str):
+        exc = HTTPException(exc.status_code, tr(exc.detail), headers=exc.headers)
+    return await http_exception_handler(request, exc)
+
+
 app.include_router(auth_router)
 app.include_router(samples_router)
 app.include_router(jobs_router)

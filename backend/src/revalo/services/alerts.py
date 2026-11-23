@@ -23,15 +23,12 @@ from revalo.db.models import (
     Piece,
     PieceStatus,
 )
+from revalo.i18n import num, tr, trn
 from revalo.services.market import matches_for_listing
 from revalo.services.pickups import recycle_queue
 from revalo.services.prices import EffectivePrice
 
 NEW_REQUEST_DAYS = 7
-
-
-def _plural(n: int, word: str) -> str:
-    return f"{n} {word}{'s' if n != 1 else ''}"
 
 
 def _aware(value: datetime) -> datetime:
@@ -46,8 +43,8 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
         alerts.append(
             {
                 "kind": "review",
-                "title": "Job waiting for review",
-                "detail": f"{job.file_name}: check and approve its leftover records.",
+                "title": tr("Job waiting for review"),
+                "detail": tr("{file}: check and approve its leftover records.", file=job.file_name),
                 "link": f"/jobs/{job.id}",
             }
         )
@@ -61,8 +58,10 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
         alerts.append(
             {
                 "kind": "due",
-                "title": f"{_plural(len(due), 'piece')} past review date",
-                "detail": "Not reused in time: now recommended for sale or recycling.",
+                "title": trn(
+                    "{count} piece past review date|{count} pieces past review date", len(due)
+                ),
+                "detail": tr("Not reused in time: now recommended for sale or recycling."),
                 "link": "/stock",
             }
         )
@@ -73,8 +72,16 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
             alerts.append(
                 {
                     "kind": "match",
-                    "title": f"{_plural(len(found), 'buyer')} for {listing.piece.code}",
-                    "detail": f"Best match: {found[0][0].name}, score {found[0][1].score}.",
+                    "title": trn(
+                        "{count} buyer for {code}|{count} buyers for {code}",
+                        len(found),
+                        code=listing.piece.code,
+                    ),
+                    "detail": tr(
+                        "Best match: {name}, score {score}.",
+                        name=found[0][0].name,
+                        score=found[0][1].score,
+                    ),
                     "link": "/market",
                 }
             )
@@ -85,8 +92,12 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
         alerts.append(
             {
                 "kind": "recycle",
-                "title": f"{kg:,.0f} kg ready for a recycler",
-                "detail": f"{_plural(len(queue), 'piece')} to send as a sorted lot.",
+                "title": tr("{kg} kg ready for a recycler", kg=num(kg, 0)),
+                "detail": trn(
+                    "{count} piece to send as a sorted lot."
+                    "|{count} pieces to send as a sorted lot.",
+                    len(queue),
+                ),
                 "link": "/market?tab=recycling",
             }
         )
@@ -95,8 +106,11 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
         alerts.append(
             {
                 "kind": "pickup",
-                "title": f"Pickup to schedule with {pickup.recycler.name}",
-                "detail": f"{pickup.estimated_kg:,.0f} kg requested; set the date when they reply.",
+                "title": tr("Pickup to schedule with {name}", name=pickup.recycler.name),
+                "detail": tr(
+                    "{kg} kg requested; set the date when they reply.",
+                    kg=num(pickup.estimated_kg, 0),
+                ),
                 "link": "/market?tab=recycling",
             }
         )
@@ -111,7 +125,7 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
         alerts.append(
             {
                 "kind": "buyer",
-                "title": _plural(len(fresh), "new buyer request"),
+                "title": trn("{count} new buyer request|{count} new buyer requests", len(fresh)),
                 "detail": ", ".join(r.name for r in fresh[:3]) + ("…" if len(fresh) > 3 else ""),
                 "link": "/market?tab=buyers",
             }

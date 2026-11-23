@@ -25,6 +25,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from revalo.i18n import num, tr
+
 COMMISSION = 0.05
 REVIEW_DAYS = 30
 
@@ -113,7 +115,11 @@ def usability(short_side_mm: float | None) -> float:
 
 
 def _tnd(value: float) -> str:
-    return f"{value:,.1f} TND"
+    return f"{num(value, 1)} TND"
+
+
+def _pct(share: float) -> str:
+    return f"{num(share * 100, 0)}%"
 
 
 def _round(value: float | None, digits: int = 2) -> float | None:
@@ -142,13 +148,20 @@ def decide(
     if piece.kind == "scrap":
         value = _round(w * prices.scrap_tnd_per_kg) if w is not None and prices else None
         options = [
-            Option(Action.REUSE, False, note="Skeleton and slugs cannot be reused."),
-            Option(Action.SELL, False, note="Sold by weight only."),
-            Option(Action.RECYCLE, True, value, co2_recycle, "Sorted lot for a recycler."),
+            Option(Action.REUSE, False, note=tr("Skeleton and slugs cannot be reused.")),
+            Option(Action.SELL, False, note=tr("Sold by weight only.")),
+            Option(Action.RECYCLE, True, value, co2_recycle, tr("Sorted lot for a recycler.")),
         ]
-        reasons = ["The skeleton between parts only sells by weight, as one sorted lot."]
+        reasons = [tr("The skeleton between parts only sells by weight, as one sorted lot.")]
         if value is not None:
-            reasons.append(f"{w:,.1f} kg at {prices.scrap_tnd_per_kg} TND/kg: {_tnd(value)}.")
+            reasons.append(
+                tr(
+                    "{kg} kg at {price} TND/kg: {value}.",
+                    kg=num(w, 1),
+                    price=num(prices.scrap_tnd_per_kg, 2),
+                    value=_tnd(value),
+                )
+            )
         return Decision(Action.RECYCLE, options, reasons, stage)
 
     fit = usability(piece.short_side_mm)
@@ -161,13 +174,19 @@ def decide(
             Option(Action.SELL, sellable, None, co2_reuse),
             Option(Action.RECYCLE, True, None, co2_recycle),
         ]
-        missing = "the thickness or weight" if w is None else f"a price for {piece.material_name}"
-        return Decision(
-            Action.REUSE,
-            options,
-            [f"Add {missing} to compare the options in dinars. Until then, keep it for reuse."],
-            stage,
+        reason = (
+            tr(
+                "Add the thickness or weight to compare the options in dinars. "
+                "Until then, keep it for reuse."
+            )
+            if w is None
+            else tr(
+                "Add a price for {material} to compare the options in dinars. "
+                "Until then, keep it for reuse.",
+                material=piece.material_name,
+            )
         )
+        return Decision(Action.REUSE, options, [reason], stage)
 
     new_value = w * prices.new_tnd_per_kg
     reuse_value = new_value * fit
@@ -180,60 +199,91 @@ def decide(
             True,
             _round(reuse_value),
             co2_reuse,
-            "New material you do not have to buy.",
+            tr("New material you do not have to buy."),
         ),
         Option(
             Action.SELL,
             sellable,
             _round(sell_value) if sellable else None,
             co2_reuse if sellable else None,
-            f"At {prices.resale_factor:.0%} of the new price, after {COMMISSION:.0%} commission."
+            tr(
+                "At {share} of the new price, after {fee} commission.",
+                share=_pct(prices.resale_factor),
+                fee=_pct(COMMISSION),
+            )
             if sellable
-            else f"Too narrow to sell (under {min_resale:.0f} mm).",
+            else tr("Too narrow to sell (under {size} mm).", size=num(min_resale, 0)),
         ),
-        Option(Action.RECYCLE, True, _round(recycle_value), co2_recycle, "Scrap price by weight."),
+        Option(
+            Action.RECYCLE, True, _round(recycle_value), co2_recycle, tr("Scrap price by weight.")
+        ),
     ]
 
     reasons: list[str] = []
     if stage == "new":
         recommended = Action.REUSE
         reasons.append(
-            f"Reusing it saves buying {w:,.1f} kg of new {piece.material_name.lower()}: "
-            f"about {_tnd(reuse_value)}."
+            tr(
+                "Reusing it saves buying {kg} kg of new {material}: about {value}.",
+                kg=num(w, 1),
+                material=piece.material_name.lower(),
+                value=_tnd(reuse_value),
+            )
         )
         if fit < 1:
             reasons.append(
-                f"Its shorter side is {piece.short_side_mm:,.0f} mm, so fewer parts fit: "
-                f"value counted at {fit:.0%}."
+                tr(
+                    "Its shorter side is {size} mm, so fewer parts fit: value counted at {share}.",
+                    size=num(piece.short_side_mm or 0, 0),
+                    share=_pct(fit),
+                )
             )
     elif stage == "review" and sellable and sell_value > recycle_value:
         recommended = Action.SELL
         reasons.append(
-            f"Not reused in {review_days} days. Selling brings about {_tnd(sell_value)}, "
-            f"against {_tnd(recycle_value)} as scrap."
+            tr(
+                "Not reused in {days} days. Selling brings about {sell}, against {scrap} as scrap.",
+                days=review_days,
+                sell=_tnd(sell_value),
+                scrap=_tnd(recycle_value),
+            )
         )
     elif prices.scrap_tnd_per_kg > 0:
         recommended = Action.RECYCLE
         reasons.append(
-            "Not reused or sold in time: send it to a recycler before it blocks rack space "
-            f"({_tnd(recycle_value)})."
+            tr(
+                "Not reused or sold in time: send it to a recycler before it blocks rack space "
+                "({value}).",
+                value=_tnd(recycle_value),
+            )
             if stage == "overdue"
-            else f"Too small to find a buyer; as scrap it brings {_tnd(recycle_value)}."
+            else tr(
+                "Too small to find a buyer; as scrap it brings {value}.",
+                value=_tnd(recycle_value),
+            )
         )
     else:
         # No scrap market (most wood): selling cheaply still beats the bin.
         recommended = Action.SELL if sellable else Action.REUSE
         reasons.append(
-            f"{piece.material_name} offcuts have no scrap value: offer it to artisans or makers, "
-            "even at a discount."
+            tr(
+                "{material} offcuts have no scrap value: offer it to artisans or makers, "
+                "even at a discount.",
+                material=piece.material_name,
+            )
             if sellable
-            else f"{piece.material_name} offcuts have no scrap value and this piece is small: "
-            "keep it for small parts."
+            else tr(
+                "{material} offcuts have no scrap value and this piece is small: "
+                "keep it for small parts.",
+                material=piece.material_name,
+            )
         )
 
     if co2_reuse is not None and recommended in (Action.REUSE, Action.SELL):
-        reasons.append(f"Avoids about {co2_reuse:,.1f} kg CO₂ of new material production.")
+        reasons.append(
+            tr("Avoids about {kg} kg CO₂ of new material production.", kg=num(co2_reuse, 1))
+        )
     elif co2_recycle is not None and recommended == Action.RECYCLE:
-        reasons.append(f"Recycling avoids about {co2_recycle:,.1f} kg CO₂.")
+        reasons.append(tr("Recycling avoids about {kg} kg CO₂.", kg=num(co2_recycle, 1)))
 
     return Decision(recommended, options, reasons, stage)

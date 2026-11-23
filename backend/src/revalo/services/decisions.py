@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from revalo.db.models import Piece, PieceKind, PieceStatus
 from revalo.engine.decision import Decision, PieceFacts, decide
 from revalo.engine.materials import materials
+from revalo.i18n import material_name, tr
 from revalo.services.prices import EffectivePrice
 from revalo.settings import get_settings
 
@@ -34,7 +35,7 @@ def decide_piece(
     facts = PieceFacts(
         kind=piece.kind,
         family=mat.family if mat else None,
-        material_name=mat.name_en if mat else "this material",
+        material_name=material_name(mat) if mat else tr("this material"),
         weight_kg=piece.weight_kg,
         short_side_mm=short,
         days_in_stock=days,
