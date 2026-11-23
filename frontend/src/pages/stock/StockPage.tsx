@@ -7,7 +7,14 @@ import { Link } from 'wouter'
 
 import { ACTION_ICON } from '../../components/decision/icons'
 import { ListButton } from '../../components/market/ListButton'
-import { getStock, getStockSummary, stockExportUrl, type DecisionAction, type StockSummaryRow } from '../../lib/api'
+import {
+  getStock,
+  getStockSummary,
+  remnantsDxfUrl,
+  stockExportUrl,
+  type DecisionAction,
+  type StockSummaryRow,
+} from '../../lib/api'
 import { useCan } from '../../lib/auth'
 import { actionLabel, fmtDate, fmtKg, fmtM2, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
@@ -59,7 +66,18 @@ function MaterialBars({ rows }: { rows: StockSummaryRow[] }) {
               className="relative"
             >
               <div className="flex items-baseline justify-between gap-3 text-[13px]">
-                <span className="font-medium text-ink-100">{materialLabel(r.material_code)}</span>
+                <span className="flex items-baseline gap-2">
+                  <span className="font-medium text-ink-100">{materialLabel(r.material_code)}</span>
+                  {r.material_code && r.remnant_count > 0 && (
+                    <a
+                      href={remnantsDxfUrl(r.material_code)}
+                      title={t('Remnants as DXF sheets for the nesting software')}
+                      className="font-mono text-[11px] text-brand-500 hover:underline"
+                    >
+                      DXF
+                    </a>
+                  )}
+                </span>
                 <span className="readout text-ink-300">
                   {t('{kg} kg reusable', { kg: fmtKg(r.remnant_weight_kg) })} <span className="text-ink-600">·</span> {t('{kg} kg scrap', { kg: fmtKg(r.scrap_weight_kg) })}
                 </span>

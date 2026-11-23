@@ -794,4 +794,8 @@ export const ar: Dictionary = {
   "Lot reserved for a buyer": "حُجزت الدفعة لمشترٍ",
   "Sold in a lot": "بيعت ضمن دفعة",
   "Lot withdrawn from sale": "سُحبت الدفعة من البيع",
+
+  // DXF export
+  "Remnants as DXF sheets for the nesting software": "البقايا كصفائح DXF لبرنامج الترتيب",
+  "DXF for nesting": "DXF للترتيب",
 }

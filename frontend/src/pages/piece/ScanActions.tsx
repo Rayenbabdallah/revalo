@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { Hammer, MapPin, Printer, Scale, Trash2, X } from 'lucide-react'
+import { FileDown, Hammer, MapPin, Printer, Scale, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'wouter'
 
 import { ListButton } from '../../components/market/ListButton'
-import { patchPiece, reuseRemnants, scrapPiece, type PieceWithHistory } from '../../lib/api'
+import { patchPiece, pieceDxfUrl, reuseRemnants, scrapPiece, type PieceWithHistory } from '../../lib/api'
 import { useCan } from '../../lib/auth'
 import { t } from '../../lib/i18n'
 
@@ -94,6 +94,14 @@ export function ScanActions({ piece, jobId }: { piece: PieceWithHistory; jobId: 
         >
           <Printer className="size-5 shrink-0 text-brand-500" /> {t('Reprint label')}
         </Link>
+        {piece.kind === 'remnant' && piece.width_mm && (
+          <a
+            href={pieceDxfUrl(piece.id)}
+            className="flex min-h-14 items-center gap-2.5 rounded-xl border border-ink-700 bg-ink-900 px-4 py-3 text-[15px] font-medium text-ink-100 transition hover:border-brand-500"
+          >
+            <FileDown className="size-5 shrink-0 text-brand-500" /> {t('DXF for nesting')}
+          </a>
+        )}
         {canSell && inStock && (
           <div className="flex min-h-14 items-center rounded-xl border border-ink-700 bg-ink-900 px-4 py-3">
             <ListButton piece={piece} />

@@ -673,4 +673,8 @@ export const fr: Dictionary = {
   "Lot reserved for a buyer": "Lot réservé pour un acheteur",
   "Sold in a lot": "Vendue dans un lot",
   "Lot withdrawn from sale": "Lot retiré de la vente",
+
+  // DXF export
+  "Remnants as DXF sheets for the nesting software": "Chutes en feuilles DXF pour le logiciel d'imbrication",
+  "DXF for nesting": "DXF pour l'imbrication",
 }

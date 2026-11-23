@@ -750,6 +750,8 @@ export const getMonthlyReport = (month: string) =>
   request<MonthlyReport>(`/v1/reports/monthly?month=${encodeURIComponent(month)}`)
 
 export const stockExportUrl = `${BASE}/v1/stock/export.csv`
+export const remnantsDxfUrl = (material: string) => `${BASE}/v1/stock/remnants.dxf?material=${encodeURIComponent(material)}`
+export const pieceDxfUrl = (pieceId: string) => `${BASE}/v1/pieces/${encodeURIComponent(pieceId)}/remnant.dxf`
 
 /* ---------- Alerts ---------- */
 
