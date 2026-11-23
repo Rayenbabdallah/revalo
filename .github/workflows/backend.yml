@@ -20,8 +20,8 @@ jobs:
           enable-cache: true
       - run: uv python install 3.11
       - run: uv sync --locked
-      - run: uv run ruff check src tests scripts
-      - run: uv run ruff format --check src tests scripts
+      - run: uv run ruff check src tests scripts migrations
+      - run: uv run ruff format --check src tests scripts migrations
       - run: uv run pytest
 
   postgres:
