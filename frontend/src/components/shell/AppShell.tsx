@@ -47,7 +47,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
   return (
     <div className="flex min-h-full">
       {/* Side rail on wide screens */}
-      <aside className="sticky top-0 hidden h-screen w-[76px] shrink-0 flex-col items-center border-r border-ink-800/80 bg-ink-900/85 py-5 backdrop-blur-xl md:flex">
+      <aside className="sticky top-0 hidden h-screen w-[76px] shrink-0 flex-col items-center border-e border-ink-800/80 bg-ink-900/85 py-5 backdrop-blur-xl md:flex">
         <LogoMark className="size-8" />
         <nav className="mt-10 flex flex-1 flex-col items-center gap-2">
           {nav.map((item) => {
@@ -67,7 +67,7 @@ export function AppShell({ nav, active, onNavigate, children }: AppShellProps) {
                 )}
               >
                 {isActive && (
-                  <span className="absolute -left-[11px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-brand-500 shadow-[0_0_12px_rgb(25_74_203_/_0.8)]" />
+                  <span className="absolute -start-[11px] top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-e bg-brand-500 shadow-[0_0_12px_rgb(25_74_203_/_0.8)]" />
                 )}
                 <Icon className="size-[19px]" strokeWidth={1.75} />
                 <span className="text-[10px] font-medium">{item.label}</span>

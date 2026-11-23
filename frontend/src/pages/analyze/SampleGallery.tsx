@@ -22,7 +22,7 @@ export function SampleGallery({ disabled, onPick }: { disabled: boolean; onPick:
           <p className="eyebrow">No file at hand?</p>
           <h2 className="mt-2 font-display text-2xl font-semibold">Try a real job</h2>
         </div>
-        <p className="hidden max-w-sm text-right text-[13px] text-ink-400 md:block">
+        <p className="hidden max-w-sm text-end text-[13px] text-ink-400 md:block">
           Workshop-style samples, plus real files from open-source projects with their licences.
         </p>
       </div>
@@ -38,7 +38,7 @@ export function SampleGallery({ disabled, onPick }: { disabled: boolean; onPick:
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.04 * i, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="panel group flex flex-col items-start gap-3 !rounded-xl p-4 text-left transition hover:-translate-y-0.5 hover:border-ink-600 disabled:pointer-events-none disabled:opacity-50"
+              className="panel group flex flex-col items-start gap-3 !rounded-xl p-4 text-start transition hover:-translate-y-0.5 hover:border-ink-600 disabled:pointer-events-none disabled:opacity-50"
             >
               <div className="flex w-full items-center justify-between">
                 <Icon className="size-[18px] text-ink-300 transition group-hover:text-brand-400" strokeWidth={1.6} />

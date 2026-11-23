@@ -124,7 +124,7 @@ function PersonRow({ person, isMe }: { person: User; isMe: boolean }) {
       <div className="min-w-0">
         <p className="truncate text-[14.5px] font-semibold text-ink-50">
           {person.name}
-          {isMe && <span className="ml-2 text-[12px] font-normal text-ink-400">(you)</span>}
+          {isMe && <span className="ms-2 text-[12px] font-normal text-ink-400">(you)</span>}
         </p>
         <p className="truncate text-[12.5px] text-ink-400">{person.email}</p>
       </div>

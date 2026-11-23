@@ -14,7 +14,7 @@ function Ruler({ vertical = false }: { vertical?: boolean }) {
       aria-hidden
       className={clsx(
         'pointer-events-none absolute flex justify-between text-ink-600',
-        vertical ? 'left-0 top-6 bottom-6 w-3 flex-col' : 'left-6 right-6 top-0 h-3',
+        vertical ? 'start-0 top-6 bottom-6 w-3 flex-col' : 'start-6 end-6 top-0 h-3',
       )}
     >
       {ticks.map((i) => (

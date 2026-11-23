@@ -34,7 +34,7 @@ export function AlertsBell({ placement = 'rail' }: { placement?: 'rail' | 'heade
       >
         <Bell className="size-[19px]" strokeWidth={1.75} />
         {list.length > 0 && (
-          <span className="readout absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-brand-500 px-1 text-[10px] leading-4 text-ink-950">
+          <span className="readout absolute end-1 top-1 grid min-w-4 place-items-center rounded-full bg-brand-500 px-1 text-[10px] leading-4 text-ink-950">
             {list.length}
           </span>
         )}
@@ -48,7 +48,7 @@ export function AlertsBell({ placement = 'rail' }: { placement?: 'rail' | 'heade
             transition={{ duration: 0.15 }}
             className={clsx(
               'panel absolute z-50 w-80 p-2',
-              placement === 'rail' ? 'bottom-0 left-12' : 'right-0 top-12',
+              placement === 'rail' ? 'bottom-0 start-12' : 'end-0 top-12',
             )}
           >
             <p className="px-3 pb-1 pt-2 text-[13px] font-semibold text-ink-100">Needs your attention</p>

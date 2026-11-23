@@ -22,7 +22,7 @@ function Tile({ label, value, unit, hint, accent }: { label: string; value: stri
       <p className={clsx('eyebrow !text-[10px]', accent && '!text-ink-950/75')}>{label}</p>
       <p className={clsx('readout mt-2 text-[32px] leading-none', accent ? 'text-reclaim-400' : 'text-ink-50')}>
         {value}
-        {unit && <span className={clsx('ml-1.5 text-base', accent ? 'text-ink-950/75' : 'text-ink-400')}>{unit}</span>}
+        {unit && <span className={clsx('ms-1.5 text-base', accent ? 'text-ink-950/75' : 'text-ink-400')}>{unit}</span>}
       </p>
       {hint && <p className={clsx('mt-2 text-[12px]', accent ? 'text-ink-950/80' : 'text-ink-500')}>{hint}</p>}
     </div>
@@ -67,19 +67,19 @@ function MaterialBars({ rows }: { rows: StockSummaryRow[] }) {
               <div className="mt-2 flex h-6 items-center">
                 <div className="flex h-3 w-full overflow-hidden rounded bg-ink-800/60">
                   <div
-                    className="h-full rounded-l transition-[width] duration-700"
+                    className="h-full rounded-s transition-[width] duration-700"
                     style={{ width: `${(r.remnant_weight_kg / max) * 100}%`, background: SERIES.remnant, opacity: hover && !active ? 0.45 : 1 }}
                   />
                   {r.scrap_weight_kg > 0 && (
                     <div
-                      className="ml-[2px] h-full rounded-r transition-[width] duration-700"
+                      className="ms-[2px] h-full rounded-e transition-[width] duration-700"
                       style={{ width: `${(r.scrap_weight_kg / max) * 100}%`, background: SERIES.scrap, opacity: hover && !active ? 0.45 : 1 }}
                     />
                   )}
                 </div>
               </div>
               {active && (
-                <div className="pointer-events-none absolute right-0 top-full z-10 mt-1 rounded-lg border border-ink-700 bg-ink-950/95 px-3 py-2 font-mono text-[11px] text-ink-200 shadow-xl backdrop-blur">
+                <div className="pointer-events-none absolute end-0 top-full z-10 mt-1 rounded-lg border border-ink-700 bg-ink-950/95 px-3 py-2 font-mono text-[11px] text-ink-200 shadow-xl backdrop-blur">
                   <p>{r.remnant_count} remnants · {fmtM2(r.remnant_area_m2)} m²</p>
                   <p>{r.scrap_lots} scrap lot{r.scrap_lots === 1 ? '' : 's'} · {fmtKg(total)} kg total</p>
                   {r.unweighed > 0 && <p className="text-brand-300">{r.unweighed} without a weight</p>}
@@ -210,13 +210,13 @@ export function StockPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left">
+            <table className="w-full min-w-[760px] text-start">
               <thead>
                 <tr className="border-b border-ink-800 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-500">
                   <th className="px-6 py-3 font-normal">Code</th>
                   <th className="px-3 py-3 font-normal">Piece</th>
                   <th className="px-3 py-3 font-normal">Material</th>
-                  <th className="px-3 py-3 text-right font-normal">Weight</th>
+                  <th className="px-3 py-3 text-end font-normal">Weight</th>
                   <th className="px-3 py-3 font-normal">Next step</th>
                   <th className="px-3 py-3 font-normal">Location</th>
                   <th className="px-3 py-3 font-normal">Review</th>
@@ -252,7 +252,7 @@ export function StockPage() {
                         {materialLabel(p.material_code)}
                         {p.thickness_mm ? ` · ${p.thickness_mm} mm` : ''}
                       </td>
-                      <td className="readout px-3 py-3 text-right text-[13px] text-ink-200">
+                      <td className="readout px-3 py-3 text-end text-[13px] text-ink-200">
                         {p.weight_kg !== null ? `${fmtKg(p.weight_kg)} kg` : '—'}
                       </td>
                       <td className="px-3 py-3 text-[13px] text-ink-200">

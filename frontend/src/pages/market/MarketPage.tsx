@@ -115,7 +115,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
             {listing.piece.condition_note && ` · ${listing.piece.condition_note}`}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           {open ? (
             <label className="flex items-center gap-2">
               <input
@@ -127,7 +127,7 @@ function ListingCard({ listing }: { listing: WorkshopListing }) {
                 }}
                 inputMode="decimal"
                 aria-label="Asking price"
-                className="readout w-24 rounded-lg border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-right text-[18px] text-ink-50 focus:border-brand-500 focus:outline-none"
+                className="readout w-24 rounded-lg border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-end text-[18px] text-ink-50 focus:border-brand-500 focus:outline-none"
               />
               <span className="text-[13px] text-ink-400">TND</span>
             </label>
@@ -254,7 +254,7 @@ function BuyersTab() {
               <p className="text-[14.5px] font-medium text-ink-50">
                 {r.name}
                 {r.organization && <span className="font-normal text-ink-400"> · {r.organization}</span>}
-                <span className="ml-2 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-400">
+                <span className="ms-2 rounded-full bg-ink-800 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-400">
                   {r.kind === 'recycler' ? 'recycler' : 'reuse'}
                 </span>
               </p>

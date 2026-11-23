@@ -24,7 +24,7 @@ function Chip({ label, value, source }: { label: string; value: string; source?:
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">{label}</p>
       <p className="mt-0.5 text-[14px] font-medium text-ink-100">
         {value}
-        {source && <span className="ml-1.5 text-[11px] font-normal text-ink-500">{source}</span>}
+        {source && <span className="ms-1.5 text-[11px] font-normal text-ink-500">{source}</span>}
       </p>
     </div>
   )
@@ -273,7 +273,7 @@ export function AnalyzePage() {
               Every sheet leaves{' '}
               <span className="relative whitespace-nowrap text-reclaim-600">
                 money
-                <svg aria-hidden viewBox="0 0 200 12" className="absolute -bottom-2 left-0 w-full text-reclaim-400" preserveAspectRatio="none">
+                <svg aria-hidden viewBox="0 0 200 12" className="absolute -bottom-2 start-0 w-full text-reclaim-400" preserveAspectRatio="none">
                   <path d="M2 9 Q 60 2 120 6 T 198 4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>{' '}

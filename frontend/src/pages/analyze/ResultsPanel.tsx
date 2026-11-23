@@ -18,7 +18,7 @@ function Readout({ label, value, unit }: { label: string; value: string; unit?: 
       <p className="eyebrow !text-[10px] !text-ink-950/75">{label}</p>
       <p className="readout mt-1.5 text-2xl text-ink-950">
         {value}
-        {unit && <span className="ml-1 text-sm text-ink-950/70">{unit}</span>}
+        {unit && <span className="ms-1 text-sm text-ink-950/70">{unit}</span>}
       </p>
     </div>
   )
@@ -34,7 +34,7 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
       <section className="panel-brand relative overflow-hidden p-6">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-reclaim-400/25 blur-3xl"
+          className="pointer-events-none absolute -end-16 -top-20 size-56 rounded-full bg-reclaim-400/25 blur-3xl"
         />
         <p className="eyebrow !text-ink-950/75">Reusable on this sheet</p>
         <motion.p
@@ -45,7 +45,7 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
           className="readout mt-3 text-[52px] leading-none text-reclaim-400"
         >
           {weighed ? fmtKg(remnantWeight) : fmtM2(remnantArea)}
-          <span className="ml-2 text-xl text-reclaim-400/80">{weighed ? 'kg' : 'm²'}</span>
+          <span className="ms-2 text-xl text-reclaim-400/80">{weighed ? 'kg' : 'm²'}</span>
         </motion.p>
         <p className="mt-2 text-[13px] text-ink-950/80">
           {sheet.remnants.length} clean remnant{sheet.remnants.length === 1 ? '' : 's'} · {fmtM2(remnantArea)} m²
@@ -94,9 +94,9 @@ export function ResultsPanel({ analysis, sheet, highlighted, onHighlight }: Resu
                 </span>
                 <span className="readout text-[15px] text-ink-100">
                   {fmtMm(r.width)} <span className="text-ink-500">×</span> {fmtMm(r.height)}
-                  <span className="ml-1 text-[11px] text-ink-500">mm</span>
+                  <span className="ms-1 text-[11px] text-ink-500">mm</span>
                 </span>
-                <span className="readout text-right text-[13px] text-ink-300">
+                <span className="readout text-end text-[13px] text-ink-300">
                   {r.weight_kg !== null ? `${fmtKg(r.weight_kg)} kg` : `${fmtM2(r.area_m2, 3)} m²`}
                 </span>
               </li>

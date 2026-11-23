@@ -17,7 +17,7 @@ function MachineTile({ machine, selected, onSelect }: { machine: Machine; select
       onClick={onSelect}
       aria-pressed={selected}
       className={clsx(
-        'flex w-full items-center gap-4 rounded-[20px] border-2 p-4 text-left transition',
+        'flex w-full items-center gap-4 rounded-[20px] border-2 p-4 text-start transition',
         selected ? 'border-brand-500 bg-brand-500 text-ink-950 shadow-lg' : 'border-ink-700 bg-ink-900 hover:border-brand-500/50',
       )}
     >
@@ -72,12 +72,12 @@ export function UploadPage() {
             <CheckCircle2 className="mx-auto size-12 text-reclaim-400" />
             <p className="mt-3 font-display text-2xl font-semibold">Sent for review</p>
             <p className="mt-1 text-[14.5px] text-ink-950/85">{done.file_name}</p>
-            <div className="mt-5 grid grid-cols-2 gap-3 text-left">
+            <div className="mt-5 grid grid-cols-2 gap-3 text-start">
               <div className="rounded-xl bg-white/10 px-4 py-3">
                 <p className="eyebrow !text-[10px] !text-ink-950/75">Remnants</p>
                 <p className="readout mt-1 text-2xl text-reclaim-400">
                   {done.remnant_count}
-                  <span className="ml-1 text-sm text-ink-950/75">· {fmtKg(done.remnant_weight_kg)} kg</span>
+                  <span className="ms-1 text-sm text-ink-950/75">· {fmtKg(done.remnant_weight_kg)} kg</span>
                 </p>
               </div>
               <div className="rounded-xl bg-white/10 px-4 py-3">

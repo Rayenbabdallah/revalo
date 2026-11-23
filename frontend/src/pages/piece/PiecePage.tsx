@@ -50,7 +50,7 @@ export function PiecePage({ code }: { code: string }) {
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <section className="panel-brand relative mt-6 overflow-hidden p-6">
-            <div aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-reclaim-400/25 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -end-10 -top-16 size-48 rounded-full bg-reclaim-400/25 blur-3xl" />
             <div className="flex items-center justify-between">
               <p className="readout text-[13px] text-ink-950/80">{p.code}</p>
               <StatusBadge status={p.status} className="!bg-ink-900" />
@@ -59,7 +59,7 @@ export function PiecePage({ code }: { code: string }) {
               {p.kind === 'remnant' ? (
                 <span className="readout">
                   {fmtMm(p.width_mm ?? 0)} <span className="text-ink-950/60">×</span> {fmtMm(p.height_mm ?? 0)}
-                  <span className="ml-1.5 text-lg text-ink-950/70">mm</span>
+                  <span className="ms-1.5 text-lg text-ink-950/70">mm</span>
                 </span>
               ) : (
                 'Scrap lot'
@@ -107,10 +107,10 @@ export function PiecePage({ code }: { code: string }) {
 
           <section className="mt-6">
             <p className="eyebrow">History</p>
-            <ol className="mt-3 border-l border-ink-700 pl-5">
+            <ol className="mt-3 border-s border-ink-700 ps-5">
               {p.events.map((e, i) => (
                 <li key={i} className="relative pb-4 last:pb-0">
-                  <span className="absolute -left-[25px] top-1.5 size-2 rounded-full bg-ink-500 ring-4 ring-ink-950" />
+                  <span className="absolute -start-[25px] top-1.5 size-2 rounded-full bg-ink-500 ring-4 ring-ink-950" />
                   <p className="text-[14px] text-ink-100">{ACTION_LABEL[e.action] ?? e.action}</p>
                   <p className="font-mono text-[11px] text-ink-500">
                     {fmtDateTime(e.at)} · {e.actor}

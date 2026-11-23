@@ -58,13 +58,13 @@ function PasswordInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
-        className={`${INPUT} pr-11`}
+        className={`${INPUT} pe-11`}
       />
       <button
         type="button"
         onClick={() => setShown((s) => !s)}
         aria-label={shown ? 'Hide password' : 'Show password'}
-        className="absolute inset-y-0 right-0 grid w-11 place-items-center text-ink-400 hover:text-ink-100"
+        className="absolute inset-y-0 end-0 grid w-11 place-items-center text-ink-400 hover:text-ink-100"
       >
         {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
       </button>
@@ -109,7 +109,7 @@ export function SignInPage({ me }: { me: Me }) {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-96 rotate-[-8deg] rounded-[28px] border-2 border-reclaim-400/70 bg-reclaim-400/15 shadow-[0_0_80px_rgb(102_202_83_/_0.35)]"
+          className="pointer-events-none absolute -bottom-24 -end-16 h-80 w-96 rotate-[-8deg] rounded-[28px] border-2 border-reclaim-400/70 bg-reclaim-400/15 shadow-[0_0_80px_rgb(102_202_83_/_0.35)]"
         />
         <Wordmark tone="white" className="relative h-9 self-start" />
         <div className="relative mt-auto max-w-lg">
@@ -226,7 +226,7 @@ export function SignInPage({ me }: { me: Me }) {
               className="group mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-3 text-[15px] font-semibold text-ink-950 shadow-[0_12px_30px_-12px_rgb(25_74_203_/_0.9)] transition hover:bg-brand-400 disabled:opacity-60"
             >
               {submit.isPending ? 'One moment…' : setup ? 'Create workshop' : 'Sign in'}
-              <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              <ArrowRight className="size-4 transition group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
             </button>
           </form>
           {!setup && (

@@ -73,7 +73,7 @@ export function FitPage() {
   return (
     <div className="mx-auto max-w-[1180px] px-4 py-8 md:px-10 md:py-12">
       <Link href="/stock" className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 hover:text-ink-100">
-        <ArrowLeft className="size-4" /> Stock
+        <ArrowLeft className="size-4 rtl:-scale-x-100" /> Stock
       </Link>
       <p className="eyebrow mt-4">Before you cut</p>
       <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">Can the racks cut it?</h1>
@@ -87,7 +87,7 @@ export function FitPage() {
           <button
             type="button"
             onClick={() => fileInput.current?.click()}
-            className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-brand-500/40 px-4 py-4 text-left text-brand-500 hover:bg-brand-500/5"
+            className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-brand-500/40 px-4 py-4 text-start text-brand-500 hover:bg-brand-500/5"
           >
             <FileUp className="size-6 shrink-0" />
             <span className="min-w-0">

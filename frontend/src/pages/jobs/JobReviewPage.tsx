@@ -67,7 +67,7 @@ export function JobReviewPage({ id }: { id: string }) {
   return (
     <div className="mx-auto max-w-[1480px] px-4 py-8 md:px-10 md:py-10">
       <Link href="/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 transition hover:text-ink-100">
-        <ArrowLeft className="size-4" /> All jobs
+        <ArrowLeft className="size-4 rtl:-scale-x-100" /> All jobs
       </Link>
 
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -186,7 +186,7 @@ export function JobReviewPage({ id }: { id: string }) {
                 <div>
                   <p className="readout text-lg text-reclaim-300">
                     {data.recovered.priced_pieces > 0 ? fmtTnd(data.recovered.value_tnd) : `${fmtKg(keptWeight)} kg`}
-                    <span className="ml-2 text-[12px] text-ink-500">
+                    <span className="ms-2 text-[12px] text-ink-500">
                       {fmtKg(keptWeight)} kg · {fmtKg(data.recovered.co2_kg, 0)} kg CO₂
                     </span>
                   </p>
@@ -204,7 +204,7 @@ export function JobReviewPage({ id }: { id: string }) {
                     <CheckCheck className="size-4" /> {approve.isPending ? 'Approving…' : 'Approve batch'}
                   </button>
                 ) : (
-                  <p className="max-w-[180px] text-right text-[12.5px] leading-snug text-ink-400">
+                  <p className="max-w-[180px] text-end text-[12.5px] leading-snug text-ink-400">
                     A manager approves this batch before it goes to stock.
                   </p>
                 )}

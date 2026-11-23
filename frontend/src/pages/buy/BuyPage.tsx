@@ -69,7 +69,7 @@ export function BuyPage() {
       </header>
 
       <section className="panel-brand relative mt-6 overflow-hidden p-7 md:p-10">
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-reclaim-400/25 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -end-20 -top-24 size-72 rounded-full bg-reclaim-400/25 blur-3xl" />
         <p className="eyebrow !text-ink-950/75">From workshops near you</p>
         <h1 className="mt-3 max-w-2xl font-display text-[34px] font-semibold leading-[1.08] md:text-[48px]">
           Measured offcuts, <span className="text-reclaim-400">ready to use.</span>

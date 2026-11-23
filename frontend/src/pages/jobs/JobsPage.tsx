@@ -45,15 +45,15 @@ export function JobsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left">
+            <table className="w-full min-w-[760px] text-start">
               <thead>
                 <tr className="border-b border-ink-800 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-500">
                   <th className="px-6 py-3 font-normal">File</th>
                   <th className="px-3 py-3 font-normal">Material</th>
-                  <th className="px-3 py-3 text-right font-normal">Remnants</th>
-                  <th className="px-3 py-3 text-right font-normal">Reusable</th>
-                  <th className="px-3 py-3 text-right font-normal">Scrap</th>
-                  <th className="px-3 py-3 text-right font-normal">Value</th>
+                  <th className="px-3 py-3 text-end font-normal">Remnants</th>
+                  <th className="px-3 py-3 text-end font-normal">Reusable</th>
+                  <th className="px-3 py-3 text-end font-normal">Scrap</th>
+                  <th className="px-3 py-3 text-end font-normal">Value</th>
                   <th className="px-3 py-3 font-normal">Status</th>
                   <th className="px-3 py-3 font-normal">Saved</th>
                   <th className="w-10" />
@@ -80,23 +80,23 @@ export function JobsPage() {
                       {materialLabel(job.material_code)}
                       {job.thickness_mm && <span className="text-ink-500"> · {job.thickness_mm} mm</span>}
                     </td>
-                    <td className="readout px-3 py-4 text-right text-ink-200">{job.remnant_count}</td>
-                    <td className="readout px-3 py-4 text-right text-reclaim-300">
+                    <td className="readout px-3 py-4 text-end text-ink-200">{job.remnant_count}</td>
+                    <td className="readout px-3 py-4 text-end text-reclaim-300">
                       {job.remnant_weight_kg !== null ? `${fmtKg(job.remnant_weight_kg)} kg` : '—'}
                     </td>
-                    <td className="readout px-3 py-4 text-right text-rust-400">
+                    <td className="readout px-3 py-4 text-end text-rust-400">
                       {job.scrap_weight_kg !== null ? `${fmtKg(job.scrap_weight_kg)} kg` : '—'}
                     </td>
-                    <td className="readout px-3 py-4 text-right text-ink-100">
+                    <td className="readout px-3 py-4 text-end text-ink-100">
                       {job.recovered.priced_pieces > 0 ? fmtTnd(job.recovered.value_tnd) : '—'}
                     </td>
                     <td className="px-3 py-4">
                       <StatusBadge status={job.status} />
                     </td>
                     <td className="px-3 py-4 font-mono text-[12px] text-ink-400">{fmtDateTime(job.created_at)}</td>
-                    <td className="pr-5">
+                    <td className="pe-5">
                       <Link href={`/jobs/${job.id}`} aria-label={`Open ${job.file_name}`}>
-                        <ArrowRight className="size-4 text-ink-600 transition group-hover:translate-x-0.5 group-hover:text-brand-400" />
+                        <ArrowRight className="size-4 text-ink-600 transition group-hover:translate-x-0.5 group-hover:text-brand-400 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
                       </Link>
                     </td>
                   </motion.tr>

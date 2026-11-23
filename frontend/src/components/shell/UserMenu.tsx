@@ -62,7 +62,7 @@ export function UserMenu({ placement = 'rail' }: { placement?: 'rail' | 'header'
             transition={{ duration: 0.15 }}
             className={clsx(
               'panel absolute z-50 w-64 p-2',
-              placement === 'rail' ? 'bottom-0 left-12' : 'right-0 top-12',
+              placement === 'rail' ? 'bottom-0 start-12' : 'end-0 top-12',
             )}
           >
             <div className="px-3 pb-2 pt-2">

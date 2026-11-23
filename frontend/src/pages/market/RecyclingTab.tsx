@@ -100,7 +100,7 @@ function GroupCard({ group }: { group: RecycleGroup }) {
                   {!r.lot_ok && r.recycler.min_lot_kg && ` · needs ${r.recycler.min_lot_kg} kg`}
                 </span>
               </span>
-              <span className="readout text-right text-[13px] text-ink-200">
+              <span className="readout text-end text-[13px] text-ink-200">
                 {r.recycler.offered_tnd_per_kg ? `${r.recycler.offered_tnd_per_kg} TND/kg` : 'price to agree'}
                 {r.recycler.offered_tnd_per_kg && (
                   <span className="block text-[11.5px] text-ink-400">≈ {fmtTnd(kg * r.recycler.offered_tnd_per_kg, 1)}</span>

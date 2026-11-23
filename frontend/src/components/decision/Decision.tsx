@@ -27,7 +27,7 @@ export function DecisionStrip({ decision }: { decision: Decision }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 px-3 py-2 text-left"
+        className="flex w-full items-center gap-3 px-3 py-2 text-start"
       >
         <span className="inline-flex items-center gap-1.5 rounded-md bg-reclaim-400/12 px-2 py-1 text-[12px] font-semibold text-reclaim-300">
           <Icon className="size-3.5" /> {actionLabel(decision.recommended)}
@@ -39,7 +39,7 @@ export function DecisionStrip({ decision }: { decision: Decision }) {
           <span className="readout text-[12px] text-ink-500">· {fmtKg(best.co2_kg, 0)} kg CO₂</span>
         )}
         {stage && <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-brand-300">{stage}</span>}
-        <ChevronDown className={clsx('ml-auto size-4 text-ink-500 transition', open && 'rotate-180')} />
+        <ChevronDown className={clsx('ms-auto size-4 text-ink-500 transition', open && 'rotate-180')} />
       </button>
       <AnimatePresence initial={false}>
         {open && (

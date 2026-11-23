@@ -53,7 +53,7 @@ export function LabelsPage({ id }: { id: string }) {
       <style>{`@media print { ${PRINT_CSS[format]} }`}</style>
       <div className="no-print">
         <Link href={`/jobs/${id}`} className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 hover:text-ink-100">
-          <ArrowLeft className="size-4" /> Back to job
+          <ArrowLeft className="size-4 rtl:-scale-x-100" /> Back to job
         </Link>
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -66,7 +66,7 @@ export function ReportPage() {
         <article className="print-area space-y-5">
           <header className="flex items-center justify-between border-b border-ink-700 pb-4">
             <Wordmark className="h-8" />
-            <div className="text-right">
+            <div className="text-end">
               <p className="font-display text-[18px] font-semibold">{r.workshop}</p>
               <p className="text-[13px] text-ink-400">Leftover report · {monthLabel(r.month)}</p>
             </div>
@@ -109,30 +109,30 @@ export function ReportPage() {
               <p className="text-[14px] font-semibold text-ink-100">From the machines</p>
               <dl className="mt-3 grid grid-cols-2 gap-y-2 text-[13.5px]">
                 <dt className="text-ink-400">Jobs</dt>
-                <dd className="readout text-right">{r.production.jobs}</dd>
+                <dd className="readout text-end">{r.production.jobs}</dd>
                 <dt className="text-ink-400">Sheets · parts</dt>
-                <dd className="readout text-right">
+                <dd className="readout text-end">
                   {r.production.sheets} · {r.production.parts}
                 </dd>
                 <dt className="text-ink-400">Remnants recorded</dt>
-                <dd className="readout text-right">{fmtKg(r.production.remnant_kg)} kg</dd>
+                <dd className="readout text-end">{fmtKg(r.production.remnant_kg)} kg</dd>
                 <dt className="text-ink-400">Scrap recorded</dt>
-                <dd className="readout text-right">{fmtKg(r.production.scrap_kg)} kg</dd>
+                <dd className="readout text-end">{fmtKg(r.production.scrap_kg)} kg</dd>
               </dl>
             </div>
             <div className="panel p-5">
               <p className="text-[14px] font-semibold text-ink-100">On the racks now</p>
               <dl className="mt-3 grid grid-cols-2 gap-y-2 text-[13.5px]">
                 <dt className="text-ink-400">Recoverable value</dt>
-                <dd className="readout text-right">{fmtTnd(r.stock.value_tnd)}</dd>
+                <dd className="readout text-end">{fmtTnd(r.stock.value_tnd)}</dd>
                 <dt className="text-ink-400">Remnants</dt>
-                <dd className="readout text-right">
+                <dd className="readout text-end">
                   {r.stock.remnant_count} · {fmtKg(r.stock.remnant_kg)} kg
                 </dd>
                 <dt className="text-ink-400">Scrap waiting</dt>
-                <dd className="readout text-right">{fmtKg(r.stock.scrap_kg)} kg</dd>
+                <dd className="readout text-end">{fmtKg(r.stock.scrap_kg)} kg</dd>
                 <dt className="text-ink-400">Due for review</dt>
-                <dd className="readout text-right">{r.stock.due_for_review}</dd>
+                <dd className="readout text-end">{r.stock.due_for_review}</dd>
               </dl>
             </div>
           </section>

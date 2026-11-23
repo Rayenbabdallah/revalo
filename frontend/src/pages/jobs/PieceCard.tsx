@@ -104,7 +104,7 @@ export function PieceCard({ piece, jobId, highlighted, onHighlight, locked }: Pi
             {isRemnant ? (
               <>
                 {fmtMm(piece.width_mm ?? 0)} <span className="text-ink-500">×</span> {fmtMm(piece.height_mm ?? 0)}
-                <span className="ml-1 text-[11px] text-ink-500">mm</span>
+                <span className="ms-1 text-[11px] text-ink-500">mm</span>
               </>
             ) : (
               <>

@@ -126,10 +126,10 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
       <section className="panel mt-8 overflow-hidden">
         <div className="hidden grid-cols-[1.3fr_0.8fr_0.8fr_0.6fr_0.8fr_1.6fr_auto] gap-4 border-b border-ink-800 px-6 py-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-ink-500 lg:grid">
           <span>Material</span>
-          <span className="text-right">New</span>
-          <span className="text-right">Scrap</span>
-          <span className="text-right">Resale</span>
-          <span className="text-right">CO₂ / kg</span>
+          <span className="text-end">New</span>
+          <span className="text-end">Scrap</span>
+          <span className="text-end">Resale</span>
+          <span className="text-end">CO₂ / kg</span>
           <span>Source</span>
           <span className="w-[76px]" />
         </div>
@@ -141,25 +141,25 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
                 <p className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-ink-500">
                   {row.family}
                   {row.custom ? (
-                    <span className="ml-2 text-reclaim-300">your price</span>
+                    <span className="ms-2 text-reclaim-300">your price</span>
                   ) : row.new_tnd_per_kg === null ? (
-                    <span className="ml-2 text-brand-300">no price</span>
+                    <span className="ms-2 text-brand-300">no price</span>
                   ) : (
-                    <span className="ml-2">default</span>
+                    <span className="ms-2">default</span>
                   )}
                 </p>
               </div>
-              <div className="readout text-[14px] text-ink-100 lg:text-right">
+              <div className="readout text-[14px] text-ink-100 lg:text-end">
                 {row.new_tnd_per_kg !== null ? `${row.new_tnd_per_kg} TND/kg` : '—'}
                 <p className="font-sans text-[11px] text-ink-500">{tradeHint(row, density.get(row.material_code))}</p>
               </div>
-              <div className="readout text-[14px] text-ink-300 lg:text-right">
+              <div className="readout text-[14px] text-ink-300 lg:text-end">
                 {row.scrap_tnd_per_kg !== null ? `${row.scrap_tnd_per_kg} TND/kg` : '—'}
               </div>
-              <div className="readout text-[14px] text-ink-300 lg:text-right">
+              <div className="readout text-[14px] text-ink-300 lg:text-end">
                 {row.resale_factor !== null ? `${Math.round(row.resale_factor * 100)}%` : '—'}
               </div>
-              <div className="readout text-[14px] text-ink-300 lg:text-right" title={row.co2_source ?? 'No published factor yet'}>
+              <div className="readout text-[14px] text-ink-300 lg:text-end" title={row.co2_source ?? 'No published factor yet'}>
                 {row.co2_primary_kg_per_kg !== null ? `${row.co2_primary_kg_per_kg} kg` : '—'}
               </div>
               <p className="col-span-2 text-[12px] leading-snug text-ink-500 lg:col-span-1">
