@@ -54,6 +54,26 @@ when the user does not give them.
     brought back in TND against the Revalo plan, kg kept out of the bin and CO2
     avoided. Stock exports to Excel (CSV).
 
+**Day to day on the floor**
+
+- **Repeat runs.** Sending a program Revalo already knows never doubles the
+  stock and is never refused: it asks "Did you cut it again?", with the likely
+  answer first. One upload can record several sheets cut with the same program,
+  and a repeat run can take the earlier run's corrections in one tap.
+- **Scan a label to act.** The piece page opened by a QR code has one-tap
+  actions by role: move to a rack, take for a job, weigh, scrap a damaged piece,
+  reprint the label, list for sale. Each lands in the piece's history.
+- **What was on the racks before.** Existing offcuts are entered by form or
+  from a CSV list (English or French columns), checked against the stock so
+  nothing is entered twice, then labelled.
+- **Offcuts that are already wanted.** Coming jobs can be kept as planned jobs;
+  every newly approved offcut is checked against them and against waiting
+  buyers, and the alerts say when a planned job can be cut from the racks.
+- **Batch lots.** Similar offcuts (same material and thickness, sizes in the
+  same band) are suggested as lots with a lot price. A buyer takes the whole lot
+  or part of it; each lot has a pick list sorted by rack and its own QR label,
+  and buyers can say they take whole lots.
+
 Operators work at the machine: they pick a machine preset and the file it just
 cut, nothing to type. The alerts bell lists what needs a manager now: jobs to
 review, pieces past their date, buyer matches, scrap ready for a recycler.
