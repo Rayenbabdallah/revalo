@@ -73,6 +73,12 @@ when the user does not give them.
   same band) are suggested as lots with a lot price. A buyer takes the whole lot
   or part of it; each lot has a pick list sorted by rack and its own QR label,
   and buyers can say they take whole lots.
+- **Remnants for the nesting software.** Any remnant, or all remnants of a
+  material in stock, downloads as a DXF: closed outlines at real size on layer
+  REMNANT, codes on layer LABEL, ready to import as remnant sheets.
+- **Weights that learn.** Each time a piece is weighed, Revalo compares the
+  scale with the calculation; after three weighings of a material, new estimates
+  are corrected by the median ratio (shown in the price book).
 
 Operators work at the machine: they pick a machine preset and the file it just
 cut, nothing to type. The alerts bell lists what needs a manager now: jobs to
@@ -153,6 +159,16 @@ recycler pickup) for presentations, on an empty database only:
 
 ```bash
 REVALO_DEMO_PASSWORD=revalo-demo-2026 uv run revalo demo
+```
+
+Check the engine on job files: every sample by default, or your own files and
+folders. Each result is checked physically (parts, remnants and kerf within the
+sheet, no overlaps, minimum size respected, weights consistent) and compared with
+its reviewed baseline in `samples/expected` when there is one:
+
+```bash
+uv run revalo accuracy                  # all samples
+uv run revalo accuracy ../new-jobs/     # files you just received
 ```
 
 Analyze a file from the command line:
