@@ -67,6 +67,7 @@ export function BuyerRequestForm({
       min_lot_kg: kind === 'recycler' ? num(text('minlot')) : undefined,
       pickup_note: kind === 'recycler' ? text('pickup') || undefined : undefined,
       note: text('note') || undefined,
+      buys_lots: kind === 'reuse' ? f.get('lots') === 'on' : undefined,
     }
     post.mutate(body)
   }
@@ -176,6 +177,13 @@ export function BuyerRequestForm({
             <input name="pickup" className={field} placeholder={t('Tuesdays and Fridays, light truck')} />
           </Label>
         </div>
+      )}
+
+      {kind === 'reuse' && (
+        <label className="flex items-center gap-2.5 rounded-xl border border-ink-700 bg-ink-900 px-3.5 py-3 text-[14px] text-ink-200">
+          <input type="checkbox" name="lots" className="size-4 accent-[var(--color-brand-500)]" />
+          {t('I can take whole lots of similar offcuts')}
+        </label>
       )}
 
       <Label text={t('Anything else')} hint={t('optional')}>

@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
+import { LotsTab } from './LotsTab'
 import { RecyclingTab } from './RecyclingTab'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import {
@@ -292,11 +293,11 @@ function BuyersTab() {
   )
 }
 
-type Tab = 'listings' | 'buyers' | 'recycling'
+type Tab = 'listings' | 'lots' | 'buyers' | 'recycling'
 
 function tabFrom(search: string): Tab {
   const t = new URLSearchParams(search).get('tab')
-  return t === 'buyers' || t === 'recycling' ? t : 'listings'
+  return t === 'buyers' || t === 'recycling' || t === 'lots' ? t : 'listings'
 }
 
 export function MarketPage() {
@@ -356,7 +357,8 @@ export function MarketPage() {
 
       <div className="mt-8 flex w-fit rounded-xl border border-ink-700 bg-ink-900 p-1">
         {([
-          ['listings', `Listings${active.length ? ` · ${active.length}` : ''}`],
+          ['listings', `${t('Listings')}${active.length ? ` · ${active.length}` : ''}`],
+          ['lots', t('Lots')],
           ['buyers', t('Buyers')],
           ['recycling', t('Recycling')],
         ] as const).map(([value, label]) => (
@@ -375,7 +377,9 @@ export function MarketPage() {
       </div>
 
       <div className="mt-5">
-        {tab === 'recycling' ? (
+        {tab === 'lots' ? (
+          <LotsTab />
+        ) : tab === 'recycling' ? (
           <RecyclingTab />
         ) : tab === 'buyers' ? (
           <BuyersTab />

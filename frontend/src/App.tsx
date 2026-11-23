@@ -12,6 +12,7 @@ import { BuyPage } from './pages/buy/BuyPage'
 import { JobReviewPage } from './pages/jobs/JobReviewPage'
 import { JobsPage } from './pages/jobs/JobsPage'
 import { LabelsPage } from './pages/jobs/LabelsPage'
+import { LotPage } from './pages/market/LotPage'
 import { MarketPage } from './pages/market/MarketPage'
 import { PiecePage } from './pages/piece/PiecePage'
 import { ReportPage } from './pages/report/ReportPage'
@@ -54,6 +55,13 @@ function Workspace() {
           <RequireRole min="manager">
             <MarketPage />
           </RequireRole>
+        </Route>
+        <Route path="/lots/:id">
+          {(params) => (
+            <RequireRole min="manager">
+              <LotPage id={params.id} />
+            </RequireRole>
+          )}
         </Route>
         <Route path="/report">
           <RequireRole min="manager">

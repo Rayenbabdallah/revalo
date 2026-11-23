@@ -530,7 +530,7 @@ export const getListings = () =>
 export const getListingMatches = (id: string) =>
   request<{ listing: WorkshopListing; matches: BuyerMatch[] }>(`/v1/listings/${encodeURIComponent(id)}/matches`)
 
-export const getMarket = () => request<{ listings: PublicListing[] }>('/v1/market')
+export const getMarket = () => request<{ listings: PublicListing[]; lots: PublicLot[] }>('/v1/market')
 
 export interface BuyerRequestInput {
   kind: BuyerKind
@@ -548,6 +548,7 @@ export interface BuyerRequestInput {
   min_lot_kg?: number
   pickup_note?: string
   note?: string
+  buys_lots?: boolean
 }
 
 export const postBuyerRequest = (body: BuyerRequestInput) =>
@@ -803,3 +804,66 @@ export const updateUser = (
   id: string,
   body: { name?: string; role?: Role; active?: boolean; password?: string },
 ) => request<User>(`/v1/users/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
+
+/* ---------- Batch lots ---------- */
+
+export interface LotSize {
+  length_mm: number
+  width_mm: number
+  count: number
+}
+
+export interface PublicLot {
+  id: string
+  code: string
+  title: string
+  material_code: string
+  thickness_mm: number
+  status: ListingStatus
+  price_tnd: number
+  count: number
+  weight_kg: number
+  area_m2: number
+  sizes: LotSize[]
+  contact_url?: string
+}
+
+export interface WorkshopLot extends PublicLot {
+  sold_price_tnd: number | null
+  fee_tnd: number | null
+  buyer: { id: string; name: string } | null
+  created_by: string
+  created_at: string
+  closed_at: string | null
+  label_url: string
+  items: { id: string; code: string; width_mm: number | null; height_mm: number | null; weight_kg: number | null; location: string | null; status: PieceStatus }[]
+  matches?: { id: string; name: string; buys_lots: boolean; score: number; distance_km: number | null; whatsapp_url: string }[]
+}
+
+export interface LotSuggestion {
+  material_code: string
+  thickness_mm: number
+  band: string
+  title: string
+  count: number
+  weight_kg: number
+  area_m2: number
+  value_tnd: number
+  suggested_price_tnd: number
+  sizes: LotSize[]
+  piece_ids: string[]
+}
+
+export type LotAction = 'reserve' | 'reopen' | 'sell' | 'withdraw'
+
+export const getLotSuggestions = () => request<{ groups: LotSuggestion[] }>('/v1/lots/suggestions')
+export const getLots = () => request<{ lots: WorkshopLot[] }>('/v1/lots')
+export const getLot = (id: string) => request<WorkshopLot>(`/v1/lots/${encodeURIComponent(id)}`)
+
+export const createLot = (body: { piece_ids: string[]; title?: string; price_tnd?: number }) =>
+  request<WorkshopLot>('/v1/lots', { method: 'POST', ...json(body) })
+
+export const actOnLot = (
+  id: string,
+  body: { action: LotAction; buyer_request_id?: string; price_tnd?: number; piece_ids?: string[] },
+) => request<WorkshopLot>(`/v1/lots/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })

@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Wordmark } from '../../components/brand/Logo'
 import { LanguagePicker } from '../../components/shell/LanguagePicker'
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
-import { getMarket, type PublicListing } from '../../lib/api'
+import { getMarket, type PublicListing, type PublicLot } from '../../lib/api'
 import { fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
 
@@ -57,9 +57,56 @@ function ListingTile({ listing, index }: { listing: PublicListing; index: number
   )
 }
 
+function LotTile({ lot, index }: { lot: PublicLot; index: number }) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.04, 0.4) }}
+      className="panel flex flex-col border-brand-500/40 p-5 sm:col-span-2"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="eyebrow rounded-md bg-brand-500/10 px-2 py-0.5 !text-brand-500">
+            {t('Lot of {count} pieces', { count: lot.count })}
+          </span>
+          <p className="mt-2 font-display text-[17px] font-semibold text-ink-50">
+            {materialLabel(lot.material_code)} · {lot.thickness_mm} mm
+          </p>
+          <p className="readout mt-1 text-[13px] text-ink-300">
+            {lot.sizes
+              .slice(0, 3)
+              .map((s) => `${s.count} × ${fmtMm(s.length_mm)} × ${fmtMm(s.width_mm)}`)
+              .join(' · ')}
+            {lot.sizes.length > 3 && ' …'}
+          </p>
+        </div>
+        <span className="readout rounded-lg bg-brand-500 px-2.5 py-1.5 text-[15px] text-ink-950">{fmtTnd(lot.price_tnd)}</span>
+      </div>
+      <p className="readout mt-3 text-[12.5px] text-ink-400">
+        {fmtKg(lot.weight_kg)} kg · {lot.area_m2} m²
+      </p>
+      <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+        <span className="readout text-[11.5px] text-ink-500">{lot.code}</span>
+        {lot.contact_url && (
+          <a
+            href={lot.contact_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-reclaim-400 px-3 py-2 text-[13px] font-semibold text-ink-50 transition hover:bg-reclaim-500"
+          >
+            <MessageCircle className="size-4" /> {t('Contact')}
+          </a>
+        )}
+      </div>
+    </motion.article>
+  )
+}
+
 /** The public side of the marketplace: what is on offer, and a way to say what you need. */
 export function BuyPage() {
   const market = useQuery({ queryKey: ['market'], queryFn: getMarket })
+  const lots = market.data?.lots ?? []
   const [posted, setPosted] = useState<PublicListing[] | null>(null)
   const listings = market.data?.listings ?? []
 
@@ -89,12 +136,15 @@ export function BuyPage() {
           <h2 className="font-display text-xl font-semibold">{t('On offer now')}</h2>
           {market.isPending ? (
             <p className="mt-4 font-mono text-sm text-ink-500">{t('Loading…')}</p>
-          ) : listings.length === 0 ? (
+          ) : listings.length === 0 && lots.length === 0 ? (
             <p className="panel mt-4 px-6 py-10 text-center text-[14px] text-ink-400">
               {t('Nothing on offer right now. Post what you need and the workshop will contact you.')}
             </p>
           ) : (
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {lots.map((lot, i) => (
+                <LotTile key={lot.id} lot={lot} index={i} />
+              ))}
               {listings.map((l, i) => (
                 <ListingTile key={l.id} listing={l} index={i} />
               ))}

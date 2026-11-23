@@ -29,6 +29,10 @@ const ACTION_LABEL: Record<string, string> = {
   pickup_requested: t('Pickup requested'),
   pickup_cancelled: t('Pickup cancelled'),
   recycled: t('Collected by the recycler'),
+  lotted: t('Added to a lot'),
+  lot_reserved: t('Lot reserved for a buyer'),
+  lot_sold: t('Sold in a lot'),
+  lot_withdrawn: t('Lot withdrawn from sale'),
 }
 
 /** The one detail worth reading next to an event: where to, for what, why. */
@@ -42,7 +46,9 @@ function eventDetail(e: PieceEvent): string | null {
   if (e.action === 'weighed') return to('weight_actual_kg') && `${to('weight_actual_kg')} kg`
   if (e.action === 'reused') return typeof d.for === 'string' ? d.for : null
   if (e.action === 'scrapped') return typeof d.reason === 'string' ? d.reason : null
-  if (e.action === 'listing_reserve' || e.action === 'listing_sell') return typeof d.buyer === 'string' ? d.buyer : null
+  if (e.action === 'lotted') return typeof d.lot === 'string' ? d.lot : null
+  if (['listing_reserve', 'listing_sell', 'lot_reserved', 'lot_sold'].includes(e.action))
+    return typeof d.buyer === 'string' ? d.buyer : null
   return null
 }
 

@@ -40,3 +40,20 @@ def test_a_lot_needs_one_material_and_free_pieces(client):
     ids = [p["id"] for p in pieces[:3]]
     assert client.post("/v1/lots", json={"piece_ids": ids}).status_code == 201
     assert client.post("/v1/lots", json={"piece_ids": ids}).status_code == 422
+
+
+def test_buyers_who_take_whole_lots_come_first(client):
+    pieces = stock(client)
+    base = {
+        "kind": "reuse",
+        "phone": "+216 20 000 000",
+        "governorate": "Tunis",
+        "materials": ["mdf"],
+    }
+    client.post("/v1/buyer-requests", json={**base, "name": "Karim"})
+    client.post("/v1/buyer-requests", json={**base, "name": "Samia", "buys_lots": True})
+    lot = client.post("/v1/lots", json={"piece_ids": [p["id"] for p in pieces]}).json()
+    names = [m["name"] for m in lot["matches"]]
+    assert names[0] == "Samia" and "Karim" in names
+    assert lot["matches"][0]["buys_lots"] is True
+    assert "wa.me" in lot["matches"][0]["whatsapp_url"]
