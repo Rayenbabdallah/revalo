@@ -42,7 +42,12 @@ def test_demo_seeds_once_and_signs_in(tmp_path, monkeypatch, capsys):
             market = client.get("/v1/listings").json()["summary"]
             assert market["sold"] == 1 and market["open"] >= 1
             kinds = {a["kind"] for a in client.get("/v1/alerts").json()["alerts"]}
-            assert {"review", "pickup"} <= kinds
+            assert {"review", "pickup", "offer"} <= kinds
+            offers = client.get("/v1/supply-offers").json()["offers"]
+            assert len(offers) == 2
+            nabil = next(o for o in offers if o["organization"] == "Atelier Nabil")
+            assert nabil["planned"] and nabil["planned"][0]["extra_parts"] == 2
+            assert nabil["saving_tnd"] > 0
             report = client.get("/v1/reports/monthly").json()
             assert report["recovered_tnd"] > 0 and report["outcomes"]["recycled"]["pickups"] == 1
     finally:

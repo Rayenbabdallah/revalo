@@ -173,7 +173,7 @@ def _demo() -> int:
             return 1
     print(
         f"Demo workshop ready: {summary.jobs} jobs, {summary.in_stock} pieces in stock, "
-        f"{summary.listings} listings, {summary.buyers} buyers."
+        f"{summary.listings} listings, {summary.buyers} buyers, {summary.offers} offers to buy."
     )
     for role, email, name in summary.accounts:
         print(f"  {role:<9} {email:<28} {name}")

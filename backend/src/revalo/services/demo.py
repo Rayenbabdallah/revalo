@@ -14,15 +14,19 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from revalo.db.models import Job, Piece, PieceKind, PieceStatus, Role
+from revalo.engine.fit import PartSize
+from revalo.engine.materials import default_kerf
 from revalo.engine.pipeline import AnalysisOptions
 from revalo.services.auth import create_user, user_count
 from revalo.services.fit import mark_reused
 from revalo.services.jobs import create_job, default_workshop
 from revalo.services.machines import MachineInput, apply_machine, save_machine
 from revalo.services.market import RequestInput, create_request, list_piece, update_listing
+from revalo.services.opportunities import save_planned
 from revalo.services.pickups import request_pickup, update_pickup
 from revalo.services.pieces import approve_job
 from revalo.services.prices import price_book
+from revalo.services.sourcing import OfferInput, create_offer
 from revalo.storage import FileStorage
 
 DEMO_DOMAIN = "atelier-demo.test"
@@ -44,6 +48,7 @@ class DemoSummary:
     in_stock: int = 0
     listings: int = 0
     buyers: int = 0
+    offers: int = 0
 
 
 def _remnants(job: Job) -> list[Piece]:
@@ -178,6 +183,52 @@ def seed_demo(session: Session, storage: FileStorage, samples: Path, password: s
     weighed = round(collected.estimated_kg * 0.97, 1)
     update_pickup(session, collected, "collect", manager, weighed_kg=weighed)
     request_pickup(session, recycler.id, [p.id for p in _scrap(inox)], manager, shop.id)
+
+    # A coming job too big for the racks, and two workshops offering offcuts to us:
+    # one would hold that job, the other is simply cheaper than new.
+    save_planned(
+        session,
+        shop.id,
+        "Gate panels, order 2026-142",
+        "steel_mild",
+        3,
+        default_kerf(None, "steel_mild"),
+        [PartSize(f"Panel {i + 1}", 900, 600) for i in range(2)],
+        manager,
+    )
+    create_offer(
+        session,
+        OfferInput(
+            seller_name="Nabil",
+            organization="Atelier Nabil",
+            phone="+216 55 111 222",
+            governorate="Sousse",
+            material_code="steel_mild",
+            thickness_mm=3,
+            width_mm=1000,
+            height_mm=700,
+            quantity=2,
+            price_tnd=60,
+            note="Clean edges, collect in Sousse or we deliver on Thursdays.",
+        ),
+    )
+    create_offer(
+        session,
+        OfferInput(
+            seller_name="Sonia",
+            organization="Alu Pro Sfax",
+            phone="+216 74 222 333",
+            governorate="Sfax",
+            material_code="aluminium",
+            thickness_mm=2,
+            width_mm=600,
+            height_mm=400,
+            quantity=4,
+            price_tnd=45,
+        ),
+        source="workshop",
+    )
+    summary.offers = 2
 
     # Give a few pieces some age, so the review stages show in stock.
     steel.approved_at = datetime.now(UTC) - timedelta(days=35)
