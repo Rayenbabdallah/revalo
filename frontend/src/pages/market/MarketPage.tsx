@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
+import { BuyingTab } from './BuyingTab'
 import { LotsTab } from './LotsTab'
 import { RecyclingTab } from './RecyclingTab'
 import { StatusBadge } from '../../components/ui/StatusBadge'
@@ -293,11 +294,11 @@ function BuyersTab() {
   )
 }
 
-type Tab = 'listings' | 'lots' | 'buyers' | 'recycling'
+type Tab = 'listings' | 'lots' | 'buyers' | 'recycling' | 'buying'
 
 function tabFrom(search: string): Tab {
   const t = new URLSearchParams(search).get('tab')
-  return t === 'buyers' || t === 'recycling' || t === 'lots' ? t : 'listings'
+  return t === 'buyers' || t === 'recycling' || t === 'lots' || t === 'buying' ? t : 'listings'
 }
 
 export function MarketPage() {
@@ -305,6 +306,7 @@ export function MarketPage() {
   const [, navigate] = useLocation()
   // The tab lives in the URL, so alert links can open any tab directly.
   const tab = tabFrom(search)
+  const buying = tab === 'buying'
   const setTab = (t: Tab) => navigate(t === 'listings' ? '/market' : `/market?tab=${t}`, { replace: true })
   const data = useQuery({ queryKey: ['listings'], queryFn: getListings })
   const summary = data.data?.summary
@@ -317,22 +319,26 @@ export function MarketPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">{t('Marketplace')}</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">{t('Sell what you will not reuse')}</h1>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight">
+            {buying ? t('Buy offcuts for less than new') : t('Sell what you will not reuse')}
+          </h1>
           <p className="mt-2 max-w-xl text-[15px] text-ink-400">
-            {t('Each listing is matched with buyers by material, size, price and distance. Contact them on WhatsApp in one tap.')}
+            {buying
+              ? t('Before opening a new sheet, see what workshops nearby offer: priced against new material and checked against your coming jobs.')
+              : t('Each listing is matched with buyers by material, size, price and distance. Contact them on WhatsApp in one tap.')}
           </p>
         </div>
         <a
-          href="/buy"
+          href={buying ? '/buy?sell' : '/buy'}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[13.5px] font-medium text-ink-100 hover:border-brand-500"
         >
-          <ExternalLink className="size-4" /> {t('Public page for buyers')}
+          <ExternalLink className="size-4" /> {buying ? t('Public page for sellers') : t('Public page for buyers')}
         </a>
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className={clsx('mt-8 grid-cols-2 gap-3 md:grid-cols-4', buying ? 'hidden' : 'grid')}>
         <div className="panel-brand p-5">
           <p className="eyebrow !text-[10px] !text-ink-950/75">{t('On sale')}</p>
           <p className="readout mt-2 text-[30px] leading-none text-reclaim-400">{fmtTnd(summary?.open_value_tnd ?? 0)}</p>
@@ -355,12 +361,13 @@ export function MarketPage() {
         </div>
       </div>
 
-      <div className="mt-8 flex w-fit rounded-xl border border-ink-700 bg-ink-900 p-1">
+      <div className="mt-8 flex w-fit max-w-full overflow-x-auto rounded-xl border border-ink-700 bg-ink-900 p-1">
         {([
           ['listings', `${t('Listings')}${active.length ? ` · ${active.length}` : ''}`],
           ['lots', t('Lots')],
           ['buyers', t('Buyers')],
           ['recycling', t('Recycling')],
+          ['buying', t('Buying')],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -377,7 +384,9 @@ export function MarketPage() {
       </div>
 
       <div className="mt-5">
-        {tab === 'lots' ? (
+        {tab === 'buying' ? (
+          <BuyingTab />
+        ) : tab === 'lots' ? (
           <LotsTab />
         ) : tab === 'recycling' ? (
           <RecyclingTab />

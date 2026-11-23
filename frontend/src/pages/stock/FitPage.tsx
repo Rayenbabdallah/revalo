@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Bookmark, CheckCircle2, FileUp, Plus, Scissors, Trash2 } from 'lucide-react'
+import { ArrowLeft, Bookmark, CheckCircle2, FileUp, Plus, Scissors, ShoppingCart, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearch } from 'wouter'
@@ -296,6 +296,39 @@ export function FitPage() {
                   </div>
                 </div>
               ))}
+
+              {(plan.offers?.length ?? 0) > 0 && (
+                <div className="panel border-reclaim-400/50 p-5">
+                  <p className="flex items-center gap-2 text-[14.5px] font-semibold text-ink-50">
+                    <ShoppingCart className="size-4 text-reclaim-600" />
+                    {t('Before opening a new sheet, these offers would hold the rest')}
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {plan.offers!.map((o) => (
+                      <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-800 p-3">
+                        <div className="min-w-0">
+                          <p className="text-[14px] font-medium text-ink-50">
+                            {o.organization ?? o.seller_name} · {o.governorate}
+                            {o.distance_km !== null && ` · ${Math.round(o.distance_km)} km`}
+                          </p>
+                          <p className="readout mt-0.5 text-[12.5px] text-ink-400">
+                            {o.quantity} × {fmtMm(o.width_mm)} × {fmtMm(o.height_mm)} mm · {fmtTnd(o.price_tnd)}
+                            {o.saving_tnd !== null && o.saving_tnd > 0 && ` · ${t('{amount} less than new', { amount: fmtTnd(o.saving_tnd) })}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="readout text-[13px] text-reclaim-600">
+                            {t('holds {count} part|holds {count} parts', { count: o.placed_count ?? 0 })}
+                          </span>
+                          <Link href="/market?tab=buying" className="text-[13px] font-medium text-brand-500 hover:underline">
+                            {t('See offer')}
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {plan.uses.length > 0 &&
                 (reuse.isSuccess ? (

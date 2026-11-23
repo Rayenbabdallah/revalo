@@ -565,6 +565,70 @@ export const toggleBuyerRequest = (id: string, active: boolean) =>
 
 export const getGovernorates = () => request<{ governorates: string[] }>('/v1/geo/governorates')
 
+/* ---------- Buying: offcuts offered to the workshop ---------- */
+
+export type OfferStatus = 'open' | 'bought' | 'declined'
+
+export interface SupplyOfferInput {
+  seller_name: string
+  organization?: string
+  phone: string
+  governorate: string
+  material_code: string
+  thickness_mm: number
+  width_mm: number
+  height_mm: number
+  quantity: number
+  price_tnd: number
+  note?: string
+}
+
+export interface SupplyOffer {
+  id: string
+  status: OfferStatus
+  source: 'public' | 'workshop'
+  seller_name: string
+  organization: string | null
+  phone: string
+  governorate: string
+  material_code: string
+  material_name: { en: string; fr: string }
+  thickness_mm: number
+  width_mm: number
+  height_mm: number
+  quantity: number
+  price_tnd: number
+  note: string | null
+  bought_price_tnd: number | null
+  intake_job_id: string | null
+  closed_by: string | null
+  created_at: string
+  closed_at: string | null
+  whatsapp_url: string
+  weight_kg: number
+  price_tnd_per_kg: number | null
+  new_tnd: number | null
+  saving_tnd: number | null
+  distance_km: number | null
+  planned?: { id: string; name: string; extra_parts: number; placed: number; total: number }[]
+  placed_count?: number
+}
+
+export interface PurchasesSummary {
+  open: number
+  bought: number
+  spent_tnd: number
+  saved_tnd: number
+}
+
+export const postSupplyOffer = (body: SupplyOfferInput) =>
+  request<{ id: string; status: OfferStatus } | SupplyOffer>('/v1/supply-offers', { method: 'POST', ...json(body) })
+
+export const getSupplyOffers = () => request<{ offers: SupplyOffer[]; summary: PurchasesSummary }>('/v1/supply-offers')
+
+export const actOnSupplyOffer = (id: string, body: { action: 'buy' | 'decline' | 'reopen'; price_tnd?: number }) =>
+  request<SupplyOffer>(`/v1/supply-offers/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
+
 /* ---------- Machines ---------- */
 
 export interface Machine {
@@ -612,6 +676,8 @@ export interface FitPlan {
   saved_tnd: number | null
   uses: FitUse[]
   unplaced: { label: string; length: number; width: number }[]
+  /** Offers that would hold the parts the racks cannot. */
+  offers?: SupplyOffer[]
 }
 
 export function checkFit(input: {
@@ -738,6 +804,7 @@ export interface MonthlyReport {
     reused: { pieces: number; kg: number; tnd: number }
     sold: { pieces: number; kg: number; tnd: number; fees_tnd: number }
     recycled: { pickups: number; kg: number; tnd: number }
+    bought?: { offers: number; kg: number; spent_tnd: number; tnd: number }
   }
   recovered_tnd: number
   diverted_kg: number
@@ -757,7 +824,7 @@ export const pieceDxfUrl = (pieceId: string) => `${BASE}/v1/pieces/${encodeURICo
 /* ---------- Alerts ---------- */
 
 export interface Alert {
-  kind: 'review' | 'due' | 'match' | 'recycle' | 'pickup' | 'buyer'
+  kind: 'review' | 'due' | 'match' | 'recycle' | 'pickup' | 'buyer' | 'planned' | 'offer'
   title: string
   detail: string
   link: string

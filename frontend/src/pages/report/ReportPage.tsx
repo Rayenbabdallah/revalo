@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Printer, Recycle, Repeat2, Tag } from 'lucide-react'
+import clsx from 'clsx'
+import { Printer, Recycle, Repeat2, ShoppingCart, Tag } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { Wordmark } from '../../components/brand/Logo'
@@ -33,6 +34,7 @@ export function ReportPage() {
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const report = useQuery({ queryKey: ['report', month], queryFn: () => getMonthlyReport(month) })
   const r = report.data
+  const bought = r?.outcomes.bought && r.outcomes.bought.offers > 0 ? r.outcomes.bought : null
 
   return (
     <div className="report mx-auto max-w-[920px] px-4 py-8 md:px-10 md:py-12">
@@ -84,7 +86,7 @@ export function ReportPage() {
             </p>
           </section>
 
-          <section className="grid gap-3 md:grid-cols-3">
+          <section className={clsx('grid gap-3 sm:grid-cols-2', bought ? 'lg:grid-cols-4' : 'md:grid-cols-3')}>
             <Outcome
               icon={<Repeat2 className="size-4 text-reclaim-600" />}
               title={t('Reused in house')}
@@ -103,6 +105,17 @@ export function ReportPage() {
               value={fmtTnd(r.outcomes.recycled.tnd)}
               lines={[`${t('{count} pickup|{count} pickups', { count: r.outcomes.recycled.pickups })} · ${fmtKg(r.outcomes.recycled.kg)} kg`, t('Paid by recyclers')]}
             />
+            {bought && (
+              <Outcome
+                icon={<ShoppingCart className="size-4 text-reclaim-600" />}
+                title={t('Bought for less')}
+                value={fmtTnd(bought.tnd)}
+                lines={[
+                  `${t('{count} offer|{count} offers', { count: bought.offers })} · ${fmtKg(bought.kg)} kg`,
+                  t('Saved against new, after paying {amount}', { amount: fmtTnd(bought.spent_tnd) }),
+                ]}
+              />
+            )}
           </section>
 
           <section className="grid gap-3 md:grid-cols-2">

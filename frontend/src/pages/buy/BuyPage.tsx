@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import clsx from 'clsx'
 import { CheckCircle2, MapPin, MessageCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -6,6 +7,7 @@ import { useState } from 'react'
 import { Wordmark } from '../../components/brand/Logo'
 import { LanguagePicker } from '../../components/shell/LanguagePicker'
 import { BuyerRequestForm } from '../../components/market/BuyerRequestForm'
+import { SupplyOfferForm } from '../../components/market/SupplyOfferForm'
 import { getMarket, type PublicListing, type PublicLot } from '../../lib/api'
 import { fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
@@ -108,6 +110,10 @@ export function BuyPage() {
   const market = useQuery({ queryKey: ['market'], queryFn: getMarket })
   const lots = market.data?.lots ?? []
   const [posted, setPosted] = useState<PublicListing[] | null>(null)
+  const [side, setSide] = useState<'need' | 'offer'>(() =>
+    new URLSearchParams(window.location.search).get('sell') !== null ? 'offer' : 'need',
+  )
+  const [offered, setOffered] = useState(false)
   const listings = market.data?.listings ?? []
 
   return (
@@ -153,6 +159,46 @@ export function BuyPage() {
         </section>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
+          <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-ink-700 bg-ink-900 p-1">
+            {([
+              ['need', t('I want to buy')],
+              ['offer', t('I want to sell')],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSide(value)}
+                className={clsx(
+                  'rounded-lg px-3 py-2 text-[13.5px] font-medium transition',
+                  side === value ? 'bg-brand-500 text-ink-950' : 'text-ink-400 hover:text-ink-100',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {side === 'offer' ? (
+            <div className="panel p-5">
+              {offered ? (
+                <div className="py-4 text-center">
+                  <CheckCircle2 className="mx-auto size-10 text-reclaim-400" />
+                  <p className="mt-3 font-display text-xl font-semibold">{t('Offer sent')}</p>
+                  <p className="mt-1 text-[14px] text-ink-400">{t('The workshop will contact you on WhatsApp if it needs your offcuts.')}</p>
+                  <button type="button" onClick={() => setOffered(false)} className="mt-4 text-[13.5px] font-medium text-brand-500 hover:underline">
+                    {t('Offer something else')}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2 className="font-display text-xl font-semibold">{t('Sell your offcuts to us')}</h2>
+                  <p className="mb-4 mt-1 text-[13.5px] text-ink-400">
+                    {t('Workshops and suppliers: tell us what you have. We check it against our coming jobs.')}
+                  </p>
+                  <SupplyOfferForm onPosted={() => setOffered(true)} />
+                </>
+              )}
+            </div>
+          ) : (
           <div className="panel p-5">
             {posted === null ? (
               <>
@@ -177,6 +223,7 @@ export function BuyPage() {
               </div>
             )}
           </div>
+          )}
         </aside>
       </div>
     </div>
