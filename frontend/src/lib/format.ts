@@ -34,7 +34,7 @@ const PROCESS_LABEL: Record<string, string> = {
 }
 export const processLabel = (code: string | null) => (code ? (PROCESS_LABEL[code] ?? code) : t('Unknown'))
 
-const FORMAT_LABEL = { dxf: t('DXF nest'), gcode: 'G-code', cutlist: t('Cut list') } as const
+const FORMAT_LABEL = { dxf: t('DXF nest'), gcode: 'G-code', cutlist: t('Cut list'), manual: t('Existing stock') } as const
 export const formatLabel = (f: keyof typeof FORMAT_LABEL) => FORMAT_LABEL[f]
 
 export function fmtDate(iso: string) {

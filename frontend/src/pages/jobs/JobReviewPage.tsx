@@ -30,6 +30,47 @@ function sheetWithRecords(job: JobDetail, index: number, run: number): SheetAnal
   }
 }
 
+/** Pieces entered from the racks: no drawing, just the list and its labels. */
+function IntakeJobView({ job }: { job: JobDetail }) {
+  return (
+    <div className="mx-auto max-w-[1180px] px-4 py-8 md:px-10 md:py-10">
+      <Link href="/jobs" className="inline-flex items-center gap-1.5 text-[13px] text-ink-400 transition hover:text-ink-100">
+        <ArrowLeft className="size-4 rtl:-scale-x-100" /> {t('All jobs')}
+      </Link>
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow">{t('Existing stock')}</p>
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">{job.file_name}</h1>
+          <p className="mt-1.5 text-[14px] text-ink-400">
+            {t('Entered by {name} on {date}', { name: job.created_by ?? '', date: fmtDateTime(job.created_at) })} ·{' '}
+            {t('{count} piece|{count} pieces', { count: job.pieces.length })}
+          </p>
+        </div>
+        <Link
+          href={`/jobs/${job.id}/labels`}
+          className="inline-flex items-center gap-2 rounded-xl bg-reclaim-400 px-4 py-2.5 text-sm font-semibold text-ink-50 hover:bg-reclaim-300"
+        >
+          <Printer className="size-4" /> {t('Print labels')}
+        </Link>
+      </div>
+      <ul className="panel mt-6 divide-y divide-ink-800 p-0">
+        {job.pieces.map((p) => (
+          <li key={p.id} className="grid grid-cols-[8rem_1fr_auto] items-center gap-3 px-5 py-3 text-[14px]">
+            <Link href={`/p/${p.code}`} className="readout text-brand-500 hover:underline">
+              {p.code}
+            </Link>
+            <span className="text-ink-200">
+              {p.kind === 'remnant' ? `${fmtKg(p.width_mm ?? 0, 0)} × ${fmtKg(p.height_mm ?? 0, 0)} mm` : t('Scrap lot')} ·{' '}
+              {materialLabel(p.material_code)} {p.thickness_mm} mm · {fmtKg(p.weight_kg)} kg
+            </span>
+            <span className="text-[12.5px] text-ink-400">{p.location ?? t('Not set')}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export function JobReviewPage({ id }: { id: string }) {
   const queryClient = useQueryClient()
   const job = useQuery({ queryKey: ['job', id], queryFn: () => getJob(id) })
@@ -67,6 +108,7 @@ export function JobReviewPage({ id }: { id: string }) {
   )
 
   if (job.isPending) return <p className="px-10 py-16 font-mono text-sm text-ink-500">{t('Loading job…')}</p>
+  if (data && data.analysis.sheets.length === 0) return <IntakeJobView job={data} />
   if (job.isError || !data || !sheet)
     return <p className="px-10 py-16 text-sm text-alarm-400">{job.error?.message ?? t('Job not found.')}</p>
 

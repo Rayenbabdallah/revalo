@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { CalendarClock, Download, PackageOpen, Scissors } from 'lucide-react'
+import { CalendarClock, Download, PackageOpen, PackagePlus, Scissors } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'wouter'
@@ -154,6 +154,14 @@ export function StockPage() {
             >
               <Download className="size-4" /> {t('Excel (CSV)')}
             </a>
+          )}
+          {canSell && (
+            <Link
+              href="/stock/add"
+              className="inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-900 px-4 py-2.5 text-[14px] font-medium text-ink-100 hover:border-brand-500"
+            >
+              <PackagePlus className="size-4" /> {t('Add existing pieces')}
+            </Link>
           )}
           <Link
             href="/stock/fit"

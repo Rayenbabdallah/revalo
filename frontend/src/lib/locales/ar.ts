@@ -722,4 +722,31 @@ export const ar: Dictionary = {
   "Send to scrap": "تحويل إلى خردة",
   "On the rack": "على الرف",
   "Reprint label": "إعادة طباعة الملصق",
+
+  // Existing stock intake
+  "Existing stock": "مخزون موجود",
+  "Entered by {name} on {date}": "أدخله {name} في {date}",
+  "{count} piece added to stock.|{count} pieces added to stock.": { one: "أُضيفت قطعة واحدة إلى المخزون.", two: "أُضيفت قطعتان إلى المخزون.", few: "أُضيفت {count} قطع إلى المخزون.", many: "أُضيفت {count} قطعة إلى المخزون.", other: "أُضيفت {count} قطعة إلى المخزون." },
+  "First week": "الأسبوع الأول",
+  "Add what is already on the racks": "أضف ما هو موجود على الرفوف",
+  "Offcuts from before Revalo: type them, or import the list you already keep. Each row is compared with the stock first, so nothing is entered twice.": "البقايا الموجودة قبل Revalo: اكتبها، أو استورد القائمة التي تحتفظ بها. تُقارن كل سطر بالمخزون أولًا، حتى لا يُدخل شيء مرتين.",
+  "Name of this intake": "اسم هذا الإدخال",
+  "Racks A and B": "الرفوف A وB",
+  "Import a CSV list": "استيراد قائمة CSV",
+  "Columns: material, thickness, width, height, quantity, rack": "الأعمدة: المادة، السُمك، العرض، الطول، الكمية، الرف",
+  "Kind": "النوع",
+  "Weight (kg)": "الوزن (kg)",
+  "Quantity": "الكمية",
+  "Rack": "الرف",
+  "Check": "التحقق",
+  "{count} similar in stock": "{count} مشابهة في المخزون",
+  "Add a row": "إضافة سطر",
+  "{count} row looks like pieces already in stock. Check the racks named in the warning before adding.|{count} rows look like pieces already in stock. Check the racks named in the warnings before adding.": { one: "سطر واحد يشبه قطعًا موجودة في المخزون. تحقق من الرفوف المذكورة قبل الإضافة.", two: "سطران يشبهان قطعًا موجودة في المخزون. تحقق من الرفوف المذكورة قبل الإضافة.", few: "{count} أسطر تشبه قطعًا موجودة في المخزون. تحقق من الرفوف المذكورة قبل الإضافة.", many: "{count} سطرًا يشبه قطعًا موجودة في المخزون. تحقق من الرفوف المذكورة قبل الإضافة.", other: "{count} سطر يشبه قطعًا موجودة في المخزون. تحقق من الرفوف المذكورة قبل الإضافة." },
+  "Add {count} piece anyway|Add {count} pieces anyway": { one: "أضف قطعة واحدة على أي حال", two: "أضف قطعتين على أي حال", few: "أضف {count} قطع على أي حال", other: "أضف {count} قطعة على أي حال" },
+  "Add {count} piece to stock|Add {count} pieces to stock": { one: "أضف قطعة واحدة إلى المخزون", two: "أضف قطعتين إلى المخزون", few: "أضف {count} قطع إلى المخزون", many: "أضف {count} قطعة إلى المخزون", other: "أضف {count} قطعة إلى المخزون" },
+  "Check against stock": "قارن بالمخزون",
+  "Add existing pieces": "إضافة قطع موجودة",
+
+  // Intake
+  "Add more pieces": "إضافة قطع أخرى",
 }

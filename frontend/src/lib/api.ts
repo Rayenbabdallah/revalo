@@ -249,7 +249,7 @@ export interface PieceWithHistory extends Piece {
 export interface JobSummary {
   id: string
   file_name: string
-  file_format: 'dxf' | 'gcode' | 'cutlist'
+  file_format: 'dxf' | 'gcode' | 'cutlist' | 'manual'
   material_code: string | null
   thickness_mm: number | null
   process: string | null
@@ -305,6 +305,43 @@ export const repeatRunQuestion = (error: unknown): RepeatRunQuestion | null =>
   error instanceof ApiError && error.status === 409 && (error.detail as RepeatRunQuestion | undefined)?.code === 'repeat_run'
     ? (error.detail as RepeatRunQuestion)
     : null
+
+/* ---------- Existing stock ---------- */
+
+export interface IntakeRow {
+  material: string
+  thickness_mm: number
+  width_mm: number | null
+  height_mm: number | null
+  quantity: number
+  location: string | null
+  kind: 'remnant' | 'scrap'
+  weight_kg: number | null
+}
+
+export interface IntakeCheck {
+  row: number
+  material_code: string
+  similar_in_stock: number
+  similar: { code: string; location: string | null }[]
+}
+
+const intakeBody = (rows: IntakeRow[], name?: string) =>
+  json({
+    name,
+    rows: rows.map((r) => ({
+      ...r,
+      width_mm: r.kind === 'scrap' ? null : r.width_mm,
+      height_mm: r.kind === 'scrap' ? null : r.height_mm,
+      location: r.location || null,
+    })),
+  })
+
+export const checkExistingPieces = (rows: IntakeRow[]) =>
+  request<{ rows: IntakeCheck[] }>('/v1/stock/intake/check', { method: 'POST', ...intakeBody(rows) })
+
+export const addExistingPieces = (rows: IntakeRow[], name?: string) =>
+  request<JobDetail>('/v1/stock/intake', { method: 'POST', ...intakeBody(rows, name) })
 
 export const copyCorrections = (jobId: string) =>
   request<JobDetail & { copied: number }>(`/v1/jobs/${encodeURIComponent(jobId)}/copy-corrections`, { method: 'POST' })

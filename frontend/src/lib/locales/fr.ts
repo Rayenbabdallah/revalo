@@ -601,4 +601,31 @@ export const fr: Dictionary = {
   "Send to scrap": "Envoyer en ferraille",
   "On the rack": "Sur le rack",
   "Reprint label": "Réimprimer l'étiquette",
+
+  // Existing stock intake
+  "Existing stock": "Stock existant",
+  "Entered by {name} on {date}": "Saisi par {name} le {date}",
+  "{count} piece added to stock.|{count} pieces added to stock.": "{count} pièce ajoutée au stock.|{count} pièces ajoutées au stock.",
+  "First week": "Première semaine",
+  "Add what is already on the racks": "Ajoutez ce qui est déjà sur les racks",
+  "Offcuts from before Revalo: type them, or import the list you already keep. Each row is compared with the stock first, so nothing is entered twice.": "Les chutes d'avant Revalo : saisissez-les, ou importez la liste que vous tenez déjà. Chaque ligne est d'abord comparée au stock, pour ne rien saisir deux fois.",
+  "Name of this intake": "Nom de cette saisie",
+  "Racks A and B": "Racks A et B",
+  "Import a CSV list": "Importer une liste CSV",
+  "Columns: material, thickness, width, height, quantity, rack": "Colonnes : matériau, épaisseur, largeur, hauteur, quantité, rack",
+  "Kind": "Type",
+  "Weight (kg)": "Poids (kg)",
+  "Quantity": "Quantité",
+  "Rack": "Rack",
+  "Check": "Vérification",
+  "{count} similar in stock": "{count} semblable(s) en stock",
+  "Add a row": "Ajouter une ligne",
+  "{count} row looks like pieces already in stock. Check the racks named in the warning before adding.|{count} rows look like pieces already in stock. Check the racks named in the warnings before adding.": "{count} ligne ressemble à des pièces déjà en stock. Vérifiez les racks indiqués avant d'ajouter.|{count} lignes ressemblent à des pièces déjà en stock. Vérifiez les racks indiqués avant d'ajouter.",
+  "Add {count} piece anyway|Add {count} pieces anyway": "Ajouter quand même {count} pièce|Ajouter quand même {count} pièces",
+  "Add {count} piece to stock|Add {count} pieces to stock": "Ajouter {count} pièce au stock|Ajouter {count} pièces au stock",
+  "Check against stock": "Comparer au stock",
+  "Add existing pieces": "Ajouter des pièces existantes",
+
+  // Intake
+  "Add more pieces": "Ajouter d'autres pièces",
 }

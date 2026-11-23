@@ -17,6 +17,7 @@ import { PiecePage } from './pages/piece/PiecePage'
 import { ReportPage } from './pages/report/ReportPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { FitPage } from './pages/stock/FitPage'
+import { IntakePage } from './pages/stock/IntakePage'
 import { StockPage } from './pages/stock/StockPage'
 import { UploadPage } from './pages/upload/UploadPage'
 
@@ -43,6 +44,11 @@ function Workspace() {
         <Route path="/analyze" component={AnalyzePage} />
         <Route path="/jobs" component={JobsPage} />
         <Route path="/stock/fit" component={FitPage} />
+        <Route path="/stock/add">
+          <RequireRole min="manager">
+            <IntakePage />
+          </RequireRole>
+        </Route>
         <Route path="/stock" component={StockPage} />
         <Route path="/market">
           <RequireRole min="manager">
