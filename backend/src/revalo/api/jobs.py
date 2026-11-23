@@ -26,6 +26,7 @@ from revalo.services.jobs import (
     likely_answer,
 )
 from revalo.services.machines import apply_machine
+from revalo.services.opportunities import opportunities_for_job
 from revalo.services.pieces import ReviewError, copy_corrections
 from revalo.services.prices import price_book
 from revalo.storage import FileStorage, get_storage
@@ -122,3 +123,12 @@ def copy_last_run(job_id: str, user: ManagerUser, session: DbSession) -> dict[st
     except ReviewError as exc:
         raise HTTPException(409, str(exc)) from exc
     return {**job_detail(job, price_book(session, job.workshop_id)), "copied": changed}
+
+
+@router.get("/{job_id}/opportunities")
+def opportunities(job_id: str, user: ManagerUser, session: DbSession) -> dict[str, Any]:
+    """Planned jobs and waiting buyers that the job's new offcuts already match."""
+    job = session.get(Job, job_id)
+    if job is None:
+        raise HTTPException(404, "Job not found.")
+    return opportunities_for_job(session, job, price_book(session, job.workshop_id))

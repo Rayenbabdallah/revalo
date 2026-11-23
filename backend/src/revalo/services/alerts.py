@@ -25,6 +25,7 @@ from revalo.db.models import (
 )
 from revalo.i18n import num, tr, trn
 from revalo.services.market import matches_for_listing
+from revalo.services.opportunities import planned_alerts
 from revalo.services.pickups import recycle_queue
 from revalo.services.prices import EffectivePrice
 
@@ -112,6 +113,25 @@ def current_alerts(session: Session, book: dict[str, EffectivePrice]) -> list[di
                     kg=num(pickup.estimated_kg, 0),
                 ),
                 "link": "/market?tab=recycling",
+            }
+        )
+
+    for fit in planned_alerts(session):
+        alerts.append(
+            {
+                "kind": "planned",
+                "title": tr(
+                    "{placed} of {total} parts of {name} fit the racks",
+                    placed=fit["placed"],
+                    total=fit["total"],
+                    name=fit["name"],
+                ),
+                "detail": trn(
+                    "Cut them from {count} remnant before opening a new sheet."
+                    "|Cut them from {count} remnants before opening a new sheet.",
+                    len(fit["codes"]),
+                ),
+                "link": f"/stock/fit?planned={fit['id']}",
             }
         )
 

@@ -40,7 +40,7 @@ def new_piece_code() -> str:
 
 
 class Base(DeclarativeBase):
-    type_annotation_map = {dict[str, Any]: JSON}
+    type_annotation_map = {dict[str, Any]: JSON, list[dict[str, Any]]: JSON}
 
 
 class JobStatus(StrEnum):
@@ -367,3 +367,22 @@ class AuthSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User] = relationship()
+
+
+class PlannedJob(Base):
+    """A coming job kept in mind, so new offcuts are checked against its parts."""
+
+    __tablename__ = "planned_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    workshop_id: Mapped[str] = mapped_column(ForeignKey("workshops.id"), index=True)
+    name: Mapped[str] = mapped_column(String(160))
+    material_code: Mapped[str] = mapped_column(String(40))
+    thickness_mm: Mapped[float] = mapped_column(Float)
+    kerf_mm: Mapped[float] = mapped_column(Float)
+    parts: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    """[{label, length, width, rotatable}] as the fit engine reads them."""
+    active: Mapped[bool] = mapped_column(default=True)
+    created_by: Mapped[str] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
