@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { Pencil, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { getMaterials, getPrices, putPrice, resetPrice, type PriceRow } from '../../lib/api'
+import { getCalibration, getMaterials, getPrices, putPrice, resetPrice, type PriceRow } from '../../lib/api'
 import { fmtDate, fmtTnd, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
 
@@ -94,6 +94,7 @@ function Editor({ row, onClose }: { row: PriceRow; onClose: () => void }) {
 export function PricesPage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient()
   const prices = useQuery({ queryKey: ['prices'], queryFn: getPrices })
+  const calibration = useQuery({ queryKey: ['calibration'], queryFn: getCalibration })
   const catalog = useQuery({ queryKey: ['materials'], queryFn: getMaterials, staleTime: Infinity })
   const [editing, setEditing] = useState<string | null>(null)
   const reset = useMutation({
@@ -199,6 +200,31 @@ export function PricesPage({ embedded = false }: { embedded?: boolean }) {
             {editing === row.material_code && <Editor row={row} onClose={() => setEditing(null)} />}
           </div>
         ))}
+      </section>
+
+      <section className="panel mt-6 p-5">
+        <p className="text-[15px] font-semibold text-ink-100">{t('Weight calibration')}</p>
+        <p className="mt-1 max-w-3xl text-[13.5px] text-ink-400">
+          {t('Weights are calculated from area, thickness and density. Each time a piece is weighed, Revalo compares the scale with the calculation; after three weighings of a material, new estimates are corrected.')}
+        </p>
+        {calibration.data && calibration.data.materials.length > 0 ? (
+          <ul className="mt-4 divide-y divide-ink-800">
+            {calibration.data.materials.map((c) => (
+              <li key={c.material_code} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
+                <span className="text-ink-100">{materialLabel(c.material_code)}</span>
+                <span className="readout text-ink-200">
+                  {c.adjust_pct >= 0 ? '+' : ''}
+                  {c.adjust_pct}%
+                  <span className="ms-3 text-[12.5px] text-ink-500">
+                    {t('{count} weighing|{count} weighings', { count: c.weighings })}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-[13.5px] text-ink-500">{t('No material has enough weighings yet.')}</p>
+        )}
       </section>
     </div>
   )

@@ -798,4 +798,10 @@ export const ar: Dictionary = {
   // DXF export
   "Remnants as DXF sheets for the nesting software": "البقايا كصفائح DXF لبرنامج الترتيب",
   "DXF for nesting": "DXF للترتيب",
+
+  // Weight calibration
+  "Weight calibration": "معايرة الأوزان",
+  "Weights are calculated from area, thickness and density. Each time a piece is weighed, Revalo compares the scale with the calculation; after three weighings of a material, new estimates are corrected.": "تُحسب الأوزان من المساحة والسُمك والكثافة. في كل وزن، يقارن Revalo الميزان بالحساب؛ وبعد ثلاث عمليات وزن لمادة ما، تُصحَّح التقديرات الجديدة.",
+  "{count} weighing|{count} weighings": { one: "وزن واحد", two: "وزنان", few: "{count} عمليات وزن", other: "{count} عملية وزن" },
+  "No material has enough weighings yet.": "لا توجد مادة لها عدد كافٍ من عمليات الوزن بعد.",
 }

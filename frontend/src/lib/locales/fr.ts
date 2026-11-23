@@ -677,4 +677,10 @@ export const fr: Dictionary = {
   // DXF export
   "Remnants as DXF sheets for the nesting software": "Chutes en feuilles DXF pour le logiciel d'imbrication",
   "DXF for nesting": "DXF pour l'imbrication",
+
+  // Weight calibration
+  "Weight calibration": "Étalonnage des poids",
+  "Weights are calculated from area, thickness and density. Each time a piece is weighed, Revalo compares the scale with the calculation; after three weighings of a material, new estimates are corrected.": "Les poids sont calculés à partir de la surface, de l'épaisseur et de la densité. À chaque pesée, Revalo compare la balance au calcul ; après trois pesées d'un matériau, les nouvelles estimations sont corrigées.",
+  "{count} weighing|{count} weighings": "{count} pesée|{count} pesées",
+  "No material has enough weighings yet.": "Aucun matériau n'a encore assez de pesées.",
 }

@@ -222,6 +222,7 @@ export interface Piece {
   height_mm: number | null
   area_m2: number
   weight_est_kg: number | null
+  weight_raw_kg: number | null
   weight_actual_kg: number | null
   weight_kg: number | null
   condition_note: string | null
@@ -869,3 +870,14 @@ export const actOnLot = (
   id: string,
   body: { action: LotAction; buyer_request_id?: string; price_tnd?: number; piece_ids?: string[] },
 ) => request<WorkshopLot>(`/v1/lots/${encodeURIComponent(id)}`, { method: 'PATCH', ...json(body) })
+
+/* ---------- Weight calibration ---------- */
+
+export interface Calibration {
+  material_code: string
+  factor: number
+  adjust_pct: number
+  weighings: number
+}
+
+export const getCalibration = () => request<{ materials: Calibration[] }>('/v1/prices/calibration')
