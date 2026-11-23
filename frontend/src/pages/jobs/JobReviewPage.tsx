@@ -1,13 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowLeft, Box, CheckCheck, Printer, Repeat, Scan } from 'lucide-react'
+import { ArrowLeft, Box, CheckCheck, Printer, Repeat, Scan, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'wouter'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import type { ViewMode } from '../../components/viewer/SheetViewer'
-import { approveJob, copyCorrections, getJob, type JobDetail, type SheetAnalysis } from '../../lib/api'
+import {
+  approveJob,
+  copyCorrections,
+  getJob,
+  getOpportunities,
+  type JobDetail,
+  type Opportunities,
+  type SheetAnalysis,
+} from '../../lib/api'
 import { useCan } from '../../lib/auth'
 import { fmtDateTime, fmtKg, fmtTnd, formatLabel, materialLabel, processLabel } from '../../lib/format'
 import { PieceCard } from './PieceCard'
@@ -28,6 +36,13 @@ function sheetWithRecords(job: JobDetail, index: number, run: number): SheetAnal
         : r
     }),
   }
+}
+
+/** One line per buyer, with the offcuts they would take. */
+function byBuyer(wanted: Opportunities['buyers']): [string, string[]][] {
+  const groups = new Map<string, string[]>()
+  for (const w of wanted) for (const b of w.buyers) groups.set(b.name, [...(groups.get(b.name) ?? []), w.code])
+  return [...groups.entries()].sort((a, b) => b[1].length - a[1].length)
 }
 
 /** Pieces entered from the racks: no drawing, just the list and its labels. */
@@ -79,6 +94,13 @@ export function JobReviewPage({ id }: { id: string }) {
   const [run, setRun] = useState(0)
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const [mode, setMode] = useState<ViewMode>('3d')
+
+  const approvedNow = job.data?.status === 'approved'
+  const wanted = useQuery({
+    queryKey: ['opportunities', id],
+    queryFn: () => getOpportunities(id),
+    enabled: approvedNow && canApprove && (job.data?.analysis.sheets.length ?? 0) > 0,
+  })
 
   const copy = useMutation({
     mutationFn: () => copyCorrections(id),
@@ -205,6 +227,33 @@ export function JobReviewPage({ id }: { id: string }) {
         </section>
 
         <div className="flex flex-col gap-3 lg:col-span-5">
+          {wanted.data && (wanted.data.planned.length > 0 || wanted.data.buyers.length > 0) && (
+            <div className="rounded-xl border border-reclaim-400/50 bg-reclaim-400/[0.08] px-4 py-3 text-[13.5px] text-ink-200">
+              <p className="flex items-center gap-2 font-semibold text-ink-50">
+                <Sparkles className="size-4 text-reclaim-600" /> {t('Already wanted')}
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {wanted.data.planned.map((pj) => (
+                  <li key={pj.id}>
+                    <Link href={`/stock/fit?planned=${pj.id}`} className="text-brand-500 hover:underline">
+                      {t('{placed} of {total} parts of {name} fit these offcuts', { placed: pj.placed, total: pj.total, name: pj.name })}
+                    </Link>
+                  </li>
+                ))}
+                {byBuyer(wanted.data.buyers).map(([name, codes]) => (
+                  <li key={name}>
+                    {t('{name}: {count} of these offcuts matches|{name}: {count} of these offcuts match', { name, count: codes.length })}{' '}
+                    {codes.slice(0, 3).map((code) => (
+                      <Link key={code} href={`/p/${code}`} className="readout me-1.5 text-brand-500 hover:underline">
+                        {code}
+                      </Link>
+                    ))}
+                    {codes.length > 3 && <span className="text-ink-500">…</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {data.repeat_of_id && (
             <div className="rounded-xl border border-brand-500/40 bg-brand-500/[0.06] px-4 py-3 text-[13.5px] text-ink-200">
               <p className="flex items-center gap-2 font-semibold text-ink-50">

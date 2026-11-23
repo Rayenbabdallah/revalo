@@ -626,6 +626,45 @@ export function checkFit(input: {
   return request<FitPlan>('/v1/stock/fit', { method: 'POST', body: form })
 }
 
+/* ---------- Planned jobs and opportunities ---------- */
+
+export interface PlannedJob {
+  id: string
+  name: string
+  material_code: string
+  thickness_mm: number
+  part_count: number
+  created_by: string
+  created_at: string
+  fits_in_stock: number
+}
+
+export const getPlannedJobs = () => request<{ planned: PlannedJob[] }>('/v1/planned-jobs')
+
+export function keepPlannedJob(input: Parameters<typeof checkFit>[0] & { name: string }): Promise<PlannedJob> {
+  const form = new FormData()
+  form.append('name', input.name)
+  if (input.file) form.append('file', input.file)
+  if (input.material) form.append('material', input.material)
+  if (input.thickness_mm) form.append('thickness_mm', String(input.thickness_mm))
+  if (input.parts?.length) form.append('parts', JSON.stringify(input.parts))
+  return request<PlannedJob>('/v1/planned-jobs', { method: 'POST', body: form })
+}
+
+export const checkPlannedJob = (id: string) =>
+  request<FitPlan & { planned: PlannedJob }>(`/v1/planned-jobs/${encodeURIComponent(id)}/check`, { method: 'POST' })
+
+export const closePlannedJob = (id: string) =>
+  request<void>(`/v1/planned-jobs/${encodeURIComponent(id)}`, { method: 'DELETE' })
+
+export interface Opportunities {
+  planned: { id: string; name: string; placed: number; total: number; codes: string[] }[]
+  buyers: { piece_id: string; code: string; buyers: { id: string; name: string; score: number }[] }[]
+}
+
+export const getOpportunities = (jobId: string) =>
+  request<Opportunities>(`/v1/jobs/${encodeURIComponent(jobId)}/opportunities`)
+
 export const reuseRemnants = (pieceIds: string[], jobName: string) =>
   request<{ pieces: Piece[] }>('/v1/stock/fit/reuse', {
     method: 'POST',

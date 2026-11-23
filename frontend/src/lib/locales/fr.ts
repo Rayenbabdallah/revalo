@@ -628,4 +628,18 @@ export const fr: Dictionary = {
 
   // Intake
   "Add more pieces": "Ajouter d'autres pièces",
+
+  // Planned jobs and matching
+  "Already wanted": "Déjà demandé",
+  "{placed} of {total} parts of {name} fit these offcuts": "{placed} des {total} pièces de {name} tiennent sur ces chutes",
+  "{name}: {count} of these offcuts matches|{name}: {count} of these offcuts match": "{name} : {count} de ces chutes correspond|{name} : {count} de ces chutes correspondent",
+  "Planned jobs": "Travaux prévus",
+  "{count} fit the racks now": "{count} tiennent sur les racks maintenant",
+  "Check now": "Vérifier",
+  "Done": "Terminé",
+  "Not cutting it today? Keep it in mind: every new offcut will be checked against its parts.": "Pas pour aujourd'hui ? Gardez-le en tête : chaque nouvelle chute sera comparée à ses pièces.",
+  "Kept in mind": "Gardé en tête",
+  "Keep this job in mind": "Garder ce travail en tête",
+  "{count} remnant taken out of stock for this job.|{count} remnants taken out of stock for this job.": "{count} chute sortie du stock pour ce travail.|{count} chutes sorties du stock pour ce travail.",
+  "Use this remnant|Use these {count} remnants": "Utiliser cette chute|Utiliser ces {count} chutes",
 }

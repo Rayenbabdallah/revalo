@@ -749,4 +749,18 @@ export const ar: Dictionary = {
 
   // Intake
   "Add more pieces": "إضافة قطع أخرى",
+
+  // Planned jobs and matching
+  "Already wanted": "مطلوبة مسبقًا",
+  "{placed} of {total} parts of {name} fit these offcuts": "{placed} من {total} قطعة من {name} تتّسع لها هذه البقايا",
+  "{name}: {count} of these offcuts matches|{name}: {count} of these offcuts match": { one: "{name}: بقية واحدة من هذه تناسبه", two: "{name}: بقيّتان من هذه تناسبانه", few: "{name}: {count} بقايا من هذه تناسبه", other: "{name}: {count} بقية من هذه تناسبه" },
+  "Planned jobs": "الأعمال المخططة",
+  "{count} fit the racks now": "{count} تتّسع لها الرفوف الآن",
+  "Check now": "تحقّق الآن",
+  "Done": "تم",
+  "Not cutting it today? Keep it in mind: every new offcut will be checked against its parts.": "لن تقطعه اليوم؟ احتفظ به: كل بقية جديدة ستُقارن بقطعه.",
+  "Kept in mind": "محفوظ",
+  "Keep this job in mind": "احتفظ بهذا العمل",
+  "{count} remnant taken out of stock for this job.|{count} remnants taken out of stock for this job.": { one: "أُخرجت بقية واحدة من المخزون لهذا العمل.", two: "أُخرجت بقيّتان من المخزون لهذا العمل.", few: "أُخرجت {count} بقايا من المخزون لهذا العمل.", other: "أُخرجت {count} بقية من المخزون لهذا العمل." },
+  "Use this remnant|Use these {count} remnants": { one: "استعمل هذه البقية", two: "استعمل هاتين البقيّتين", few: "استعمل هذه البقايا الـ{count}", other: "استعمل هذه البقايا الـ{count}" },
 }

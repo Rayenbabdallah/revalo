@@ -1,10 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CheckCircle2, FileUp, Plus, Scissors, Trash2 } from 'lucide-react'
+import { ArrowLeft, Bookmark, CheckCircle2, FileUp, Plus, Scissors, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useRef, useState } from 'react'
-import { Link } from 'wouter'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearch } from 'wouter'
 
-import { checkFit, getMaterials, reuseRemnants, type FitPlan, type FitUse } from '../../lib/api'
+import {
+  checkFit,
+  checkPlannedJob,
+  closePlannedJob,
+  getMaterials,
+  getPlannedJobs,
+  keepPlannedJob,
+  reuseRemnants,
+  type FitPlan,
+  type FitUse,
+} from '../../lib/api'
+import { useCan } from '../../lib/auth'
 import { fmtKg, fmtMm, fmtTnd, materialLabel } from '../../lib/format'
 import { t } from '../../lib/i18n'
 
@@ -47,18 +58,43 @@ export function FitPage() {
   const [thickness, setThickness] = useState('')
   const [rows, setRows] = useState<Row[]>([])
   const [jobName, setJobName] = useState('')
+  const canPlan = useCan('manager')
+  const plannedFromLink = new URLSearchParams(useSearch()).get('planned')
+  const planned = useQuery({ queryKey: ['planned'], queryFn: getPlannedJobs, enabled: canPlan })
 
-  const run = useMutation({
-    mutationFn: () =>
-      checkFit({
-        file: file ?? undefined,
-        material: material || undefined,
-        thickness_mm: thickness ? Number(thickness.replace(',', '.')) : undefined,
-        parts: rows
-          .filter((r) => r.length && r.width)
-          .map((r) => ({ length: Number(r.length), width: Number(r.width), qty: Number(r.qty || 1) })),
-      }),
+  const inputs = () => ({
+    file: file ?? undefined,
+    material: material || undefined,
+    thickness_mm: thickness ? Number(thickness.replace(',', '.')) : undefined,
+    parts: rows
+      .filter((r) => r.length && r.width)
+      .map((r) => ({ length: Number(r.length), width: Number(r.width), qty: Number(r.qty || 1) })),
   })
+  const run = useMutation({ mutationFn: () => checkFit(inputs()) })
+  const runPlanned = useMutation({
+    mutationFn: (id: string) => checkPlannedJob(id),
+    onSuccess: (result) => {
+      run.reset()
+      setJobName(result.planned.name)
+    },
+  })
+  const keep = useMutation({
+    mutationFn: () => keepPlannedJob({ ...inputs(), name: jobName.trim() || file?.name || t('Next job') }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['planned'] }),
+  })
+  const close = useMutation({
+    mutationFn: (id: string) => closePlannedJob(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planned'] })
+      queryClient.invalidateQueries({ queryKey: ['alerts'] })
+    },
+  })
+
+  // Opened from an alert: show that planned job's plan straight away.
+  const { mutate: openPlanned } = runPlanned
+  useEffect(() => {
+    if (plannedFromLink) openPlanned(plannedFromLink)
+  }, [plannedFromLink, openPlanned])
   const reuse = useMutation({
     mutationFn: (plan: FitPlan) =>
       reuseRemnants(
@@ -69,7 +105,7 @@ export function FitPage() {
       for (const key of ['stock', 'listings', 'job', 'jobs']) queryClient.invalidateQueries({ queryKey: [key] })
     },
   })
-  const plan = run.data
+  const plan: FitPlan | undefined = run.data ?? runPlanned.data
 
   return (
     <div className="mx-auto max-w-[1180px] px-4 py-8 md:px-10 md:py-12">
@@ -81,6 +117,43 @@ export function FitPage() {
       <p className="mt-2 max-w-2xl text-[15px] text-ink-400">
         {t('Give Revalo the next job. It places the parts on remnants you already have, so you open a new sheet only for what does not fit.')}
       </p>
+
+      {canPlan && (planned.data?.planned.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <p className="eyebrow">{t('Planned jobs')}</p>
+          <div className="mt-3 grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {planned.data!.planned.map((pj) => (
+              <div key={pj.id} className="panel flex items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-ink-50">{pj.name}</p>
+                  <p className="text-[12.5px] text-ink-400">
+                    {materialLabel(pj.material_code)} {pj.thickness_mm} mm · {t('{count} part|{count} parts', { count: pj.part_count })}
+                  </p>
+                  <p className={pj.fits_in_stock ? 'text-[12.5px] font-medium text-reclaim-300' : 'text-[12.5px] text-ink-500'}>
+                    {t('{count} fit the racks now', { count: pj.fits_in_stock })}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => runPlanned.mutate(pj.id)}
+                    className="rounded-lg bg-brand-500 px-3 py-1.5 text-[12.5px] font-semibold text-ink-950 hover:bg-brand-400"
+                  >
+                    {t('Check now')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => close.mutate(pj.id)}
+                    className="rounded-lg border border-ink-700 px-3 py-1.5 text-[12.5px] text-ink-300 hover:border-ink-500"
+                  >
+                    {t('Done')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="mt-8 grid gap-5 lg:grid-cols-[380px_1fr]">
         <section className="panel h-fit space-y-4 p-5">
@@ -153,7 +226,33 @@ export function FitPage() {
           >
             <Scissors className="size-4" /> {run.isPending ? t('Checking the racks…') : t('Check the stock')}
           </button>
-          {run.isError && <p className="text-[13px] text-alarm-400">{run.error.message}</p>}
+          {(run.isError || runPlanned.isError) && (
+            <p className="text-[13px] text-alarm-400">{(run.error ?? runPlanned.error)?.message}</p>
+          )}
+          {canPlan && !runPlanned.data && (file || rows.length > 0) && (
+            <div className="border-t border-ink-800 pt-4">
+              <p className="text-[12.5px] text-ink-400">
+                {t('Not cutting it today? Keep it in mind: every new offcut will be checked against its parts.')}
+              </p>
+              <input
+                value={jobName}
+                onChange={(e) => setJobName(e.target.value)}
+                placeholder={t('Job or order name')}
+                aria-label={t('Job or order name')}
+                className={`${field} mt-2`}
+              />
+              <button
+                type="button"
+                disabled={keep.isPending || keep.isSuccess}
+                onClick={() => keep.mutate()}
+                className="mt-2 inline-flex items-center gap-2 rounded-xl border border-ink-700 px-4 py-2 text-[13.5px] font-medium text-ink-100 hover:border-brand-500 disabled:opacity-60"
+              >
+                <Bookmark className="size-4 text-brand-500" />
+                {keep.isSuccess ? t('Kept in mind') : t('Keep this job in mind')}
+              </button>
+              {keep.isError && <p className="mt-2 text-[13px] text-alarm-400">{keep.error.message}</p>}
+            </div>
+          )}
         </section>
 
         <section>
@@ -201,8 +300,8 @@ export function FitPage() {
               {plan.uses.length > 0 &&
                 (reuse.isSuccess ? (
                   <div className="panel flex items-center gap-3 p-5 text-[14.5px] text-ink-100">
-                    <CheckCircle2 className="size-6 text-reclaim-600" /> {reuse.data.pieces.length} remnant
-                    {reuse.data.pieces.length === 1 ? '' : 's'} taken out of stock for this job.
+                    <CheckCircle2 className="size-6 text-reclaim-600" />{' '}
+                    {t('{count} remnant taken out of stock for this job.|{count} remnants taken out of stock for this job.', { count: reuse.data.pieces.length })}
                   </div>
                 ) : (
                   <div className="panel flex flex-wrap items-end gap-3 p-5">
@@ -216,7 +315,7 @@ export function FitPage() {
                       disabled={reuse.isPending}
                       className="rounded-xl bg-reclaim-400 px-5 py-2.5 text-[14px] font-semibold text-ink-50 hover:bg-reclaim-500 disabled:opacity-60"
                     >
-                      Use these {plan.uses.length} remnants
+                      {t('Use this remnant|Use these {count} remnants', { count: plan.uses.length })}
                     </button>
                     {reuse.isError && <p className="w-full text-[13px] text-alarm-400">{reuse.error.message}</p>}
                   </div>
