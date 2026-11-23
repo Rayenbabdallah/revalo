@@ -51,7 +51,12 @@ def monthly_report(
     def in_month(moment: datetime | None) -> bool:
         return moment is not None and start <= _aware(moment) < end
 
-    jobs = [j for j in session.scalars(select(Job)) if in_month(j.created_at)]
+    # Pieces entered from the racks (no cut file) are not this month's production.
+    jobs = [
+        j
+        for j in session.scalars(select(Job))
+        if in_month(j.created_at) and j.file_format != "manual"
+    ]
     pieces_from_jobs = [p for j in jobs for p in j.pieces if p.status != "rejected"]
     remnant_kg = sum(p.weight_kg or 0 for p in pieces_from_jobs if p.kind == "remnant")
     scrap_kg = sum(p.weight_kg or 0 for p in pieces_from_jobs if p.kind == "scrap")
